@@ -310,7 +310,7 @@ async function openImageAttachHelper(targetInputId){
       await uploadAndInsertImgurImage(targetInputId, clientId);
       return;
     }catch(error){
-      imageAttachToast(error?.message || '이미지 업로드에 실패했습니다', 'err');
+      imageAttachToast('이미지 서비스에 업로드가 불가합니다. 사내에서 imgur 차단 여부를 확인해주세요', 'err');
     }
   }
   const msg='확인을 누르면 이미지 업로드 사이트(Imgur)로 이동합니다.\n이미지를 올리고 링크를 복사해서 붙여 넣어주세요.';
