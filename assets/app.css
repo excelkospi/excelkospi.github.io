@@ -2030,6 +2030,18 @@ body.quote-row-drag-active{cursor:grabbing}
 tr:hover .row-holding{opacity:.65}
 .row-holding:hover{opacity:1;background:#eaf4ef;color:var(--excel-dark)}
 .row-holding.fv-force-visible{opacity:1;background:#eaf4ef;color:var(--excel-dark)}
+#cardsTable .quote-action-trail .row-actions.fv-force-visible .row-holding{
+  opacity:1;
+  width:24px;
+  height:18px;
+  border:1px solid #8cc9a1;
+  border-radius:999px;
+  background:#fff;
+  color:var(--excel-dark);
+  font-size:12px;
+  font-weight:800;
+  box-shadow:0 1px 4px rgba(16,124,65,.16);
+}
 .change-wrap{display:inline-flex;align-items:center;justify-content:flex-end;gap:5px;white-space:nowrap}
 #cardsTable tr.holding-lot-row td{
   background-color:#f6faf7;
