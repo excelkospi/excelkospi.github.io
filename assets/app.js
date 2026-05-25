@@ -6896,9 +6896,8 @@ function setupChatUi(){
   });
   initChatLastSeenAt();
   const isMobile=matchMedia('(max-width: 760px)').matches;
-  const isNarrowSheet=matchMedia('(max-width: 1099px)').matches;
   const chatButtonHidden=!!floatingHiddenFor('chat');
-  if(!isMobile && !isNarrowSheet && !chatButtonHidden){
+  if(!isMobile && !chatButtonHidden){
     setTimeout(()=>{
       setChatOpen(true, {connect:true, persist:false});
     }, 900);
