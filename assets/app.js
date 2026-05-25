@@ -4751,7 +4751,7 @@ function renderAccumulatedNews(){
   enableCellSelection();
 }
 
-function renderSnapshotNewsFallback(reason='뉴스를 불러오는 동안 실시간 시장 요약을 먼저 표시합니다'){
+function renderSnapshotNewsFallback(reason='뉴스 불러오는 중'){
   if(timelineIsEtf()){
     renderEtfBrowser();
     if(!etfHasRows()) loadEtfData();
@@ -4761,7 +4761,7 @@ function renderSnapshotNewsFallback(reason='뉴스를 불러오는 동안 실시
     renderCommunityPlaceholder();
     return true;
   }
-  renderNewsLoadingProgress(0, { message: reason, hint: '시세 요약 대신 뉴스 표를 비워두고 기다립니다.' });
+  renderNewsLoadingProgress(0, { message: reason });
   updateNewsHint();
   return true;
 }
