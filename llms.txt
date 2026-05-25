@@ -1,0 +1,38 @@
+# excelkospi
+
+> excelkospi is a Korean web app for checking stock, ETF, crypto, news, and community discussion while the page visually resembles a spreadsheet or office document.
+
+## Canonical pages
+
+- Home: https://excelkospi.pages.dev/
+- Guide: https://excelkospi.pages.dev/guide
+- Sitemap: https://excelkospi.pages.dev/sitemap.xml
+
+## What users can do
+
+- View Korean market, US market, and crypto prices in a spreadsheet-style dashboard.
+- Switch between daily, 15-minute, and 30-minute movement views.
+- Check pre-market and after-hours status where available.
+- Read market news and community discussions in Korean.
+- Browse Korean-listed ETFs with search, quick filters, and top holdings.
+- Open TradingView charts for supported US stocks and crypto.
+- Add custom watchlist rows, blank note rows, holdings, quantities, and average prices.
+- Share a watchlist backup URL across desktop and mobile devices.
+- Use a discreet office-style mode, including spreadsheet and Outlook-like layouts.
+
+## Important Korean search phrases
+
+- 엑셀 보는 척 주식 보기
+- 회사에서 주식 보기
+- 실시간 국장 미장 시세
+- 코스피 코스닥 나스닥 비트코인 김프
+- 주식 뉴스 종목토론방
+- ETF 둘러보기
+- TradingView 차트
+- 평단가 보유 손익 계산
+
+## Notes
+
+- Primary language: Korean (ko-KR).
+- The service is not affiliated with Microsoft, Excel, Outlook, TradingView, or any exchange.
+- Contact: excelkospi@outlook.com

@@ -1,0 +1,69 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+
+/og.png
+  Cache-Control: public, max-age=3600
+
+/assets/app.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/app.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/app-config.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/community-ui.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/keep-awake.mp4
+  Cache-Control: public, max-age=86400
+
+/patch-notes.md
+  Cache-Control: public, max-age=60
+
+/manifest.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/sw.js
+  Content-Type: application/javascript; charset=utf-8
+  Cache-Control: no-cache
+
+/assets/icon-192.png
+  Cache-Control: public, max-age=86400
+
+/assets/icon-512.png
+  Cache-Control: public, max-age=86400
+
+/assets/maskable-192.png
+  Cache-Control: public, max-age=86400
+
+/assets/maskable-512.png
+  Cache-Control: public, max-age=86400
+
+/assets/apple-touch-icon.png
+  Cache-Control: public, max-age=86400
+
+/assets/excelkospi-logo.png
+  Cache-Control: public, max-age=86400
+
+/favicon.ico
+  Content-Type: image/x-icon
+  Cache-Control: public, max-age=86400
+
+/assets/favicon.svg
+  Cache-Control: public, max-age=86400
+
+/assets/favicon-32.png
+  Cache-Control: public, max-age=86400
+
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8

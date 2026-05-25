@@ -1,0 +1,1692 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#107c41">
+  <title>관리자 · excelkospi</title>
+  <style>
+    :root{
+      color-scheme:light;
+      --green:#107c41;
+      --green-soft:#e6f4ec;
+      --line:#e2e7ec;
+      --line-strong:#cdd5dc;
+      --bg:#f4f6f8;
+      --card:#ffffff;
+      --text:#1f2329;
+      --muted:#6a7480;
+      --muted-strong:#454d57;
+      --danger:#c53030;
+      --danger-soft:#fff1f1;
+      --warn:#9a6b00;
+      --warn-soft:#fff7e3;
+      --shadow:0 6px 18px rgba(15,23,42,.06);
+      --radius:10px;
+      --radius-sm:6px;
+    }
+    *{box-sizing:border-box}
+    [hidden]{display:none!important}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+    a{color:#0563c1;text-decoration:none}
+    a:hover{text-decoration:underline}
+    button{font:inherit}
+    input,select,textarea{font:inherit;color:inherit}
+    /* === Top bar === */
+    .topbar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 1px 0 rgba(15,23,42,.03)}
+    .topbar-inner{max-width:1200px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--green);font-size:15px}
+    .brand-dot{width:8px;height:8px;border-radius:2px;background:var(--green)}
+    .brand small{color:var(--muted);font-weight:600;font-size:12px}
+    .top-spacer{flex:1}
+    .top-actions{display:flex;align-items:center;gap:8px}
+    .badge{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;background:#f7f9fb;color:var(--muted-strong);border:1px solid var(--line);font-size:12px;font-weight:700;white-space:nowrap}
+    .badge.ok{color:var(--green);background:var(--green-soft);border-color:#cce5d7}
+    .badge.bad{color:var(--danger);background:var(--danger-soft);border-color:#f0c4c4}
+    .home-link{color:var(--muted);font-size:13px}
+    /* === Layout === */
+    main{max-width:1200px;margin:0 auto;padding:14px 16px 56px}
+    section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-top:12px;box-shadow:var(--shadow)}
+    section h2{margin:0 0 10px;font-size:16px;display:flex;align-items:center;gap:8px;font-weight:700}
+    section h2 .hint{color:var(--muted);font-size:12px;font-weight:500}
+    section p.lead{margin:0 0 10px;color:var(--muted);font-size:13px;line-height:1.5}
+    .hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+    /* === Login === */
+    .login-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:end}
+    .login-row label{font-size:12px;color:var(--muted-strong);font-weight:700;display:block;margin-bottom:5px}
+    .login-row input{width:100%;height:36px;padding:0 11px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:#fff}
+    .login-row input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(16,124,65,.12)}
+    .login-meta{margin-top:8px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:12px}
+    .login-meta label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+    .login-meta input{accent-color:var(--green)}
+    .ghost-link{background:none;border:0;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;padding:0}
+    .ghost-link:hover{color:var(--text)}
+    .status{min-height:18px;margin-top:8px;color:var(--muted);font-size:12.5px}
+    .status.bad{color:var(--danger)}
+    .locked-note{margin-top:8px;padding:10px 12px;border:1px dashed var(--line-strong);border-radius:var(--radius-sm);background:#f8fafb;color:var(--muted);font-size:12.5px;line-height:1.5}
+    body:not(.auth-locked) .locked-note{display:none}
+    body.auth-locked .admin-protected{display:none!important}
+    /* === Buttons === */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:34px;padding:0 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:#fff;color:var(--text);font-weight:600;cursor:pointer;white-space:nowrap;transition:background-color .12s,border-color .12s,color .12s,transform .06s}
+    .btn:hover{background:#f5f7f9;border-color:#b5bec7}
+    .btn:active{transform:translateY(0.5px)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+    .btn.primary:hover{background:#0d6b39;border-color:#0d6b39}
+    .btn.danger{color:var(--danger);border-color:#f0c4c4;background:#fff}
+    .btn.danger:hover{background:var(--danger-soft);border-color:#e69a9a}
+    .btn.danger-solid{background:var(--danger);border-color:var(--danger);color:#fff}
+    .btn.danger-solid:hover{background:#9b2424;border-color:#9b2424}
+    .btn.sm{height:28px;padding:0 9px;font-size:12px;font-weight:600}
+    .btn.icon{padding:0;width:28px;height:28px}
+    /* === Tabs === */
+    .tabbar{display:flex;gap:2px;background:#fff;padding:6px;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .tabbar::-webkit-scrollbar{display:none}
+    .tabbar button{flex:1 1 auto;min-width:max-content;height:36px;padding:0 14px;border:0;background:transparent;color:var(--muted-strong);font-weight:700;font-size:13px;border-radius:var(--radius-sm);cursor:pointer;transition:background-color .12s,color .12s;white-space:nowrap}
+    .tabbar button:hover{background:#f3f5f7;color:var(--text)}
+    .tabbar button.active{background:var(--green-soft);color:var(--green)}
+    .tabbar button .tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:rgba(15,23,42,.06);color:var(--muted-strong);font-size:11px;font-weight:700}
+    .tabbar button.active .tab-count{background:rgba(16,124,65,.18);color:var(--green)}
+    .panel{display:none}
+    .panel.active{display:block}
+    /* === Forms === */
+    .form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px}
+    .field{min-width:0;display:flex;flex-direction:column}
+    .field.col-2{grid-column:span 2}
+    .field.col-3{grid-column:span 3}
+    .field.col-4{grid-column:1 / -1}
+    .field label{margin:0 0 5px;font-size:12px;font-weight:700;color:var(--muted-strong)}
+    .field input,.field select,.field textarea{width:100%;height:34px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:#fff;outline:none}
+    .field textarea{padding:8px 10px;min-height:38px;resize:vertical;line-height:1.45}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,124,65,.12)}
+    .field .help{margin:5px 0 0;color:var(--muted);font-size:11.5px;line-height:1.4}
+    .field-check{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fafbfc;cursor:pointer;font-size:12.5px;color:var(--muted-strong);font-weight:600}
+    .field-check input{width:15px;height:15px;margin:0;accent-color:var(--green)}
+    .field-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;align-items:center}
+    .inline-status{color:var(--muted);font-size:12px}
+    .inline-status.ok{color:var(--green)}
+    .inline-status.bad{color:var(--danger)}
+    .subsection-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:12px 0 8px}
+    .subsection-head h3{margin:0;font-size:14px;font-weight:800;color:var(--text)}
+    .subsection-head .hint{color:var(--muted);font-size:12px;font-weight:500}
+    .ad-linked-report{padding-top:2px}
+    /* === Tables === */
+    .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;max-width:100%}
+    table{width:100%;border-collapse:collapse;table-layout:fixed}
+    th,td{padding:9px 10px;border-bottom:1px solid #eef1f4;text-align:left;vertical-align:top;font-size:12.5px;overflow:hidden}
+    th{position:sticky;top:0;background:#f7f9fb;color:var(--muted-strong);font-weight:700;font-size:11.5px;letter-spacing:.02em;text-transform:uppercase;z-index:1}
+    tbody tr:hover{background:#fafcfd}
+    tr.deleted,tr.hidden,tr.expired{opacity:.6;background:#fafafa}
+    tr.expired:hover{background:#f6f6f6}
+    code{font-family:ui-monospace,Menlo,Consolas,monospace;color:#46535f;font-size:11.5px;background:#f3f5f7;padding:1px 5px;border-radius:3px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+    .actions{display:flex;flex-wrap:wrap;gap:5px}
+    .pill{display:inline-flex;align-items:center;height:20px;padding:0 7px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:#fff;font-size:11px;font-weight:600;white-space:nowrap}
+    .pill.ok{color:var(--green);background:var(--green-soft);border-color:#bfe1cd}
+    .pill.bad{color:var(--danger);background:var(--danger-soft);border-color:#f0c4c4}
+    .pill.warn{color:var(--warn);background:var(--warn-soft);border-color:#e8d39a}
+    .body-cell{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+    .ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .ellipsis-link{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+
+    /* === Card grid for ads === */
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
+    .ad-card{display:flex;flex-direction:column;gap:8px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;position:relative;transition:border-color .12s,box-shadow .12s}
+    .ad-card:hover{border-color:#cdd5dc;box-shadow:0 4px 14px rgba(15,23,42,.05)}
+    .ad-card.is-inactive{background:#fafbfc;opacity:.72}
+    .ad-card.is-editing{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,124,65,.12)}
+    .ad-card-head{display:flex;align-items:center;gap:8px;min-width:0;min-height:24px}
+    .ad-card-id{flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#46535f;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .ad-card-badges{display:flex;gap:5px;flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end;min-width:0}
+    .ad-card-body{font-size:12.5px;line-height:1.45;color:var(--text);white-space:pre-wrap;word-break:break-word;display:flex;flex-direction:column;gap:3px}
+    .ad-card-body .ad-text-line{padding:5px 8px;background:#fafbfc;border:1px solid #eef1f4;border-radius:5px}
+    .ad-card-link{font-size:12px;color:#0563c1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px}
+    .ad-card-link::before{content:"↗";color:var(--muted);flex:0 0 auto}
+    .ad-card-meta{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding-top:7px;border-top:1px dashed var(--line)}
+    .ad-card-meta-item{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted-strong)}
+    .ad-card-meta-item .meta-label{color:var(--muted);font-weight:600}
+    .ad-card-weight-input{width:64px;height:26px;padding:0 6px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);font:inherit;font-size:12px;text-align:right}
+    .ad-card-weight-input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 2px rgba(16,124,65,.15)}
+    .ad-card-share{color:var(--green);font-weight:700;font-variant-numeric:tabular-nums}
+    .ad-card-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+    .ad-card-actions .btn{flex:1 1 auto;min-width:60px}
+    .ad-card-actions .btn.icon-only{flex:0 0 auto;min-width:32px}
+    .ad-empty{grid-column:1 / -1;text-align:center;color:var(--muted);padding:28px 12px;border:1px dashed var(--line);border-radius:var(--radius);background:#fafbfc;font-size:13px}
+    .token-result{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin:12px 0;padding:10px;border:1px solid #bfe1cd;border-radius:var(--radius-sm);background:#f7fcf9}
+    .token-result[hidden]{display:none}
+    .token-result label{display:block;margin:0 0 5px;font-size:12px;font-weight:700;color:var(--green)}
+    .token-result input{width:100%;height:34px;border:1px solid #bfe1cd;border-radius:var(--radius-sm);padding:0 9px;background:#fff;font:12px/1.2 ui-monospace,Menlo,Consolas,monospace;color:#254236}
+    .token-note{margin:7px 0 0;color:#456154;font-size:12px;line-height:1.45}
+    .report-card-token{margin:2px 0;box-shadow:none}
+    .report-legend{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 10px;color:var(--muted);font-size:11.5px}
+    .report-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
+    .report-card{display:flex;flex-direction:column;gap:8px;min-width:0;border:1px solid var(--line);border-radius:var(--radius);background:#fff;padding:12px 14px}
+    .report-card.is-inactive{opacity:.72;background:#fafbfc}
+    .report-card.is-editing{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,124,65,.12)}
+    .report-card-head{display:flex;gap:8px;align-items:flex-start;min-width:0}
+    .report-card-id{flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#46535f;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .report-card-status{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+    .report-card-title{font-size:13px;font-weight:800;color:var(--text);line-height:1.35}
+    .report-card-meta{display:flex;flex-wrap:wrap;gap:6px;color:var(--muted);font-size:11.5px}
+    .report-card-meta code{max-width:210px}
+    .report-card-facts{display:grid;gap:5px;padding:8px 0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}
+    .report-fact{display:flex;gap:8px;min-width:0;font-size:12px;line-height:1.35}
+    .report-fact .k{flex:0 0 74px;color:var(--muted);font-weight:700}
+    .report-fact .v{min-width:0;color:var(--muted-strong);overflow:hidden;text-overflow:ellipsis}
+    .report-card-note{padding:7px 8px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fafbfc;color:var(--muted-strong);font-size:12px;line-height:1.45}
+    .report-card-note.warn{color:var(--warn);background:var(--warn-soft);border-color:#e8d39a}
+    .report-card-note.ok{color:var(--green);background:var(--green-soft);border-color:#bfe1cd}
+    .report-card-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+    .report-card-actions .btn{flex:1 1 auto;min-width:70px}
+    /* === Stat strip === */
+    .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
+    .stat-tile{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;text-align:left;transition:border-color .12s,background-color .12s}
+    .stat-tile:hover{border-color:#bfe1cd;background:#fafdfb}
+    .stat-tile .stat-num{font-size:20px;font-weight:800;color:var(--green);line-height:1.1}
+    .stat-tile .stat-label{margin-top:3px;color:var(--muted-strong);font-size:12px;font-weight:600}
+    /* === Blocked-terms specific === */
+    .term-input-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+    .term-input-row input{flex:1 1 240px;min-width:200px;height:34px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm)}
+    .term-input-row input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(16,124,65,.12)}
+    .term-chips{display:flex;flex-wrap:wrap;gap:5px;padding:8px;border:1px dashed var(--line);border-radius:var(--radius-sm);min-height:42px;background:#fcfdfe}
+    .term-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 6px 0 9px;background:#fff;border:1px solid var(--line-strong);border-radius:999px;font-size:12px;color:var(--text)}
+    .term-chip button{border:0;background:transparent;color:var(--muted);font-weight:700;cursor:pointer;height:18px;width:18px;border-radius:50%;font-size:13px;line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center}
+    .term-chip button:hover{background:#fff1f1;color:var(--danger)}
+    .term-chip.builtin{background:#f4f7fa;color:var(--muted-strong);border-color:#dbe2e9}
+    .builtin-groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+    .builtin-group{border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px 10px;background:#fafbfc}
+    .builtin-group h3{margin:0 0 5px;font-size:12.5px;color:var(--muted-strong);font-weight:700;display:flex;justify-content:space-between;align-items:center}
+    .builtin-group h3 .count{color:var(--muted);font-weight:500;font-size:11px}
+    .builtin-group .chips{display:flex;flex-wrap:wrap;gap:4px}
+    .builtin-group .chips .term-chip{font-size:11px;padding:0 8px;height:21px;cursor:default}
+    /* === Misc === */
+    summary{cursor:pointer;color:var(--muted-strong);font-weight:700;font-size:13px;padding:6px 0}
+    summary:hover{color:var(--text)}
+    details[open] summary{margin-bottom:8px}
+    .empty{text-align:center;color:var(--muted);font-size:13px;padding:20px 8px}
+    .empty-row td{text-align:center;color:var(--muted);font-size:13px;padding:18px 8px}
+    /* === Toast === */
+    #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1f2329;color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:600;box-shadow:0 8px 22px rgba(0,0,0,.18);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:50;max-width:90vw}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
+    #toast.bad{background:#9b2424}
+    #toast.ok{background:#0d6b39}
+    /* === Responsive === */
+    @media(max-width:760px){
+      .topbar-inner{padding:8px 12px}
+      main{padding:10px 12px 40px}
+      section{padding:12px}
+      .login-row{grid-template-columns:1fr}
+      .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+      .field.col-3{grid-column:span 2}
+      .stat-strip{grid-template-columns:repeat(2,1fr)}
+      .token-result{grid-template-columns:1fr}
+      table{min-width:520px;font-size:12px}
+      th,td{padding:8px}
+      .body-cell{max-width:240px}
+      .builtin-groups{grid-template-columns:1fr}
+    }
+    @media(max-width:480px){
+      .form-grid{grid-template-columns:1fr}
+      .field.col-2,.field.col-3{grid-column:span 1}
+      .card-grid,.report-grid{grid-template-columns:1fr}
+      .badge.hide-tight{display:none}
+    }
+  </style>
+</head>
+<body class="auth-locked">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="brand-dot"></span>excelkospi <small>관리</small></div>
+      <div class="top-spacer"></div>
+      <div class="top-actions">
+        <span class="badge" id="loginBadge">로그인 필요</span>
+        <a class="home-link" href="/" aria-label="사이트로 돌아가기">사이트로 ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <section id="loginCard">
+      <h2>관리자 로그인 <span class="hint">토큰은 이 브라우저 세션에만 저장됩니다</span></h2>
+      <div class="login-row">
+        <div>
+          <label for="adminToken">관리자 토큰</label>
+          <input id="adminToken" type="password" autocomplete="off" placeholder="관리자 토큰" spellcheck="false">
+        </div>
+        <button class="btn primary" id="loadBtn" type="button">로그인</button>
+        <button class="btn" id="clearTokenBtn" type="button">지우기</button>
+      </div>
+      <div class="login-meta">
+        <label><input id="rememberToken" type="checkbox"> 이 기기에 토큰 저장</label>
+        <button class="ghost-link" id="toggleTokenBtn" type="button">토큰 보기</button>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="locked-note" id="lockedNote">토큰 인증 전에는 관리 도구가 잠겨 있습니다.</div>
+    </section>
+
+    <div class="admin-protected" id="adminProtected" hidden aria-hidden="true">
+      <div class="tabbar" role="tablist">
+        <button type="button" data-tab="moderation" class="active" role="tab" aria-selected="true">메시지·추방 <span class="tab-count" id="cntModeration">0</span></button>
+        <button type="button" data-tab="terms" role="tab" aria-selected="false">차단 키워드 <span class="tab-count" id="cntTerms">0</span></button>
+        <button type="button" data-tab="donors" role="tab" aria-selected="false">후원자 <span class="tab-count" id="cntDonors">0</span></button>
+        <button type="button" data-tab="ads" role="tab" aria-selected="false">광고·리포트 <span class="tab-count" id="cntAds">0</span></button>
+      </div>
+
+      <!-- Tab: Moderation (chat messages + bans + manual ban) -->
+      <div class="panel active" data-panel="moderation" role="tabpanel">
+        <section>
+          <h2>사용자 직접 처리 <span class="hint">user_id 로 바로 추방·해제</span></h2>
+          <div class="form-grid">
+            <div class="field col-2">
+              <label for="manualUser">사용자 ID</label>
+              <input id="manualUser" type="text" placeholder="web_...">
+            </div>
+            <div class="field col-2" style="justify-content:flex-end">
+              <div class="field-actions">
+                <button class="btn danger-solid" id="manualBanBtn" type="button">1일 추방</button>
+                <button class="btn" id="manualUnbanBtn" type="button">추방 해제</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>최근 채팅 메시지 <span class="hint">신고 받은 글, 차단어 글, 일반 글 모두 표시</span></h2>
+          <div class="tablewrap">
+            <table>
+              <colgroup>
+                <col style="width:118px">
+                <col style="width:170px">
+                <col>
+                <col style="width:64px">
+                <col style="width:240px">
+              </colgroup>
+              <thead>
+                <tr><th>시각·ID</th><th>사용자</th><th>메시지</th><th>신고</th><th>처리</th></tr>
+              </thead>
+              <tbody id="messageRows"><tr class="empty-row"><td colspan="5">불러오면 표시됩니다.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <h2>현재 추방 목록 <span class="hint">닉네임·사유·저장 위치를 함께 표시</span></h2>
+          <div class="field-actions" style="margin:0 0 10px">
+            <button class="btn" id="refreshBansBtn" type="button">목록 새로고침</button>
+            <button class="btn danger" id="clearBansBtn" type="button">전체 추방 해제</button>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <colgroup>
+                <col style="width:230px">
+                <col style="width:140px">
+                <col>
+                <col style="width:80px">
+              </colgroup>
+              <thead>
+                <tr><th>사용자</th><th>해제 시각</th><th>사유</th><th>처리</th></tr>
+              </thead>
+              <tbody id="banRows"><tr class="empty-row"><td colspan="4">현재 추방된 사용자가 없습니다.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <h2>종토방 차단 목록 <span class="hint">신고 누적·신고 남용·관리자 차단</span></h2>
+          <p class="lead">종토방 신고는 일반 사용자 기준 1시간 4회 제한이 유지되고, 6시간 내 15회 이상 신고하면 24시간 차단됩니다. 관리자는 신고 횟수 제한이 없습니다.</p>
+          <div class="field-actions" style="margin:0 0 10px">
+            <button class="btn" id="refreshCommunityBansBtn" type="button">종토방 차단 새로고침</button>
+            <button class="btn danger" id="clearCommunityBansBtn" type="button">기존 종토방 차단 초기화</button>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <colgroup>
+                <col style="width:230px">
+                <col style="width:140px">
+                <col>
+                <col style="width:80px">
+              </colgroup>
+              <thead>
+                <tr><th>사용자</th><th>해제 시각</th><th>사유</th><th>처리</th></tr>
+              </thead>
+              <tbody id="communityBanRows"><tr class="empty-row"><td colspan="4">현재 종토방 차단 사용자가 없습니다.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- Tab: Blocked terms -->
+      <div class="panel" data-panel="terms" role="tabpanel">
+        <section>
+          <h2>차단 키워드 관리 <span class="hint">채팅 + 종토방 공통</span></h2>
+          <p class="lead">관리자가 추가한 키워드는 채팅과 종목토론방 두 곳 모두에서 즉시 적용됩니다. 같은 단어 변형(공백·구두점·대소문자)은 자동으로 정규화돼 한 번에 잡힙니다. <strong>4회 누적 시 자동 30분 추방</strong>됩니다.</p>
+          <div class="term-input-row">
+            <input id="termInput" type="text" maxlength="40" placeholder="추가할 키워드를 입력 (쉼표나 줄바꿈으로 여러 개)" spellcheck="false">
+            <button class="btn primary" id="termAddBtn" type="button">추가</button>
+            <button class="btn" id="termRefreshBtn" type="button">새로고침</button>
+            <button class="btn danger" id="termClearBtn" type="button">사용자 추가 전체 삭제</button>
+          </div>
+          <div class="term-chips" id="customTerms" aria-live="polite">
+            <span class="inline-status">불러오면 표시됩니다.</span>
+          </div>
+          <details style="margin-top:14px">
+            <summary>기본 내장 키워드 (수정 불가)</summary>
+            <div class="builtin-groups" id="builtinGroups"></div>
+          </details>
+        </section>
+      </div>
+
+      <!-- Tab: Donors -->
+      <div class="panel" data-panel="donors" role="tabpanel">
+        <section id="donors">
+          <h2>후원자 (커피값) 관리 <span class="hint">채팅 헤더 마퀴에 닉네임·금액 노출</span></h2>
+          <p class="lead">입금 확인 후 추가하면 채팅창 상단 마퀴에 잠시 표시됩니다. 기본 노출 기간은 <strong>3일</strong>이며 만료 시 자동 사라집니다.</p>
+
+          <details open>
+            <summary>마퀴 좌측 라벨 문구</summary>
+            <div class="form-grid">
+              <div class="field col-3">
+                <label for="donorPrefix">라벨 (예: 커피값 보내주신 분들)</label>
+                <input id="donorPrefix" type="text" maxlength="60" placeholder="비워두면 라벨이 사라집니다">
+                <p class="help">이모지·구두점 OK · 최대 60자</p>
+              </div>
+              <div class="field" style="justify-content:flex-end">
+                <div class="field-actions" style="margin-top:auto">
+                  <button class="btn primary" id="donorPrefixSaveBtn" type="button">라벨 저장</button>
+                </div>
+                <span class="inline-status" id="donorPrefixStatus"></span>
+              </div>
+            </div>
+          </details>
+
+          <hr class="hr">
+
+          <h2 style="margin-top:6px">새 후원자 추가</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label for="donorNick">닉네임</label>
+              <input id="donorNick" type="text" maxlength="24" placeholder="익명 / 닉네임">
+            </div>
+            <div class="field">
+              <label for="donorAmount">금액 (원)</label>
+              <input id="donorAmount" type="number" min="100" step="100" inputmode="numeric" placeholder="5000">
+            </div>
+            <div class="field">
+              <label for="donorDonatedAt">입금 시각</label>
+              <input id="donorDonatedAt" type="datetime-local">
+            </div>
+            <div class="field">
+              <label for="donorDays">노출 기간 (일)</label>
+              <input id="donorDays" type="number" min="1" max="14" step="1" value="3">
+            </div>
+            <div class="field col-4">
+              <label for="donorNote">짧은 메모 (선택)</label>
+              <textarea id="donorNote" maxlength="80" placeholder="감사 인사 또는 짧은 메시지 (최대 80자)"></textarea>
+            </div>
+          </div>
+          <div class="field-actions">
+            <button class="btn primary" id="donorAddBtn" type="button">추가</button>
+            <button class="btn" id="donorResetBtn" type="button">폼 초기화</button>
+            <button class="btn" id="donorRefreshBtn" type="button">목록 새로고침</button>
+            <button class="btn" id="donorPruneBtn" type="button">만료 정리</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>등록된 후원자</h2>
+          <div class="tablewrap">
+            <table>
+              <colgroup>
+                <col style="width:130px">
+                <col style="width:100px">
+                <col style="width:130px">
+                <col style="width:90px">
+                <col>
+                <col style="width:74px">
+              </colgroup>
+              <thead>
+                <tr><th>닉네임</th><th>금액</th><th>입금 시각</th><th>노출 종료</th><th>메모</th><th>처리</th></tr>
+              </thead>
+              <tbody id="donorRows"><tr class="empty-row"><td colspan="6">불러오면 표시됩니다.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- Tab: Ads -->
+      <div class="panel" data-panel="ads" role="tabpanel">
+        <section id="adInventory">
+          <h2>등록된 광고 <span class="hint">광고 카드에서 수정·리포트·노출 상태를 바로 처리</span></h2>
+          <p class="lead">운영 기준은 광고 카드가 중심입니다. 리포트가 연결된 광고는 카드에서 집계 상태를 함께 확인할 수 있습니다.</p>
+          <div class="card-grid" id="adRows">
+            <div class="ad-empty">불러오면 표시됩니다.</div>
+          </div>
+        </section>
+
+        <section id="ads">
+          <h2>광고 등록·수정 <span class="hint">저장 후 같은 흐름에서 리포트 토큰 준비</span></h2>
+          <p class="lead"><strong>가중치</strong>는 전체 활성 광고 합계 중 비율 (A=1, B=3 → A 25%, B 75%). <strong>식별자</strong>는 GA4 <code>ad_id</code> 이벤트로 기록돼 동일 광고의 노출·클릭을 누적합니다.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="adId">식별자 *</label>
+              <input id="adId" type="text" maxlength="40" placeholder="iphone15_may" spellcheck="false">
+              <p class="help">영문·숫자·_·- 권장. 수정 중에는 고정.</p>
+            </div>
+            <div class="field">
+              <label for="adLabel">배지 텍스트</label>
+              <input id="adLabel" type="text" maxlength="16" placeholder="광고 / 알림 / 후원" value="광고">
+            </div>
+            <div class="field">
+              <label for="adWeight">노출 가중치</label>
+              <input id="adWeight" type="number" min="0" max="100" step="0.1" value="1">
+            </div>
+            <div class="field">
+              <label for="adStartAt">시작 시각</label>
+              <input id="adStartAt" type="datetime-local">
+              <p class="help">비워두면 바로 노출됩니다. 한국시간 기준.</p>
+            </div>
+            <div class="field">
+              <label for="adEndAt">종료 시각</label>
+              <input id="adEndAt" type="datetime-local">
+              <p class="help">비워두면 종료 없이 계속 노출됩니다.</p>
+            </div>
+            <div class="field" style="justify-content:end">
+              <label>게재 위치</label>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:auto">
+                <label class="field-check"><input id="adPlaceChat" type="checkbox" checked> 채팅창</label>
+                <label class="field-check"><input id="adPlaceCommunity" type="checkbox" checked> 종토방</label>
+                <label class="field-check"><input id="adPlaceSummary" type="checkbox" checked> 시세창 하단</label>
+              </div>
+            </div>
+            <div class="field col-4">
+              <label for="adText">문구 목록 * <span style="color:var(--muted);font-weight:500;font-size:11px">한 줄에 하나, 최대 8개 (랜덤 회전)</span></label>
+              <textarea id="adText" maxlength="800" rows="3" placeholder="예: 애플 아이폰 15, 지금 바로 구매하세요"></textarea>
+            </div>
+            <div class="field col-4">
+              <label for="adHref">링크 URL (선택)</label>
+              <input id="adHref" type="text" maxlength="400" placeholder="https://... 또는 mailto:...">
+            </div>
+          </div>
+          <div class="field-actions">
+            <button class="btn primary" id="adAddBtn" type="button">광고 저장</button>
+            <button class="btn" id="adSaveReportBtn" type="button">저장 후 리포트 준비</button>
+            <button class="btn" id="adCancelEditBtn" type="button" hidden>수정 취소</button>
+            <button class="btn" id="adResetBtn" type="button">폼 초기화</button>
+            <button class="btn" id="adRefreshBtn" type="button">목록 새로고침</button>
+          </div>
+
+          <hr class="hr">
+
+          <div id="adReports" class="ad-linked-report">
+            <div class="subsection-head">
+              <h3>선택한 광고의 리포트 토큰</h3>
+              <span class="hint">광고 하나 → 리포트 하나 → 링크 하나</span>
+            </div>
+            <p class="lead">광고 카드의 <strong>리포트 발급</strong>을 누르거나 위에서 <strong>저장 후 리포트 준비</strong>를 누르면 광고 식별자가 자동으로 들어갑니다. 토큰 원문은 저장하지 않으므로 새 링크를 발급하면 이전 링크는 만료됩니다.</p>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="reportId">리포트 ID *</label>
+                <input id="reportId" type="text" maxlength="64" placeholder="prohealth-nmn-2026-05" spellcheck="false">
+                <p class="help">광고주 링크의 <code>id</code> 값입니다.</p>
+              </div>
+              <div class="field">
+                <label for="reportAdvertiser">광고주 *</label>
+                <input id="reportAdvertiser" type="text" maxlength="80" placeholder="프로헬스">
+              </div>
+              <div class="field col-2">
+                <label for="reportCampaign">캠페인명 *</label>
+                <input id="reportCampaign" type="text" maxlength="120" placeholder="프로헬스 NMN 광고">
+              </div>
+              <div class="field col-2">
+                <label for="reportAdIds">광고 식별자 *</label>
+                <input id="reportAdIds" type="text" maxlength="240" placeholder="ad_xxx 또는 여러 개는 쉼표로 구분">
+                <p class="help">등록된 광고 카드의 식별자와 GA4 itemPromotionId를 기준으로 묶습니다.</p>
+              </div>
+              <div class="field">
+                <label for="reportStartDate">시작일</label>
+                <input id="reportStartDate" type="date">
+                <p class="help">기본값은 광고 계측 기준 시작일인 2026-05-20입니다.</p>
+              </div>
+              <div class="field">
+                <label for="reportEndDate">종료일</label>
+                <input id="reportEndDate" type="text" maxlength="20" value="today" placeholder="today 또는 YYYY-MM-DD">
+              </div>
+              <div class="field col-2">
+                <label for="reportCreativeIncludes">문구 포함 필터</label>
+                <input id="reportCreativeIncludes" type="text" maxlength="240" placeholder="예: 프로헬스, NMN">
+                <p class="help">같은 광고 ID에 여러 캠페인이 섞였을 때만 사용합니다.</p>
+              </div>
+              <div class="field col-2">
+                <label for="reportCreativeExcludes">문구 제외 필터</label>
+                <input id="reportCreativeExcludes" type="text" maxlength="240" placeholder="예: AI, 테스트">
+              </div>
+              <div class="field col-4">
+                <label for="reportNotes">광고주 노트</label>
+                <textarea id="reportNotes" maxlength="500" rows="2" placeholder="동일 광고 내 문구 로테이션과 30분 기준 노출 cap으로 보정한 기준입니다."></textarea>
+              </div>
+            </div>
+            <div class="field-actions">
+              <button class="btn primary" id="reportSaveBtn" type="button">토큰 발급</button>
+              <button class="btn" id="reportCancelEditBtn" type="button" hidden>수정 취소</button>
+              <button class="btn" id="reportResetBtn" type="button">리포트 폼 초기화</button>
+              <button class="btn" id="reportRefreshBtn" type="button">리포트 새로고침</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="issuedReports">
+          <h2>발급된 리포트 <span class="hint">토큰 상태와 집계 반영 상태를 분리해서 확인</span></h2>
+          <div class="report-legend">
+            <span class="pill ok">링크 활성</span>
+            <span class="pill warn">집계 대기</span>
+            <span class="pill">원문 미저장</span>
+          </div>
+          <div class="report-grid" id="adReportRows">
+            <div class="ad-empty">불러오면 표시됩니다.</div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const TOKEN_KEY='excelkospi_admin_token_session';
+    const REMEMBER_TOKEN_KEY='excelkospi_admin_token_trusted_device';
+    const WORKERS_API_BASE='https://excelkospi-api.alaala3.workers.dev';
+    function apiUrl(path){
+      const value=String(path || '');
+      if(/^https?:\/\//i.test(value)) return value;
+      if(!value.startsWith('/api/')) return value;
+      const host=location.hostname;
+      const local=host==='localhost' || host==='127.0.0.1' || host==='' || host.endsWith('.local') || location.protocol==='file:';
+      const pages=host==='excelkospi.pages.dev' || host.endsWith('.pages.dev');
+      return local || pages ? value : `${WORKERS_API_BASE}${value}`;
+    }
+    const $=(id)=>document.getElementById(id);
+    let latestAds=[];
+    let latestAdReports=[];
+    let latestCustomTerms=[];
+    let editingAdId='';
+    let editingReportId='';
+    let generatedReportLinkState=null;
+    const statusEl=$('status');
+    const loginBadge=$('loginBadge');
+    const tokenInput=$('adminToken');
+    const rememberInput=$('rememberToken');
+    const toggleTokenBtn=$('toggleTokenBtn');
+    const adminProtected=$('adminProtected');
+    const rowsEl=$('messageRows');
+    const bansEl=$('banRows');
+    const communityBansEl=$('communityBanRows');
+    const toastEl=$('toast');
+    let toastTimer=null;
+    const rememberedToken=localStorage.getItem(REMEMBER_TOKEN_KEY) || '';
+    tokenInput.value=rememberedToken || sessionStorage.getItem(TOKEN_KEY) || '';
+    rememberInput.checked=!!rememberedToken;
+
+    function esc(value){
+      return String(value ?? '').replace(/[&<>"']/g, (ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    }
+    function showToast(text, kind='ok'){
+      if(!toastEl) return;
+      toastEl.textContent=text;
+      toastEl.className='show ' + (kind==='bad' ? 'bad' : (kind==='ok' ? 'ok' : ''));
+      clearTimeout(toastTimer);
+      toastTimer=setTimeout(()=>toastEl.classList.remove('show'), 2200);
+    }
+    function setStatus(text, bad=false){
+      statusEl.textContent=text || '';
+      statusEl.classList.toggle('bad', !!bad);
+    }
+    function setLoginState(state, text){
+      loginBadge.textContent=text;
+      loginBadge.classList.toggle('ok', state==='ok');
+      loginBadge.classList.toggle('bad', state==='bad');
+    }
+    function setAdminUnlocked(unlocked){
+      document.body.classList.toggle('auth-locked', !unlocked);
+      if(adminProtected){
+        adminProtected.hidden=!unlocked;
+        adminProtected.setAttribute('aria-hidden', unlocked ? 'false' : 'true');
+      }
+    }
+    function friendlyError(error){
+      const text=String(error || '');
+      if(text.includes('unauthorized')) return '토큰이 맞지 않습니다. 기존 secret 값은 확인할 수 없으니 새 토큰으로 재발급해야 합니다.';
+      if(text.includes('admin_token_not_configured')) return 'Cloudflare Pages에 CHAT_ADMIN_TOKEN secret이 설정되어 있지 않습니다.';
+      if(text.includes('supabase_service_role_key_not_configured')) return 'Cloudflare Pages에 SUPABASE_SERVICE_ROLE_KEY secret이 없어 채팅 메시지 조회와 Supabase 추방 동기화가 제한됩니다.';
+      if(text.includes('duplicate_id')) return '이미 쓰고 있는 광고 식별자입니다. 다른 식별자를 입력하거나 기존 광고를 수정해 주세요.';
+      if(text.includes('duplicate_report_id')) return '이미 쓰고 있는 리포트 ID입니다. 기존 리포트를 수정하거나 다른 ID를 입력해 주세요.';
+      if(text.includes('invalid_token_hash')) return '토큰 해시 생성에 실패했습니다. 브라우저 보안 설정을 확인한 뒤 다시 시도해 주세요.';
+      if(text.includes('invalid_report')) return '리포트 필수값을 확인해 주세요. 리포트 ID, 광고주, 캠페인, 광고 식별자가 필요합니다.';
+      if(text.includes('report_not_found')) return '수정할 리포트를 찾지 못했습니다.';
+      if(text.includes('store_not_configured')) return 'D1/KV 저장소가 설정되어 있지 않아 차단 키워드를 저장할 수 없습니다.';
+      if(text.includes('kv_not_configured')) return 'Cloudflare KV가 설정되어 있지 않아 저장할 수 없습니다.';
+      return text;
+    }
+    function chatAdminWarningText(data){
+      const warnings=Array.isArray(data?.warnings) ? data.warnings : [];
+      const syncError=String(data?.syncError || data?.deletionError || '');
+      const missingServiceRole=warnings.some((warning)=>String(warning).includes('supabase_service_role_key_not_configured'))
+        || syncError.includes('supabase_service_role_key_not_configured');
+      if(missingServiceRole){
+        return 'SUPABASE_SERVICE_ROLE_KEY가 없어 채팅 메시지 조회와 Supabase 추방 동기화는 제한됩니다. D1 기준 추방 목록과 해제는 계속 작동합니다.';
+      }
+      if(warnings.length) return `채팅 관리 일부 로드 제한: ${warnings.map(friendlyError).join(', ')}`;
+      if(syncError) return `채팅 관리 일부 동기화 제한: ${friendlyError(syncError)}`;
+      return '';
+    }
+    function handleAdminError(error){
+      const raw=String(error?.message || error || '');
+      const authProblem=raw.includes('토큰') || raw.includes('unauthorized') || raw.includes('admin_token_not_configured');
+      setLoginState(authProblem ? 'bad' : 'ok', authProblem ? '확인 필요' : '인증됨');
+      if(authProblem) setAdminUnlocked(false);
+      showToast(friendlyError(raw), 'bad');
+      setStatus(friendlyError(raw), true);
+    }
+    function persistToken(value){
+      if(value) sessionStorage.setItem(TOKEN_KEY, value);
+      else sessionStorage.removeItem(TOKEN_KEY);
+      if(value && rememberInput.checked) localStorage.setItem(REMEMBER_TOKEN_KEY, value);
+      else localStorage.removeItem(REMEMBER_TOKEN_KEY);
+    }
+    function token(){
+      const value=tokenInput.value.trim();
+      persistToken(value);
+      return value;
+    }
+    async function api(path, options={}){
+      const value=token();
+      if(!value) throw new Error('관리자 토큰을 입력하세요.');
+      const res=await fetch(apiUrl(path), {
+        ...options,
+        headers:{
+          authorization:`Bearer ${value}`,
+          'content-type':'application/json',
+          ...(options.headers || {}),
+        },
+        cache:'no-store',
+      });
+      const data=await res.json().catch(()=>({ok:false,error:'invalid_response'}));
+      if(!res.ok || data.ok===false) throw new Error(friendlyError(data.error || `요청 실패 ${res.status}`));
+      setLoginState('ok', '인증됨');
+      setAdminUnlocked(true);
+      return data;
+    }
+    function time(value){
+      if(!value) return '-';
+      try{return new Intl.DateTimeFormat('ko-KR',{hour:'2-digit',minute:'2-digit',month:'2-digit',day:'2-digit'}).format(new Date(value));}
+      catch{return value;}
+    }
+    function formatNumber(value){
+      const n=Number(value);
+      return new Intl.NumberFormat('ko-KR').format(Number.isFinite(n) ? Math.round(n) : 0);
+    }
+    function parseIsoMs(value){
+      const t=Date.parse(String(value || ''));
+      return Number.isFinite(t) ? t : null;
+    }
+    function adScheduleState(ad, now=Date.now()){
+      if(!ad || ad.active===false) return {key:'inactive', label:'비활성', kind:''};
+      const start=parseIsoMs(ad.startAt);
+      const end=parseIsoMs(ad.endAt);
+      if(start!==null && now<start) return {key:'scheduled', label:'예약', kind:'warn'};
+      if(end!==null && now>=end) return {key:'ended', label:'종료', kind:''};
+      return {key:'running', label:'노출중', kind:'ok'};
+    }
+    function kstDateTimeInputToIso(value){
+      const text=String(value || '').trim();
+      const match=text.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+      if(!match) return '';
+      const [, y, m, d, hh, mm]=match;
+      const ms=Date.UTC(Number(y), Number(m)-1, Number(d), Number(hh)-9, Number(mm));
+      return Number.isFinite(ms) ? new Date(ms).toISOString() : '';
+    }
+    function isoToKstDateTimeInput(value){
+      const t=parseIsoMs(value);
+      if(t===null) return '';
+      const parts=new Intl.DateTimeFormat('en-CA', {
+        timeZone:'Asia/Seoul',
+        year:'numeric',
+        month:'2-digit',
+        day:'2-digit',
+        hour:'2-digit',
+        minute:'2-digit',
+        hourCycle:'h23',
+      }).formatToParts(new Date(t)).reduce((acc, part)=>{
+        acc[part.type]=part.value;
+        return acc;
+      }, {});
+      return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+    }
+    function formatKstDateTime(value){
+      const t=parseIsoMs(value);
+      if(t===null) return '';
+      return new Intl.DateTimeFormat('ko-KR', {
+        timeZone:'Asia/Seoul',
+        month:'2-digit',
+        day:'2-digit',
+        hour:'2-digit',
+        minute:'2-digit',
+      }).format(new Date(t));
+    }
+    function adScheduleText(ad){
+      const start=formatKstDateTime(ad?.startAt);
+      const end=formatKstDateTime(ad?.endAt);
+      if(start && end) return `${start} ~ ${end}`;
+      if(start) return `${start}부터`;
+      if(end) return `${end}까지`;
+      return '항상';
+    }
+    function reportForAd(adId){
+      return latestAdReports.find((report)=>(report.adIds || []).includes(adId));
+    }
+    // ========== Tabs ==========
+    document.querySelectorAll('.tabbar button').forEach((btn)=>{
+      btn.addEventListener('click',()=>{
+        const tab=btn.dataset.tab;
+        document.querySelectorAll('.tabbar button').forEach((b)=>{
+          const active=b===btn;
+          b.classList.toggle('active', active);
+          b.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        document.querySelectorAll('.panel').forEach((p)=>{
+          p.classList.toggle('active', p.dataset.panel===tab);
+        });
+      });
+    });
+
+    // ========== Moderation ==========
+    function renderMessages(messages=[]){
+      if(!messages.length){
+        rowsEl.innerHTML='<tr class="empty-row"><td colspan="5">최근 메시지가 없습니다.</td></tr>';
+        return;
+      }
+      rowsEl.innerHTML=messages.map((m)=>`
+        <tr class="${m.deleted_at ? 'deleted' : ''}">
+          <td><div class="ellipsis">${time(m.created_at)}</div><span class="pill" style="margin-top:3px">#${esc(String(m.id).slice(-8))}</span></td>
+          <td><div class="ellipsis"><strong>${esc(m.nickname || '익명')}</strong></div><code title="${esc(m.user_id)}">${esc(m.user_id)}</code></td>
+          <td class="body-cell">${esc(m.body)}${m.deleted_at ? '<br><span class="pill bad">삭제됨</span>' : ''}</td>
+          <td>${Number(m.report_count || 0) ? `<span class="pill warn">${Number(m.report_count)}</span>` : '<span class="pill">0</span>'}</td>
+          <td>
+            <div class="actions">
+              <button class="btn sm" data-action="delete-message" data-message-id="${esc(m.id)}" ${m.deleted_at ? 'disabled' : ''}>메시지 삭제</button>
+              <button class="btn sm" data-action="delete-user" data-user-id="${esc(m.user_id)}">사용자 글</button>
+              <button class="btn sm danger-solid" data-action="ban-user" data-user-id="${esc(m.user_id)}" data-nickname="${esc(m.nickname || '')}">1일 추방</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+    function renderBans(bans=[]){
+      if(!bans.length){
+        bansEl.innerHTML='<tr class="empty-row"><td colspan="4">현재 추방된 사용자가 없습니다.</td></tr>';
+        return;
+      }
+      bansEl.innerHTML=bans.map((ban)=>`
+        <tr>
+          <td>
+            <div class="ellipsis"><strong>${esc(ban.nickname || '닉네임 없음')}</strong></div>
+            <code title="${esc(ban.user_id)}">${esc(ban.user_id)}</code>
+            ${Array.isArray(ban.actor_ids) && ban.actor_ids.length ? `<div class="ellipsis" style="margin-top:3px"><span class="pill">기기 ${esc(ban.actor_ids.length)}개</span></div>` : ''}
+          </td>
+          <td class="ellipsis">${time(ban.banned_until)}</td>
+          <td class="ellipsis">
+            <span class="pill warn">${esc(ban.reason || '-')}</span>
+            ${(ban.sources || []).map((source)=>`<span class="pill">${esc(source)}</span>`).join(' ')}
+          </td>
+          <td><button class="btn sm" data-action="unban-user" data-user-id="${esc(ban.user_id)}">해제</button></td>
+        </tr>`).join('');
+    }
+    function renderCommunityBans(bans=[]){
+      if(!communityBansEl) return;
+      if(!bans.length){
+        communityBansEl.innerHTML='<tr class="empty-row"><td colspan="4">현재 종토방 차단 사용자가 없습니다.</td></tr>';
+        return;
+      }
+      communityBansEl.innerHTML=bans.map((ban)=>`
+        <tr>
+          <td>
+            <div class="ellipsis"><strong>${esc(ban.nickname || '닉네임 없음')}</strong></div>
+            <code title="${esc(ban.user_id)}">${esc(ban.user_id)}</code>
+            ${Array.isArray(ban.actor_ids) && ban.actor_ids.length ? `<div class="ellipsis" style="margin-top:3px"><span class="pill">기기 ${esc(ban.actor_ids.length)}개</span></div>` : ''}
+          </td>
+          <td class="ellipsis">${time(ban.banned_until)}</td>
+          <td class="ellipsis">
+            <span class="pill warn">${esc(ban.reason || '-')}</span>
+            ${Number(ban.report_count || 0) ? `<span class="pill">신고 ${Number(ban.report_count || 0)}</span>` : ''}
+          </td>
+          <td><button class="btn sm" data-community-action="unban-user" data-user-id="${esc(ban.user_id)}">해제</button></td>
+        </tr>`).join('');
+    }
+    function loadSupabaseLib(){
+      if(window.supabase?.createClient) return Promise.resolve();
+      if(window.__supabaseLoadPromise) return window.__supabaseLoadPromise;
+      window.__supabaseLoadPromise=new Promise((resolve,reject)=>{
+        const script=document.createElement('script');
+        script.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+        script.async=true;
+        script.onload=()=>resolve();
+        script.onerror=()=>reject(new Error('Supabase JS 로드 실패'));
+        document.head.appendChild(script);
+      });
+      return window.__supabaseLoadPromise;
+    }
+    async function broadcastModeration(body){
+      let payload=null;
+      if(body.action==='delete_message') payload={messageId:Number(body.message_id)};
+      else if(body.action==='delete_user_messages' || body.action==='ban_user') payload={reportedUserId:String(body.user_id || '')};
+      if(!payload || (!payload.messageId && !payload.reportedUserId)) return;
+      try{
+        const cfg=await fetch(apiUrl('/api/chat-config'), {cache:'no-store'}).then((res)=>res.json());
+        if(!cfg?.enabled || !cfg?.url || !cfg?.anonKey) return;
+        await loadSupabaseLib();
+        const client=window.supabase.createClient(cfg.url, cfg.anonKey, {
+          realtime:{params:{eventsPerSecond:1}},
+          auth:{persistSession:false, autoRefreshToken:false},
+        });
+        const channel=client.channel(`excelkospi-chat:${cfg.room}`);
+        await new Promise((resolve)=>{
+          const timer=setTimeout(resolve, 1800);
+          channel.subscribe((status)=>{
+            if(status==='SUBSCRIBED'){
+              clearTimeout(timer);
+              resolve();
+            }
+          });
+        });
+        const sent=channel.send({type:'broadcast', event:'chat_moderation', payload});
+        if(sent?.catch) await sent.catch(()=>{});
+        setTimeout(()=>client.removeChannel(channel), 500);
+      }catch{}
+    }
+    async function loadChat(){
+      const data=await api('/api/chat-admin?action=messages&limit=100');
+      renderMessages(data.messages || []);
+      renderBans(data.bans || []);
+      $('cntModeration').textContent=String((data.messages || []).length);
+      const warning=chatAdminWarningText(data);
+      if(warning) setStatus(warning, true);
+      return data;
+    }
+    async function loadBansOnly(){
+      const data=await api('/api/chat-admin?action=bans');
+      renderBans(data.bans || []);
+      const warning=chatAdminWarningText(data);
+      if(warning) setStatus(warning, true);
+      showToast(warning ? 'D1 기준 추방 목록을 새로고침했습니다.' : '추방 목록을 새로고침했습니다.');
+      return data;
+    }
+    async function loadCommunityBans(options={}){
+      const data=await api('/api/community-admin?action=bans');
+      renderCommunityBans(data.bans || []);
+      if(!options.silent) showToast('종토방 차단 목록을 새로고침했습니다.');
+      return data;
+    }
+
+    // ========== Blocked terms ==========
+    function renderCustomTerms(terms=[]){
+      latestCustomTerms=Array.isArray(terms) ? terms : [];
+      const wrap=$('customTerms');
+      $('cntTerms').textContent=String(latestCustomTerms.length);
+      if(!latestCustomTerms.length){
+        wrap.innerHTML='<span class="inline-status">아직 사용자가 추가한 키워드가 없습니다. 위에서 입력해 추가하세요.</span>';
+        return;
+      }
+      wrap.innerHTML=latestCustomTerms.map((t)=>`
+        <span class="term-chip">${esc(t)}<button type="button" data-term-remove="${esc(t)}" aria-label="${esc(t)} 삭제" title="삭제">×</button></span>
+      `).join('');
+    }
+    function renderBuiltinGroups(groups=[]){
+      const wrap=$('builtinGroups');
+      if(!groups.length){ wrap.innerHTML='<span class="inline-status">내장 그룹이 비어 있습니다.</span>'; return; }
+      wrap.innerHTML=groups.map((g)=>`
+        <div class="builtin-group">
+          <h3><span>${esc(g.label)}</span><span class="count">${Number(g.count || 0)}개</span></h3>
+          <div class="chips">${(g.terms || []).map((t)=>`<span class="term-chip builtin">${esc(t)}</span>`).join('')}</div>
+        </div>
+      `).join('');
+    }
+    async function loadBlockedTerms(){
+      const data=await api('/api/admin/blocked-terms');
+      renderCustomTerms(data.custom || []);
+      renderBuiltinGroups(data.builtin || []);
+      return data;
+    }
+    $('termAddBtn').addEventListener('click', async ()=>{
+      const raw=$('termInput').value;
+      if(!raw.trim()){ showToast('추가할 키워드를 입력하세요', 'bad'); return; }
+      try{
+        const data=await api('/api/admin/blocked-terms', {method:'POST', body:JSON.stringify({action:'add', term:raw})});
+        renderCustomTerms(data.custom || []);
+        $('termInput').value='';
+        showToast('키워드를 추가했습니다.');
+      }catch(e){ handleAdminError(e); }
+    });
+    $('termInput').addEventListener('keydown',(ev)=>{
+      if(ev.key==='Enter'){ ev.preventDefault(); $('termAddBtn').click(); }
+    });
+    $('termRefreshBtn').addEventListener('click',()=>loadBlockedTerms().catch(handleAdminError));
+    $('termClearBtn').addEventListener('click', async ()=>{
+      if(!confirm('사용자가 추가한 키워드를 전부 비울까요? (내장 키워드는 그대로 유지됩니다.)')) return;
+      try{
+        const data=await api('/api/admin/blocked-terms', {method:'POST', body:JSON.stringify({action:'clear'})});
+        renderCustomTerms(data.custom || []);
+        showToast('사용자 추가 키워드를 모두 비웠습니다.');
+      }catch(e){ handleAdminError(e); }
+    });
+    document.addEventListener('click', async (ev)=>{
+      const btn=ev.target.closest('[data-term-remove]');
+      if(!btn) return;
+      const term=btn.dataset.termRemove;
+      try{
+        const data=await api('/api/admin/blocked-terms', {method:'POST', body:JSON.stringify({action:'remove', term})});
+        renderCustomTerms(data.custom || []);
+        showToast('키워드를 제거했습니다.');
+      }catch(e){ handleAdminError(e); }
+    });
+
+    // ========== Donors ==========
+    function donorTimeText(iso){
+      if(!iso) return '-';
+      try{return new Intl.DateTimeFormat('ko-KR',{year:'2-digit',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(iso));}
+      catch{return iso;}
+    }
+    function donorUntilText(iso){
+      const t=Date.parse(iso || '');
+      if(!Number.isFinite(t)) return '-';
+      const remain=t-Date.now();
+      if(remain<=0) return '만료됨';
+      const hours=Math.floor(remain/3600000);
+      if(hours<1){
+        const m=Math.max(1,Math.floor(remain/60000));
+        return m+'분';
+      }
+      if(hours<48) return hours+'시간';
+      return Math.floor(hours/24)+'일';
+    }
+    function renderDonors(donors=[]){
+      const rows=$('donorRows');
+      $('cntDonors').textContent=String((donors||[]).filter((d)=>Date.parse(d.expiresAt||'')>Date.now()).length);
+      if(!donors.length){
+        rows.innerHTML='<tr class="empty-row"><td colspan="6">등록된 후원자가 없습니다.</td></tr>';
+        return;
+      }
+      rows.innerHTML=donors.map((d)=>{
+        const expired=Date.parse(d.expiresAt||'')<=Date.now();
+        const amount=new Intl.NumberFormat('ko-KR').format(Number(d.amount)||0)+'원';
+        return `<tr class="${expired ? 'expired' : ''}">
+          <td class="ellipsis"><strong style="color:#c08a3e" title="${esc(d.nickname || '익명')}">${esc(d.nickname || '익명')}</strong></td>
+          <td class="ellipsis" style="font-variant-numeric:tabular-nums;color:var(--green);font-weight:700">${amount}</td>
+          <td class="ellipsis" style="color:var(--muted);font-size:12px">${donorTimeText(d.donatedAt)}</td>
+          <td class="ellipsis" style="color:var(--muted);font-size:12px">${donorUntilText(d.expiresAt)}</td>
+          <td class="body-cell" title="${esc(d.note || '')}">${esc(d.note || '')}</td>
+          <td><button class="btn sm danger" data-donor-action="delete" data-donor-id="${esc(d.id)}">삭제</button></td>
+        </tr>`;
+      }).join('');
+    }
+    async function loadDonors(){
+      const res=await fetch(apiUrl('/api/donors?fresh=1'), {cache:'no-store'});
+      const data=await res.json().catch(()=>({ok:false}));
+      if(!data?.ok) throw new Error('후원자 목록 로드 실패');
+      renderDonors(data.donors || []);
+      const prefixInput=$('donorPrefix');
+      if(prefixInput && document.activeElement!==prefixInput){
+        prefixInput.value=typeof data.prefix==='string' ? data.prefix : '';
+      }
+      return data;
+    }
+    async function postDonor(body, doneText){
+      setStatus('후원자 처리 중...');
+      await api('/api/donors', {method:'POST', body:JSON.stringify(body)});
+      await loadDonors();
+      setStatus('');
+      if(doneText) showToast(doneText);
+    }
+    function nowLocalIsoInput(){
+      const d=new Date();
+      const pad=(x)=>String(x).padStart(2,'0');
+      return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());
+    }
+    function resetDonorForm(){
+      $('donorNick').value='';
+      $('donorAmount').value='';
+      $('donorNote').value='';
+      $('donorDays').value='3';
+      $('donorDonatedAt').value=nowLocalIsoInput();
+    }
+    $('donorPrefixSaveBtn').addEventListener('click', async ()=>{
+      const prefix=$('donorPrefix').value.trim();
+      const status=$('donorPrefixStatus');
+      if(status){ status.textContent='저장 중...'; status.className='inline-status'; }
+      try{
+        await api('/api/donors', {method:'POST', body:JSON.stringify({action:'set_prefix', prefix})});
+        if(status){ status.textContent='저장됨'; status.className='inline-status ok'; }
+        await loadDonors();
+        showToast('라벨을 저장했습니다.');
+      }catch(e){
+        if(status){ status.textContent='저장 실패'; status.className='inline-status bad'; }
+        handleAdminError(e);
+      }
+    });
+    $('donorAddBtn').addEventListener('click', ()=>{
+      const nickname=$('donorNick').value.trim() || '익명';
+      const amount=Number($('donorAmount').value)||0;
+      if(!amount){ showToast('금액을 입력해 주세요.', 'bad'); return; }
+      const note=$('donorNote').value.trim();
+      const days=Math.max(1, Math.min(14, Number($('donorDays').value)||3));
+      const donatedRaw=$('donorDonatedAt').value;
+      const donatedAt=donatedRaw ? new Date(donatedRaw).toISOString() : new Date().toISOString();
+      const expiresAt=new Date(Date.parse(donatedAt) + days*24*60*60*1000).toISOString();
+      postDonor({action:'add', nickname, amount, note, donatedAt, expiresAt}, '후원자를 추가했습니다.')
+        .then(()=>{ resetDonorForm(); })
+        .catch(handleAdminError);
+    });
+    $('donorResetBtn').addEventListener('click', resetDonorForm);
+    $('donorRefreshBtn').addEventListener('click', ()=>loadDonors().catch(handleAdminError));
+    $('donorPruneBtn').addEventListener('click', ()=>{
+      if(!confirm('만료된 후원자 항목을 정리할까요?')) return;
+      postDonor({action:'prune'}, '만료 후원자를 정리했습니다.').catch(handleAdminError);
+    });
+    document.addEventListener('click',(ev)=>{
+      const btn=ev.target.closest('[data-donor-action]');
+      if(!btn) return;
+      const action=btn.dataset.donorAction;
+      const id=btn.dataset.donorId;
+      if(action==='delete'){
+        if(confirm('이 후원자 항목을 삭제할까요?')){
+          postDonor({action:'delete', id}, '후원자를 삭제했습니다.').catch(handleAdminError);
+        }
+      }
+    });
+
+    // ========== Ads ==========
+    function adTexts(ad){
+      const values=Array.isArray(ad?.texts) ? ad.texts : [ad?.text || ''];
+      return values.map((v)=>String(v || '').trim()).filter(Boolean);
+    }
+    function parseAdTexts(){
+      return $('adText').value.split(/\r?\n/).map((v)=>v.trim()).filter(Boolean).slice(0,8);
+    }
+    function renderAds(ads=[]){
+      const rows=$('adRows');
+      latestAds=Array.isArray(ads) ? ads : [];
+      $('cntAds').textContent=String(latestAds.filter((a)=>adScheduleState(a).key==='running').length);
+      if(!ads.length){
+        rows.innerHTML='<div class="ad-empty">등록된 광고가 없습니다.</div>';
+        return;
+      }
+      const totalWeight=latestAds.filter((a)=>adScheduleState(a).key==='running').reduce((sum,a)=>sum + Math.max(0, Number(a.weight)||0), 0) || 1;
+      rows.innerHTML=ads.map((ad)=>{
+        const report=reportForAd(ad.id);
+        const placements=Array.isArray(ad.placements) ? ad.placements : [];
+        const placeText=placements.map((p)=>p==='chat' ? '채팅' : (p==='community' ? '종토방' : (p==='summary' ? '시세창' : esc(p)))).join(' · ') || '-';
+        const weight=Number.isFinite(Number(ad.weight)) ? Number(ad.weight) : 1;
+        const state=adScheduleState(ad);
+        const sharePct=state.key==='running' ? Math.round((Math.max(0,weight)/totalWeight)*100) + '%' : '-';
+        const status=`<span class="pill ${state.kind}">${esc(state.label)}</span>`;
+        const reportStatus=report
+          ? (report.stats?.hasStats ? '<span class="pill ok">리포트 반영</span>' : '<span class="pill warn">리포트 집계 대기</span>')
+          : '';
+        const textLines=adTexts(ad);
+        const textHtml=textLines.length
+          ? textLines.map((t)=>`<span class="ad-text-line">${esc(t)}</span>`).join('')
+          : '<span class="ad-text-line" style="color:var(--muted);font-style:italic">문구 없음</span>';
+        const linkHtml=ad.href
+          ? `<a class="ad-card-link" href="${esc(ad.href)}" target="_blank" rel="noopener" title="${esc(ad.href)}">${esc(ad.href)}</a>`
+          : '';
+        const editing=editingAdId===ad.id;
+        const classes=['ad-card'];
+        if(ad.active===false) classes.push('is-inactive');
+        if(editing) classes.push('is-editing');
+        return `<article class="${classes.join(' ')}" data-ad-card-id="${esc(ad.id)}">
+          <header class="ad-card-head">
+            <span class="ad-card-id" title="${esc(ad.id)}">${esc(ad.id || '')}</span>
+            <span class="ad-card-badges"><span class="pill">${esc(ad.label || '광고')}</span>${status}${reportStatus}</span>
+          </header>
+          <div class="ad-card-body">${textHtml}</div>
+          ${linkHtml}
+          <div class="ad-card-meta">
+            <span class="ad-card-meta-item"><span class="meta-label">가중치</span><input class="ad-card-weight-input" type="number" min="0" max="100" step="0.1" value="${esc(weight)}" data-ad-weight-input="${esc(ad.id)}" aria-label="노출 가중치 (수정 후 다른 곳 클릭 시 자동 저장)"></span>
+            <span class="ad-card-meta-item"><span class="meta-label">점유</span><span class="ad-card-share">${sharePct}</span></span>
+            <span class="ad-card-meta-item"><span class="meta-label">위치</span>${placeText}</span>
+            <span class="ad-card-meta-item"><span class="meta-label">기간</span>${esc(adScheduleText(ad))}</span>
+          </div>
+          <div class="ad-card-actions">
+            <button class="btn sm" data-ad-action="edit" data-ad-id="${esc(ad.id)}">수정</button>
+            <button class="btn sm" data-ad-action="report" data-ad-id="${esc(ad.id)}">${report ? '리포트 관리' : '리포트 발급'}</button>
+            <button class="btn sm" data-ad-action="toggle" data-ad-id="${esc(ad.id)}">${ad.active===false ? '활성화' : '비활성화'}</button>
+            <button class="btn sm danger" data-ad-action="delete" data-ad-id="${esc(ad.id)}">삭제</button>
+          </div>
+        </article>`;
+      }).join('');
+    }
+    async function loadAds(){
+      const data=await api('/api/ads?include_inactive=1');
+      renderAds(data.ads || []);
+      return data;
+    }
+    async function postAd(body, doneText){
+      setStatus('광고 처리 중...');
+      const data=await api('/api/ads', {method:'POST', body:JSON.stringify(body)});
+      await loadAds();
+      setStatus('');
+      if(doneText) showToast(doneText);
+      return data;
+    }
+    function resetAdForm(){
+      editingAdId='';
+      $('adId').disabled=false;
+      $('adId').value='';
+      $('adLabel').value='광고';
+      $('adWeight').value='1';
+      $('adStartAt').value='';
+      $('adEndAt').value='';
+      $('adText').value='';
+      $('adHref').value='';
+      $('adPlaceChat').checked=true;
+      $('adPlaceCommunity').checked=true;
+      $('adPlaceSummary').checked=true;
+      $('adAddBtn').textContent='광고 저장';
+      $('adCancelEditBtn').hidden=true;
+    }
+    function cleanAdIdInput(value){
+      return String(value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0,40);
+    }
+    function readAdWeightInput(input, fallback=1){
+      const n=Number(input?.value);
+      return Number.isFinite(n) ? n : fallback;
+    }
+    function startEditAd(id){
+      const ad=latestAds.find((item)=>item.id===id);
+      if(!ad){ showToast('수정할 광고를 찾지 못했습니다.', 'bad'); return; }
+      editingAdId=ad.id;
+      $('adId').value=ad.id || '';
+      $('adId').disabled=true;
+      $('adLabel').value=ad.label || '광고';
+      $('adWeight').value=Number.isFinite(Number(ad.weight)) ? String(ad.weight) : '1';
+      $('adStartAt').value=isoToKstDateTimeInput(ad.startAt);
+      $('adEndAt').value=isoToKstDateTimeInput(ad.endAt);
+      $('adText').value=adTexts(ad).join('\n');
+      $('adHref').value=ad.href || '';
+      const placements=Array.isArray(ad.placements) ? ad.placements : [];
+      $('adPlaceChat').checked=placements.includes('chat') || !placements.length;
+      $('adPlaceCommunity').checked=placements.includes('community') || !placements.length;
+      $('adPlaceSummary').checked=placements.includes('summary') || !placements.length;
+      $('adAddBtn').textContent='수정 저장';
+      $('adCancelEditBtn').hidden=false;
+      document.querySelector('[data-tab="ads"]')?.click();
+      setStatus(`광고 ${ad.id} 수정 중. 식별자는 GA 집계를 위해 고정됩니다.`);
+    }
+    function readAdFormDraft(){
+      const texts=parseAdTexts();
+      if(!texts.length){ showToast('광고 문구를 입력해 주세요.', 'bad'); return null; }
+      const placements=[];
+      if($('adPlaceChat').checked) placements.push('chat');
+      if($('adPlaceCommunity').checked) placements.push('community');
+      if($('adPlaceSummary').checked) placements.push('summary');
+      const action=editingAdId ? 'update' : 'add';
+      const id=editingAdId || cleanAdIdInput($('adId').value);
+      const startAt=kstDateTimeInputToIso($('adStartAt').value);
+      const endAt=kstDateTimeInputToIso($('adEndAt').value);
+      if(startAt && endAt && Date.parse(endAt)<=Date.parse(startAt)){
+        showToast('종료 시각은 시작 시각보다 뒤여야 합니다.', 'bad');
+        return null;
+      }
+      const body={
+        action,
+        ...(id ? { id } : {}),
+        label:$('adLabel').value.trim() || '광고',
+        text:texts[0],
+        texts,
+        href:$('adHref').value.trim(),
+        weight:readAdWeightInput($('adWeight'), 1),
+        placements:placements.length ? placements : ['chat','community','summary'],
+        startAt,
+        endAt,
+      };
+      return { body, expectedId:id, action };
+    }
+    async function saveAdFromForm(options={}){
+      const draft=readAdFormDraft();
+      if(!draft) return null;
+      const data=await postAd(draft.body, draft.action==='update' ? '광고를 수정했습니다.' : '광고를 추가했습니다.');
+      const savedId=draft.expectedId || data?.ads?.[0]?.id || '';
+      resetAdForm();
+      if(options.prepareReport && savedId){
+        fillReportFromAd(savedId);
+        showToast('광고를 저장하고 리포트 폼을 준비했습니다.');
+      }
+      return savedId;
+    }
+    $('adAddBtn').addEventListener('click', ()=>{
+      saveAdFromForm()
+        .catch(handleAdminError);
+    });
+    $('adSaveReportBtn').addEventListener('click', ()=>{
+      saveAdFromForm({prepareReport:true})
+        .catch(handleAdminError);
+    });
+    $('adCancelEditBtn').addEventListener('click', resetAdForm);
+    $('adResetBtn').addEventListener('click', resetAdForm);
+    $('adRefreshBtn').addEventListener('click', ()=>loadAds().catch(handleAdminError));
+    document.addEventListener('click',(ev)=>{
+      const btn=ev.target.closest('[data-ad-action]');
+      if(!btn) return;
+      const action=btn.dataset.adAction;
+      const id=btn.dataset.adId;
+      if(action==='edit'){ startEditAd(id); }
+      else if(action==='report'){ fillReportFromAd(id); }
+      else if(action==='toggle'){
+        postAd({action:'toggle', id}, '광고 활성 여부를 바꿨습니다.').catch(handleAdminError);
+      } else if(action==='delete'){
+        if(confirm('이 광고를 삭제할까요?')){
+          postAd({action:'delete', id}, '광고를 삭제했습니다.').catch(handleAdminError);
+        }
+      }
+    });
+    // Auto-save weight on blur (replaces the standalone "가중치 저장" button)
+    document.addEventListener('change',(ev)=>{
+      const input=ev.target?.closest?.('[data-ad-weight-input]');
+      if(!input) return;
+      const id=input.dataset.adWeightInput;
+      const ad=latestAds.find((a)=>a.id===id);
+      const newWeight=readAdWeightInput(input, 0);
+      if(ad && Number(ad.weight) === newWeight) return;
+      postAd({action:'update', id, weight:newWeight}, '가중치를 저장했습니다.').catch(handleAdminError);
+    });
+
+    // ========== Advertiser reports ==========
+    const DEFAULT_AD_REPORT_START_DATE='2026-05-20';
+    function kstToday(){
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone:'Asia/Seoul',
+        year:'numeric',
+        month:'2-digit',
+        day:'2-digit',
+      }).format(new Date());
+    }
+    function defaultReportStartDate(){
+      return DEFAULT_AD_REPORT_START_DATE;
+    }
+    function cleanReportIdInput(value){
+      return String(value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0,64);
+    }
+    function splitListInput(value){
+      return String(value || '').split(/[\n,]+/).map((item)=>item.trim()).filter(Boolean).slice(0,20);
+    }
+    function slugText(value){
+      const ascii=String(value || '').toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'');
+      return ascii || `report-${Date.now().toString(36)}`;
+    }
+    function randomReportToken(){
+      const bytes=new Uint8Array(24);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, (b)=>b.toString(16).padStart(2,'0')).join('');
+    }
+    async function sha256Hex(value){
+      const bytes=new TextEncoder().encode(value);
+      const digest=await crypto.subtle.digest('SHA-256', bytes);
+      return Array.from(new Uint8Array(digest), (b)=>b.toString(16).padStart(2,'0')).join('');
+    }
+    function advertiserReportUrl(id, tokenValue){
+      const qs=new URLSearchParams({id, token:tokenValue});
+      return `${location.origin}/advertiser/?${qs.toString()}`;
+    }
+    function generatedReportLinkInput(id){
+      return Array.from(document.querySelectorAll('[data-generated-report-id]')).find((input)=>input.dataset.generatedReportId===id) || null;
+    }
+    function showGeneratedReportLink(id, tokenValue){
+      generatedReportLinkState={id, url:advertiserReportUrl(id, tokenValue)};
+      renderAdReports(latestAdReports);
+      requestAnimationFrame(()=>{
+        const input=generatedReportLinkInput(id);
+        const card=input?.closest?.('.report-card');
+        card?.scrollIntoView({block:'nearest', behavior:'smooth'});
+        input?.focus();
+        input?.select();
+      });
+    }
+    function readReportForm(){
+      const id=cleanReportIdInput($('reportId').value);
+      return {
+        id,
+        advertiser:$('reportAdvertiser').value.trim() || '광고주',
+        campaign:$('reportCampaign').value.trim() || '광고 캠페인',
+        adIds:splitListInput($('reportAdIds').value).map(cleanAdIdInput).filter(Boolean),
+        creativeIncludes:splitListInput($('reportCreativeIncludes').value),
+        creativeExcludes:splitListInput($('reportCreativeExcludes').value),
+        period:{
+          start:$('reportStartDate').value || defaultReportStartDate(),
+          end:$('reportEndDate').value.trim() || 'today',
+          timezone:'Asia/Seoul',
+        },
+        notes:$('reportNotes').value.trim(),
+      };
+    }
+    function setReportForm(report){
+      editingReportId=report?.id || '';
+      $('reportId').disabled=!!editingReportId;
+      $('reportId').value=report?.id || '';
+      $('reportAdvertiser').value=report?.advertiser || '';
+      $('reportCampaign').value=report?.campaign || '';
+      $('reportAdIds').value=(report?.adIds || []).join(', ');
+      $('reportStartDate').value=report?.period?.start && report.period.start !== '30daysAgo' ? report.period.start : defaultReportStartDate();
+      $('reportEndDate').value=report?.period?.end || 'today';
+      $('reportCreativeIncludes').value=(report?.creativeIncludes || []).join(', ');
+      $('reportCreativeExcludes').value=(report?.creativeExcludes || []).join(', ');
+      $('reportNotes').value=report?.notes || '동일 광고 내 문구 로테이션과 30분 기준 노출 cap으로 보정한 기준입니다.';
+      $('reportSaveBtn').textContent=editingReportId ? '설정 저장' : '토큰 발급';
+      $('reportCancelEditBtn').hidden=!editingReportId;
+    }
+    function resetReportForm(){
+      setReportForm(null);
+      $('reportStartDate').value=defaultReportStartDate();
+      $('reportEndDate').value='today';
+    }
+    function fillReportFromAd(id){
+      const ad=latestAds.find((item)=>item.id===id);
+      if(!ad){ showToast('광고를 찾지 못했습니다.', 'bad'); return; }
+      const existing=reportForAd(id);
+      if(existing){
+        setReportForm(existing);
+        document.querySelector('[data-tab="ads"]')?.click();
+        $('adReports')?.scrollIntoView({block:'start', behavior:'smooth'});
+        setStatus(`광고 ${id}에는 이미 리포트 ${existing.id}가 있습니다. 기존 토큰 원문은 저장하지 않으므로 필요할 때 새 링크를 발급하세요.`);
+        showToast('기존 리포트를 불러왔습니다.');
+        return;
+      }
+      const firstText=adTexts(ad)[0] || ad.id;
+      setReportForm({
+        id:`${slugText(ad.id)}-${kstToday().slice(0,7)}`,
+        advertiser:'',
+        campaign:firstText.slice(0,80),
+        adIds:[ad.id],
+        creativeIncludes:[],
+        creativeExcludes:[],
+        period:{start:defaultReportStartDate(), end:'today', timezone:'Asia/Seoul'},
+        notes:'동일 광고 내 문구 로테이션과 30분 기준 노출 cap으로 보정한 기준입니다.',
+      });
+      editingReportId='';
+      $('reportId').disabled=false;
+      $('reportSaveBtn').textContent='토큰 발급';
+      $('reportCancelEditBtn').hidden=true;
+      document.querySelector('[data-tab="ads"]')?.click();
+      $('adReports')?.scrollIntoView({block:'start', behavior:'smooth'});
+      setStatus(`광고 ${ad.id} 기준으로 리포트 발급 폼을 채웠습니다.`);
+    }
+    function renderAdReports(reports=[]){
+      const rows=$('adReportRows');
+      latestAdReports=Array.isArray(reports) ? reports : [];
+      if(latestAds.length) renderAds(latestAds);
+      if(!latestAdReports.length){
+        rows.innerHTML='<div class="ad-empty">발급된 리포트가 없습니다. 광고 카드에서 리포트 발급을 누르거나 광고 저장 후 리포트 폼에서 토큰을 발급하세요.</div>';
+        return;
+      }
+      rows.innerHTML=latestAdReports.map((report)=>{
+        const classes=['report-card'];
+        if(report.active===false) classes.push('is-inactive');
+        if(editingReportId===report.id) classes.push('is-editing');
+        const stats=report.stats || {};
+        const status=report.active===false ? '<span class="pill">리포트 비활성</span>' : '<span class="pill ok">리포트 활성</span>';
+        const tokenStatus=report.tokenHash ? '<span class="pill">토큰 발급됨</span>' : '<span class="pill bad">토큰 없음</span>';
+        const statsStatus=report.active===false
+          ? '<span class="pill">링크 비활성</span>'
+          : (stats.hasStats ? '<span class="pill ok">링크 활성</span>' : '<span class="pill warn">집계 대기</span>');
+        const syncStatus=stats.hasStats && stats.tokenSynced===false ? '<span class="pill warn">토큰 동기화 확인</span>' : '';
+        const statsText=stats.hasStats
+          ? `보정 노출 ${formatNumber(stats.impressions)} · RAW ${formatNumber(stats.rawImpressions)} · 클릭 ${formatNumber(stats.clicks)}`
+          : '아직 집계 payload에 없음';
+        const updatedText=stats.updatedAt ? time(stats.updatedAt) : '-';
+        const noteClass=report.active===false ? '' : (stats.hasStats ? 'ok' : 'warn');
+        const noteText=report.active===false
+          ? '비활성 리포트입니다. 기존 광고주 링크는 열리지 않습니다.'
+          : (stats.hasStats
+            ? '광고주 페이지에서 통계를 볼 수 있습니다. 기존 링크 원문은 저장하지 않아 카드에서 다시 표시할 수 없습니다.'
+            : '토큰은 발급됐지만 아직 집계 결과가 없습니다. 링크는 토큰 검증 후 열리고, 다음 자동 집계가 돌면 수치가 채워집니다.');
+        const generatedLink=generatedReportLinkState?.id===report.id ? generatedReportLinkState.url : '';
+        const generatedLinkHtml=generatedLink ? `
+          <div class="token-result report-card-token">
+            <div>
+              <label>새로 발급한 광고주 링크 (지금 한 번만 표시)</label>
+              <input class="generated-report-link" data-generated-report-id="${esc(report.id)}" type="text" value="${esc(generatedLink)}" readonly>
+              <p class="token-note">이 링크를 광고주에게 전달하세요. 닫은 뒤에는 같은 토큰을 다시 볼 수 없으며, 필요하면 이 카드에서 새 링크를 발급해야 합니다.</p>
+            </div>
+            <div class="field-actions" style="margin-top:0">
+              <button class="btn primary" data-report-copy-generated="${esc(report.id)}" type="button">링크 복사</button>
+              <button class="btn" data-report-hide-generated="${esc(report.id)}" type="button">닫기</button>
+            </div>
+          </div>` : '';
+        const filters=[
+          ...(report.creativeIncludes || []).map((item)=>`포함 ${esc(item)}`),
+          ...(report.creativeExcludes || []).map((item)=>`제외 ${esc(item)}`),
+        ];
+        return `<article class="${classes.join(' ')}" data-report-card-id="${esc(report.id)}">
+          <header class="report-card-head">
+            <span class="report-card-id" title="${esc(report.id)}">${esc(report.id)}</span>
+            <span class="report-card-status">${status}${tokenStatus}${statsStatus}${syncStatus}</span>
+          </header>
+          <div class="report-card-title">${esc(report.advertiser || '광고주')} · ${esc(report.campaign || '광고 캠페인')}</div>
+          <div class="report-card-meta">
+            <span>기간 ${esc(report.period?.start || '-')} ~ ${esc(report.period?.end || 'today')}</span>
+            <span>광고 ${(report.adIds || []).map((id)=>`<code>${esc(id)}</code>`).join(' ')}</span>
+            ${filters.length ? `<span>${filters.map((item)=>`<span class="pill">${item}</span>`).join(' ')}</span>` : ''}
+          </div>
+          <div class="report-card-facts">
+            <div class="report-fact"><span class="k">리포트 ID</span><span class="v"><code title="${esc(report.id)}">${esc(report.id)}</code></span></div>
+            <div class="report-fact"><span class="k">토큰</span><span class="v">원문 미저장, 새 링크 발급 시 이전 링크 만료</span></div>
+            <div class="report-fact"><span class="k">집계 상태</span><span class="v">${esc(statsText)}</span></div>
+            <div class="report-fact"><span class="k">집계 갱신</span><span class="v">${esc(updatedText)}</span></div>
+          </div>
+          <div class="report-card-note ${noteClass}">${esc(noteText)}</div>
+          ${generatedLinkHtml}
+          <div class="report-card-actions">
+            <button class="btn sm" data-report-action="edit" data-report-id="${esc(report.id)}">수정</button>
+            <button class="btn sm primary" data-report-action="rotate" data-report-id="${esc(report.id)}">새 링크 발급</button>
+            <button class="btn sm" data-report-action="toggle" data-report-id="${esc(report.id)}">${report.active===false ? '활성화' : '비활성화'}</button>
+            <button class="btn sm danger" data-report-action="delete" data-report-id="${esc(report.id)}">삭제</button>
+          </div>
+        </article>`;
+      }).join('');
+    }
+    async function loadAdReports(){
+      const data=await api('/api/admin/ad-reports');
+      renderAdReports(data.reports || []);
+      return data;
+    }
+    async function postAdReport(body, doneText){
+      setStatus('광고주 리포트 처리 중...');
+      const data=await api('/api/admin/ad-reports', {method:'POST', body:JSON.stringify(body)});
+      renderAdReports(data.reports || []);
+      setStatus('');
+      if(doneText) showToast(doneText);
+      return data;
+    }
+    $('reportSaveBtn').addEventListener('click', async ()=>{
+      const report=readReportForm();
+      if(!report.id){ showToast('리포트 ID를 입력해 주세요.', 'bad'); return; }
+      if(!report.adIds.length){ showToast('광고 식별자를 입력해 주세요.', 'bad'); return; }
+      try{
+        if(editingReportId){
+          await postAdReport({action:'update', ...report, id:editingReportId}, '리포트 설정을 저장했습니다.');
+          resetReportForm();
+          return;
+        }
+        const tokenValue=randomReportToken();
+        const tokenHash=await sha256Hex(tokenValue);
+        await postAdReport({action:'add', ...report, tokenHash}, '광고주 리포트 토큰을 발급했습니다.');
+        resetReportForm();
+        showGeneratedReportLink(report.id, tokenValue);
+      }catch(e){ handleAdminError(e); }
+    });
+    $('reportCancelEditBtn').addEventListener('click', resetReportForm);
+    $('reportResetBtn').addEventListener('click', resetReportForm);
+    $('reportRefreshBtn').addEventListener('click', ()=>loadAdReports().catch(handleAdminError));
+    document.addEventListener('click', async (ev)=>{
+      const copyBtn=ev.target.closest('[data-report-copy-generated]');
+      const hideBtn=ev.target.closest('[data-report-hide-generated]');
+      if(copyBtn){
+        const id=copyBtn.dataset.reportCopyGenerated;
+        const input=generatedReportLinkInput(id);
+        const value=input?.value || '';
+        if(!value) return;
+        try{
+          await navigator.clipboard.writeText(value);
+          showToast('광고주 링크를 복사했습니다.');
+        }catch{
+          input.focus();
+          input.select();
+          showToast('링크를 선택했습니다. 직접 복사해 주세요.');
+        }
+        return;
+      }
+      if(hideBtn){
+        generatedReportLinkState=null;
+        renderAdReports(latestAdReports);
+      }
+    });
+    document.addEventListener('click', async (ev)=>{
+      const btn=ev.target.closest('[data-report-action]');
+      if(!btn) return;
+      const action=btn.dataset.reportAction;
+      const id=btn.dataset.reportId;
+      try{
+        if(action==='edit'){
+          const report=latestAdReports.find((item)=>item.id===id);
+          if(!report){ showToast('리포트를 찾지 못했습니다.', 'bad'); return; }
+          setReportForm(report);
+          $('adReports')?.scrollIntoView({block:'start', behavior:'smooth'});
+        }else if(action==='rotate'){
+          if(!confirm('새 링크를 발급하면 기존 광고주 링크는 더 이상 열리지 않습니다. 계속할까요?')) return;
+          const tokenValue=randomReportToken();
+          const tokenHash=await sha256Hex(tokenValue);
+          await postAdReport({action:'rotate', id, tokenHash}, '새 광고주 토큰을 발급했습니다.');
+          showGeneratedReportLink(id, tokenValue);
+        }else if(action==='toggle'){
+          await postAdReport({action:'toggle', id}, '리포트 활성 여부를 바꿨습니다.');
+        }else if(action==='delete'){
+          if(confirm('이 광고주 리포트를 삭제할까요? 기존 링크는 더 이상 열리지 않습니다.')){
+            await postAdReport({action:'delete', id}, '광고주 리포트를 삭제했습니다.');
+          }
+        }
+      }catch(e){ handleAdminError(e); }
+    });
+
+    // ========== Loader ==========
+    async function postAction(body, doneText){
+      setStatus('처리 중...');
+      const data=await api('/api/chat-admin', {method:'POST', body:JSON.stringify(body)});
+      await broadcastModeration(body);
+      const actionWarning=chatAdminWarningText(data);
+      setStatus(actionWarning || '');
+      if(doneText) showToast(doneText);
+      const refreshed=await loadChat();
+      const refreshWarning=chatAdminWarningText(refreshed);
+      if(actionWarning && !refreshWarning) setStatus(actionWarning, true);
+      return data;
+    }
+    async function load(){
+      setStatus('불러오는 중...');
+      const results=await Promise.allSettled([loadChat(), loadCommunityBans({silent:true}), loadBlockedTerms(), loadDonors(), loadAds(), loadAdReports()]);
+      const failed=results.filter((r)=>r.status==='rejected');
+      if(failed.length){
+        const first=failed[0].reason;
+        if(results[0].status==='rejected') handleAdminError(first);
+        else setStatus(`일부 로드 실패: ${friendlyError(first?.message || first)}`, true);
+      } else {
+        const chatWarning=chatAdminWarningText(results[0].value);
+        setStatus(chatWarning || '', !!chatWarning);
+        showToast('관리자 데이터 로드 완료');
+      }
+    }
+
+    // ========== Wiring ==========
+    $('loadBtn').addEventListener('click',()=>load().catch(handleAdminError));
+    rememberInput.addEventListener('change',()=>{
+      persistToken(tokenInput.value.trim());
+      showToast(rememberInput.checked ? '이 기기에 토큰 저장' : '이 기기 저장 해제');
+    });
+    toggleTokenBtn.addEventListener('click',()=>{
+      const visible=tokenInput.type==='text';
+      tokenInput.type=visible ? 'password' : 'text';
+      toggleTokenBtn.textContent=visible ? '토큰 보기' : '토큰 숨기기';
+    });
+    $('clearTokenBtn').addEventListener('click',()=>{
+      sessionStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REMEMBER_TOKEN_KEY);
+      rememberInput.checked=false;
+      tokenInput.value='';
+      setLoginState('bad', '로그인 필요');
+      setAdminUnlocked(false);
+      setStatus('토큰을 지웠습니다.');
+    });
+    $('manualBanBtn').addEventListener('click',()=>{
+      const user_id=$('manualUser').value.trim();
+      if(!user_id){ showToast('사용자 ID 를 입력하세요.', 'bad'); return; }
+      postAction({action:'ban_user', user_id, hours:24}, '1일 추방했습니다.').catch(handleAdminError);
+    });
+    $('manualUnbanBtn').addEventListener('click',()=>{
+      const user_id=$('manualUser').value.trim();
+      if(!user_id){ showToast('사용자 ID 를 입력하세요.', 'bad'); return; }
+      postAction({action:'unban_user', user_id}, '추방을 해제했습니다.').catch(handleAdminError);
+    });
+    $('refreshBansBtn').addEventListener('click',()=>loadBansOnly().catch(handleAdminError));
+    $('clearBansBtn').addEventListener('click',()=>{
+      if(!confirm('현재 채팅 추방 목록을 전부 해제할까요? 신고/차단어 기록까지 함께 초기화됩니다.')) return;
+      postAction({action:'clear_bans'}, '전체 추방을 해제했습니다.').catch(handleAdminError);
+    });
+    $('refreshCommunityBansBtn').addEventListener('click',()=>loadCommunityBans().catch(handleAdminError));
+    $('clearCommunityBansBtn').addEventListener('click', async ()=>{
+      if(!confirm('기존 종토방 차단만 초기화할까요? 채팅 신고/차단어 추방은 유지됩니다.')) return;
+      try{
+        setStatus('종토방 차단 초기화 중...');
+        const data=await api('/api/community-admin', {method:'POST', body:JSON.stringify({action:'clear_community_bans'})});
+        await loadCommunityBans();
+        setStatus(data.syncError ? `일부 동기화 제한: ${friendlyError(data.syncError)}` : '');
+        showToast(`종토방 차단 ${data.cleared || 0}건을 초기화했습니다.`);
+      }catch(e){ handleAdminError(e); }
+    });
+    document.addEventListener('click',(ev)=>{
+      const btn=ev.target.closest('[data-action]');
+      if(!btn) return;
+      const action=btn.dataset.action;
+      const user_id=btn.dataset.userId;
+      const nickname=btn.dataset.nickname || '';
+      const message_id=btn.dataset.messageId;
+      if(action==='delete-message'){
+        postAction({action:'delete_message', message_id}, '메시지를 삭제했습니다.').catch(handleAdminError);
+      } else if(action==='delete-user'){
+        if(confirm('이 사용자의 현재 표시 메시지를 삭제할까요?')){
+          postAction({action:'delete_user_messages', user_id}, '사용자 메시지를 삭제했습니다.').catch(handleAdminError);
+        }
+      } else if(action==='ban-user'){
+        if(confirm('이 사용자를 1일 추방하고 메시지도 삭제할까요?')){
+          postAction({action:'ban_user', user_id, nickname, hours:24, delete_messages:true}, '1일 추방+삭제 완료').catch(handleAdminError);
+        }
+      } else if(action==='unban-user'){
+        postAction({action:'unban_user', user_id}, '추방을 해제했습니다.').catch(handleAdminError);
+      }
+    });
+    document.addEventListener('click',(ev)=>{
+      const btn=ev.target.closest('[data-community-action]');
+      if(!btn) return;
+      const action=btn.dataset.communityAction;
+      const user_id=btn.dataset.userId;
+      if(action==='unban-user'){
+        api('/api/community-admin', {method:'POST', body:JSON.stringify({action:'unban_user', user_id})})
+          .then(()=>loadCommunityBans())
+          .then(()=>showToast('종토방 차단을 해제했습니다.'))
+          .catch(handleAdminError);
+      }
+    });
+    resetDonorForm();
+    resetAdForm();
+    if(tokenInput.value){
+      load().catch(handleAdminError);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "ads": [
+    {
+      "id": "sponsor-open",
+      "active": true,
+      "label": "알림",
+      "text": "이곳에 한줄 광고를 넣어주실 광고주를 모십니다.",
+      "texts": ["이곳에 한줄 광고를 넣어주실 광고주를 모십니다."],
+      "href": "mailto:excelkospi@outlook.com",
+      "weight": 1,
+      "placements": ["chat", "community", "summary"]
+    },
+    {
+      "id": "example-disabled",
+      "active": false,
+      "label": "광고",
+      "text": "광고 문구를 여기에 입력합니다.",
+      "texts": ["광고 문구를 여기에 입력합니다.", "두 번째 문구를 여기에 입력합니다."],
+      "href": "https://example.com",
+      "weight": 1,
+      "placements": ["chat", "community", "summary"]
+    }
+  ]
+}

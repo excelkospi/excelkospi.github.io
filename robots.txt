@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /docs/
+Disallow: /s/
+
+Sitemap: https://excelkospi.pages.dev/sitemap.xml
