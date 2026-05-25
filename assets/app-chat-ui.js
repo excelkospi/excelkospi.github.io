@@ -271,11 +271,19 @@ function updateChatDockButton(){
   if(!dock) return;
   const active=chatDockActive();
   const supported=chatDockSupported();
+  if(!supported){
+    dock.hidden = true;
+    dock.classList.remove('is-active');
+    dock.setAttribute('aria-pressed', 'false');
+    dock.setAttribute('aria-label', '오른쪽 고정 모드');
+    dock.title = '넓은 화면에서만 사용할 수 있습니다';
+    return;
+  }
   dock.hidden = false;
   dock.classList.toggle('is-active', active);
   dock.setAttribute('aria-pressed', active ? 'true' : 'false');
   dock.innerHTML = active ? CHAT_HEADER_ICONS.undock : CHAT_HEADER_ICONS.dock;
-  const title=active ? '오른쪽 고정 해제' : (supported ? '오른쪽에 붙이기' : '오른쪽에 붙이기 (넓은 화면 필요)');
+  const title=active ? '오른쪽 고정 해제' : '오른쪽에 붙이기';
   dock.title=title;
   dock.setAttribute('aria-label', title);
 }

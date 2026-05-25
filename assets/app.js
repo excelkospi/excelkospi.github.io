@@ -2071,12 +2071,18 @@ function holdingSummary(cards){
   const title = `보유 입력 ${count}건 · 현재가치 ${valueText} · 원금 ${investedText} · 누적 손익 ${pnlText}${dailyAvailable ? ` · 일일 손익 ${dayPnlText}` : ''}${converted ? ` · 원/달러 ${num(fx)}원 환산` : ''}`;
   return { count, mixed:false, value, invested, pnl, pctValue, pctText:pctOne(pctValue), valueText, pnlText, title, converted, modeLabel:'누적' };
 }
-function renderHoldingSummaryRow(cards, rowNo){
+function holdingSummaryView(cards){
   const summary = holdingSummary(cards);
-  if(!summary) return '';
+  if(!summary) return null;
   const klass = cls(summary.pctValue);
   const meta = summary.mixed ? '환율 확인 후 합계 표시' : `${summary.count}건 · 손익 ${summary.pnlText}`;
   const valueText = summary.mixed ? '-' : summary.valueText;
+  return { summary, klass, meta, valueText };
+}
+function renderHoldingSummaryRow(cards, rowNo){
+  const view = holdingSummaryView(cards);
+  if(!view) return '';
+  const {summary, klass, meta, valueText} = view;
   return `
     <tr class="holding-row holding-summary-row" title="${esc(summary.title)}">
       <td class="rownum">${rowNo}</td>
@@ -3883,10 +3889,22 @@ function updateHoldingRowAfterFastQuote(row, card){
 function updateHoldingSummaryRow(){
   const row=document.querySelector('#cardsTable .holding-summary-row');
   if(!row) return;
-  const rowNo=row.querySelector('.rownum')?.textContent || '';
-  const next=renderHoldingSummaryRow(lastRenderedCards, rowNo);
-  if(next) row.outerHTML=next;
-  else row.remove();
+  const view = holdingSummaryView(lastRenderedCards);
+  if(!view){
+    row.remove();
+    return;
+  }
+  const {summary, klass, meta, valueText} = view;
+  row.title = summary.title || '';
+  const metaEl = row.querySelector('.holding-summary-meta');
+  if(metaEl) metaEl.textContent = meta;
+  const valueEl = row.querySelector('.holding-summary-value');
+  if(valueEl) valueEl.textContent = valueText;
+  const pctEl = row.querySelector('.holding-summary-pct');
+  if(pctEl){
+    pctEl.className = `${klass} holding-summary-pct`;
+    pctEl.textContent = summary.pctText || '-';
+  }
 }
 
 function applyFastQuoteToRow(token, card){
@@ -4463,6 +4481,28 @@ function renderSheetRescueTable(kind='summary', message='데이터를 다시 불
   return header + rows;
 }
 
+function replaceTableHtmlStable(table, html){
+  if(!table) return;
+  const next = String(html || '');
+  if(table.innerHTML === next) return;
+  let token = '';
+  try{
+    const height = Math.ceil(table.getBoundingClientRect().height || 0);
+    if(height > 0){
+      token = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      table.dataset.xkStableReplace = token;
+      table.style.minHeight = `${height}px`;
+    }
+  }catch{}
+  table.innerHTML = next;
+  if(!token) return;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(table.dataset.xkStableReplace !== token) return;
+    table.style.removeProperty('min-height');
+    delete table.dataset.xkStableReplace;
+  }));
+}
+
 function renderSnapshotView(s, market, baseCards, userCards=[]){
   const rowLimit=quoteTableRowLimit();
   const safeBaseCards = (Array.isArray(baseCards) ? baseCards : []).slice(0, rowLimit);
@@ -4474,10 +4514,10 @@ function renderSnapshotView(s, market, baseCards, userCards=[]){
   closeMobileTradingViewChart();
   const table=document.getElementById('cardsTable');
   try{
-    if(table) table.innerHTML=renderCardsTable(cards, s.session);
+    if(table) replaceTableHtmlStable(table, renderCardsTable(cards, s.session));
   }catch(e){
     debugWarn('cards render failed', e);
-    if(table) table.innerHTML=renderSheetRescueTable('summary', '시세 표시를 복구하는 중입니다');
+    if(table) replaceTableHtmlStable(table, renderSheetRescueTable('summary', '시세 표시를 복구하는 중입니다'));
   }
   setSheetSwitchLoading(false);
   const inbox=document.getElementById('outlookInboxCount');
@@ -4542,7 +4582,7 @@ function rerenderCardsTableFromCurrentState(){
   if(!table || !lastRenderedCards.length) return;
   closeMobileTradingViewChart();
   lastRenderedCards=orderRenderedQuoteCards(withQuoteNoteRows(lastRenderedCards.slice(), currentRenderedMarket));
-  table.innerHTML=renderCardsTable(lastRenderedCards, lastSnapshot?.session);
+  replaceTableHtmlStable(table, renderCardsTable(lastRenderedCards, lastSnapshot?.session));
   if(document.body.classList.contains('theme-outlook') && lastSnapshot){
     try{ renderOutlookFromSnapshot(lastSnapshot, lastRenderedCards.filter((card)=>card && !card._noteRow)); }catch(e){ debugWarn('outlook render failed', e); }
   }

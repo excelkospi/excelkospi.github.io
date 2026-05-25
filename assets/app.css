@@ -3103,6 +3103,9 @@ button.notice-card{cursor:pointer}
 .chat-head-btn.is-active{background:rgba(255,255,255,.42);color:#fff}
 .chat-dock-toggle[hidden]{display:none!important}
 .chat-close:hover,.chat-size-toggle:hover,.chat-head-btn:hover{background:rgba(255,255,255,.24)}
+@media(max-width:760px){
+  .chat-dock-toggle{display:none!important}
+}
 @media(min-width:761px) and (hover:hover) and (pointer:fine){
   .chat-head{cursor:grab;user-select:none;touch-action:none}
   .chat-head-actions{cursor:auto}
