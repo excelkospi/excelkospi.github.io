@@ -752,8 +752,8 @@ function communityPollRow(rowNum, dataCols, compact=false){
     return `<button class="community-poll-choice${selected ? ' selected' : ''}" type="button" data-community-poll-choice="${index}" ${poll.loading || communityPollVoteInFlight || voted ? 'disabled' : ''} aria-pressed="${selected ? 'true' : 'false'}">${esc(label)}</button>`;
   }).join('');
   const resultText = poll.loading ? '준비 중' : (total ? `${total.toLocaleString('ko-KR')}명 참여` : (voted ? '첫 투표 완료' : '첫 투표를 기다리는 중'));
-  const tail = compact ? '' : `<td class="center community-action-cell community-poll-tail">${esc(resultText)}</td>`;
-  const inlineCount = compact ? `<span class="community-poll-count">${esc(resultText)}</span>` : '';
+  const tail = compact ? '' : '<td class="center community-action-cell community-poll-tail"></td>';
+  const inlineCount = `<span class="community-poll-count">${esc(resultText)}</span>`;
   return `<tr class="community-post-row community-poll-row${voted ? ' is-voted' : ''}${poll.loading ? ' is-loading' : ''}">
     <td class="rownum">${rowNum}</td>
     <td class="center community-author community-poll-author"><span>투표</span></td>
