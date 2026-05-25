@@ -33,6 +33,7 @@ jobs:
             --exclude ".git" \
             --exclude ".github" \
             --exclude ".pages-artifact" \
+            --exclude ".DS_Store" \
             ./ .pages-artifact/
 
       - name: Configure Pages
