@@ -302,9 +302,10 @@ function outlookCommunityPollHtml(poll, channel=outlookCommunityChannel){
   const voted = Number.isInteger(selected);
   const total = Math.max(0, Number(poll.total || 0) || 0);
   const options = Array.isArray(poll.options) ? poll.options : [];
+  const showResults = total > 0 || voted;
   const buttons = options.map((option, index)=>{
     const pct = Number(poll.percentages?.[index] || 0);
-    const label = voted ? `${option} ${pct ? `${pct.toFixed(pct % 1 ? 1 : 0)}%` : '0%'}` : option;
+    const label = showResults ? `${option} ${pct ? `${pct.toFixed(pct % 1 ? 1 : 0)}%` : '0%'}` : option;
     return `<button class="outlook-poll-choice${selected === index ? ' selected' : ''}" type="button" data-outlook-poll-choice="${index}" ${voted || outlookCommunityPollVoteInFlight ? 'disabled' : ''}>${esc(label)}</button>`;
   }).join('');
   const meta = total ? `${total.toLocaleString('ko-KR')}명 참여` : (voted ? '첫 투표 완료' : '첫 투표를 기다리는 중');

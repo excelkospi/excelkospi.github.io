@@ -670,11 +670,17 @@ function normalizeCommunityPollChoiceValue(value){
   return Number.isInteger(choice) ? choice : null;
 }
 
+function communityPollChoiceInRange(choice, poll){
+  const count = Array.isArray(poll?.options) ? poll.options.length : 0;
+  return Number.isInteger(choice) && choice >= 0 && choice < count;
+}
+
 function selectedCommunityPollChoice(poll){
   const serverChoice = normalizeCommunityPollChoiceValue(poll?.selectedChoice);
-  if(Number.isInteger(serverChoice)) return serverChoice;
+  if(communityPollChoiceInRange(serverChoice, poll)) return serverChoice;
   const saved = communityPollVotesLoad()[poll?.id || ''];
-  return normalizeCommunityPollChoiceValue(saved);
+  const savedChoice = normalizeCommunityPollChoiceValue(saved);
+  return communityPollChoiceInRange(savedChoice, poll) ? savedChoice : null;
 }
 
 function rememberCommunityPollVote(poll){
@@ -745,10 +751,11 @@ function communityPollRow(rowNum, dataCols, compact=false){
   const selectedChoice = selectedCommunityPollChoice(poll);
   const voted = Number.isInteger(selectedChoice);
   const total = Math.max(0, Number(poll.total || 0) || 0);
+  const showResults = total > 0 || voted;
   const buttons = poll.options.map((option, index)=>{
     const pct = Number(poll.percentages?.[index] || 0);
     const selected = selectedChoice === index;
-    const label = voted ? `${option} ${pct ? `${pct.toFixed(pct % 1 ? 1 : 0)}%` : '0%'}` : option;
+    const label = showResults ? `${option} ${pct ? `${pct.toFixed(pct % 1 ? 1 : 0)}%` : '0%'}` : option;
     return `<button class="community-poll-choice${selected ? ' selected' : ''}" type="button" data-community-poll-choice="${index}" ${poll.loading || communityPollVoteInFlight || voted ? 'disabled' : ''} aria-pressed="${selected ? 'true' : 'false'}">${esc(label)}</button>`;
   }).join('');
   const resultText = poll.loading ? '준비 중' : (total ? `${total.toLocaleString('ko-KR')}명 참여` : (voted ? '첫 투표 완료' : '첫 투표를 기다리는 중'));
