@@ -2922,6 +2922,54 @@ let sheetSwitchLoading=false;
 let renderSnapshotSeq=0;
 const USER_WATCHLIST_BACKGROUND_TIMEOUT_MS=12000;
 
+function fetchSnapshotMeta(forceNetwork, headers, options={}){
+  const request = () => fetchJsonClient(snapshotApiUrl(), 14000, {
+    cache: forceNetwork ? 'reload' : 'default',
+    headers,
+    returnMeta:true,
+  });
+  if(forceNetwork || !options.firstVisibleQuoteLoad) return request();
+
+  // Some browser/SW cache states can leave the first visible snapshot request pending.
+  // Keep normal cache behavior, but bypass it once if the empty first paint is still waiting.
+  return new Promise((resolve, reject)=>{
+    let settled=false;
+    let fallbackStarted=false;
+    const finish=(fn, value)=>{
+      if(settled) return;
+      settled=true;
+      clearTimeout(timer);
+      fn(value);
+    };
+    const fallback=()=>{
+      if(settled || fallbackStarted) return;
+      fallbackStarted=true;
+      fetchJsonClient(snapshotApiUrl(), 10000, {
+        cache:'reload',
+        returnMeta:true,
+        retry:1,
+      }).then(
+        (value)=>finish(resolve, value),
+        (error)=>{ fallbackRejected=error; if(primaryRejected) finish(reject, primaryRejected); }
+      );
+    };
+    let primaryRejected=null;
+    let fallbackRejected=null;
+    const timer=setTimeout(fallback, 2500);
+    request().then(
+      (value)=>finish(resolve, value),
+      (error)=>{
+        primaryRejected=error;
+        if(fallbackStarted){
+          if(fallbackRejected) finish(reject, primaryRejected);
+        }else{
+          fallback();
+        }
+      }
+    );
+  });
+}
+
 function fmtElapsedSec(sec){
   if(sec<5) return '방금';
   if(sec<60) return `${sec}초 전`;
@@ -4608,11 +4656,7 @@ async function loadSnapshot(options={}){
     const headers = {};
     const etag = snapshotEtag();
     if(etag && !forceNetwork) headers['if-none-match'] = etag;
-    const meta = await fetchJsonClient(snapshotApiUrl(), 14000, {
-      cache: forceNetwork ? 'reload' : 'default',
-      headers,
-      returnMeta:true,
-    });
+    const meta = await fetchSnapshotMeta(forceNetwork, headers, { firstVisibleQuoteLoad });
     if(meta.notModified){
       const stale = readSnapshotCache({ allowStale:true });
       if(stale?.value){
