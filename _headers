@@ -37,6 +37,15 @@
 /assets/icon-512.png
   Cache-Control: public, max-age=86400
 
+/apple-touch-icon.png
+  Cache-Control: public, max-age=86400
+
+/icon-192.png
+  Cache-Control: public, max-age=86400
+
+/icon-512.png
+  Cache-Control: public, max-age=86400
+
 /assets/maskable-192.png
   Cache-Control: public, max-age=86400
 

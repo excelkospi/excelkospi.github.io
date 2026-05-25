@@ -1,5 +1,5 @@
-const CACHE_NAME = 'excelkospi-static-20260526-521';
-const API_CACHE_NAME = 'excelkospi-api-20260526-521';
+const CACHE_NAME = 'excelkospi-static-20260526-522';
+const API_CACHE_NAME = 'excelkospi-api-20260526-522';
 const API_ORIGINS = new Set([
   location.origin,
   'https://excelkospi-api.alaala3.workers.dev',
@@ -7,8 +7,11 @@ const API_ORIGINS = new Set([
 const APP_SHELL = [
   '/',
   '/index.html',
-  '/manifest.webmanifest?v=20260521-408',
-  '/favicon.ico?v=20260521-408',
+  '/manifest.webmanifest?v=20260526-522',
+  '/favicon.ico?v=20260526-522',
+  '/apple-touch-icon.png?v=20260526-522',
+  '/icon-192.png?v=20260526-522',
+  '/icon-512.png?v=20260526-522',
   '/assets/app.css?v=20260525-518',
   '/assets/app-config.js?v=20260526-521',
   '/assets/app-utils.js?v=20260526-521',
@@ -27,9 +30,12 @@ const APP_SHELL = [
   '/assets/app-tradingview.js?v=20260525-510',
   '/assets/app-chat-ui.js?v=20260525-506',
   '/assets/app.js?v=20260526-521',
-  '/assets/favicon.svg?v=20260521-408',
-  '/assets/favicon-32.png?v=20260521-408',
-  '/assets/icon-192.png?v=20260521-408',
+  '/assets/favicon.svg?v=20260526-522',
+  '/assets/favicon-32.png?v=20260526-522',
+  '/assets/icon-192.png?v=20260526-522',
+  '/assets/icon-512.png?v=20260526-522',
+  '/assets/maskable-192.png?v=20260526-522',
+  '/assets/maskable-512.png?v=20260526-522',
 ];
 
 const API_SWR_TTL_MS = {
