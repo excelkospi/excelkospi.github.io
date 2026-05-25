@@ -54,6 +54,7 @@ let communityPostInFlight = false;
 let communityCommentInFlight = false;
 let communityPage = 1;
 const communityPollsByChannel = {};
+const communityPollUnavailableByChannel = {};
 let communityPollVoteInFlight = false;
 const communityReplyVisibleCounts = {};
 const QUOTE_NOTE_MARKETS = new Set(['KR','US','COIN','ALL']);
@@ -718,14 +719,19 @@ function normalizeCommunityPollPayload(payload, channel=communityActiveChannel()
 function syncCommunityPollFromPayload(payload, channel=communityActiveChannel()){
   const activeChannel = validCommunityChannel(channel);
   if(payload == null && communityPollEnabledForChannel(activeChannel)){
-    return communityPollsByChannel[activeChannel] || null;
+    if(communityPollsByChannel[activeChannel]) return communityPollsByChannel[activeChannel];
+    communityPollUnavailableByChannel[activeChannel] = true;
+    return null;
   }
   const poll = normalizeCommunityPollPayload(payload, activeChannel);
   if(poll){
     communityPollsByChannel[activeChannel] = poll;
+    delete communityPollUnavailableByChannel[activeChannel];
     rememberCommunityPollVote(poll);
   }else{
     delete communityPollsByChannel[activeChannel];
+    if(communityPollEnabledForChannel(activeChannel)) communityPollUnavailableByChannel[activeChannel] = true;
+    else delete communityPollUnavailableByChannel[activeChannel];
   }
   return poll;
 }
@@ -733,6 +739,7 @@ function syncCommunityPollFromPayload(payload, channel=communityActiveChannel())
 function communityPollForChannel(channel=communityActiveChannel()){
   const activeChannel = validCommunityChannel(channel);
   if(!communityPollEnabledForChannel(activeChannel)) return null;
+  if(communityPollUnavailableByChannel[activeChannel]) return null;
   return communityPollsByChannel[activeChannel] || {
     loading:true,
     channel:activeChannel,
@@ -6889,8 +6896,9 @@ function setupChatUi(){
   });
   initChatLastSeenAt();
   const isMobile=matchMedia('(max-width: 760px)').matches;
+  const isNarrowSheet=matchMedia('(max-width: 1099px)').matches;
   const chatButtonHidden=!!floatingHiddenFor('chat');
-  if(!isMobile && !chatButtonHidden){
+  if(!isMobile && !isNarrowSheet && !chatButtonHidden){
     setTimeout(()=>{
       setChatOpen(true, {connect:true, persist:false});
     }, 900);

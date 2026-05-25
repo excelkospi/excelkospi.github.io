@@ -1644,19 +1644,19 @@ a.stock-mention-badge:hover{background:#dff1e5;border-color:#86bd96;color:#0b6b3
 .community-image-preview-slot{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
 .community-image-preview-slot[hidden]{display:none}
 .community-post-row.is-just-posted > td:not(.rownum){animation:community-post-inserted 5s ease-out forwards}
-.community-poll-row > td:not(.rownum){height:46px;background:#fbfdfb}
+.community-poll-row > td:not(.rownum){height:40px;background:#fbfdfb}
 .community-poll-row.is-voted > td:not(.rownum){background:#f7fbf8}
 .community-poll-author span{display:inline-flex;align-items:center;justify-content:center;height:18px;padding:0 7px;border:1px solid #b8d7c0;border-radius:999px;background:#edf8f1;color:#107c41;font-size:10.5px;font-weight:750}
 .community-poll-body{padding-right:6px!important;white-space:normal}
 .community-poll-inner{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:3px 7px;min-width:0;line-height:1.2}
 .community-poll-kicker{flex:0 0 auto;color:#107c41;font-size:11px;font-weight:750;white-space:nowrap}
 .community-poll-question{min-width:0;color:#2f4739;font-size:12px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.community-poll-options{grid-column:1 / -1;display:inline-flex;align-items:center;gap:4px;min-width:0;overflow:hidden}
+.community-poll-options{grid-column:1 / -1;grid-row:2;display:inline-flex;align-items:center;gap:4px;min-width:0;overflow:hidden}
 .community-poll-choice{height:20px;min-width:38px;border:1px solid #c9d6ce;border-radius:var(--ui-control-radius);background:#fff;color:#3b3f45;padding:0 7px;font:inherit;font-size:10.8px;font-weight:650;line-height:18px;white-space:nowrap;cursor:pointer}
 .community-poll-choice:hover:not(:disabled){background:#eaf4ef;border-color:#a7cdb4;color:#107c41}
 .community-poll-choice.selected{background:#107c41;border-color:#107c41;color:#fff}
 .community-poll-choice:disabled{cursor:default;opacity:.86}
-.community-poll-count{color:#7c8982;font-size:10.5px;font-weight:520;white-space:nowrap}
+.community-poll-count{display:inline-flex;grid-column:3;grid-row:1;justify-self:end;color:#7c8982;font-size:10.5px;font-weight:520;white-space:nowrap}
 .community-poll-tail{color:#6f7771;font-size:10.5px;font-weight:600}
 .community-poll-time{color:#7c8982}
 .community-post-row.is-just-posted > td:nth-child(2){box-shadow:inset 3px 0 0 var(--excel)}
@@ -1831,9 +1831,9 @@ a.stock-mention-badge:hover{background:#dff1e5;border-color:#86bd96;color:#0b6b3
   .community-poll-inner{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 5px;align-items:center}
   .community-poll-kicker{font-size:9.6px}
   .community-poll-question{font-size:11.1px;line-height:1.18}
-  .community-poll-options{grid-column:1 / -1;gap:3px;min-width:0;overflow:hidden}
+  .community-poll-options{grid-column:1 / -1;grid-row:2;gap:3px;min-width:0;overflow:hidden}
   .community-poll-choice{height:20px;min-width:0;flex:1 1 0;padding:0 5px;font-size:10.2px;line-height:18px}
-  .community-poll-count{display:inline-flex;grid-column:3;grid-row:1;font-size:9.6px}
+  .community-poll-count{display:inline-flex;grid-column:3;grid-row:1;justify-self:end;font-size:9.6px}
   /* base pill 사이즈를 그대로 유지 — 별도 override 없음. */
   #timelineTable.community-table .stock-mention-market{display:none}
   .community-post-body,.community-comment-body{font-size:11.2px;line-height:1.28}

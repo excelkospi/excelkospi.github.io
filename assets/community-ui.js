@@ -1889,7 +1889,7 @@ async function loadCommunityPosts(options={}){
       ...(adminMode ? { headers:adminAuthHeaders() } : {}),
     });
     communityPosts=Array.isArray(data?.posts) ? data.posts : [];
-    if(!adminMode && typeof syncCommunityPollFromPayload === 'function'){
+    if(typeof syncCommunityPollFromPayload === 'function'){
       syncCommunityPollFromPayload(data?.poll, channel);
     }
     clampCommunityPage();
