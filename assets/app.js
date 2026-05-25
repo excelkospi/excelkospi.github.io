@@ -4558,20 +4558,8 @@ async function loadSnapshot(options={}){
       return;
     }catch(_){}
   }
-  // stale-while-revalidate: TTL 이 지난 캐시라도 일단 보여주고 백그라운드에서
-  // 새 응답을 받아 자연스럽게 덮어쓴다. 사용자는 4초 가까운 빈 시세창 대신
-  // 직전 가격을 즉시 보고, 새 응답이 도착하면 부드럽게 갱신된다.
-  const stale = readSnapshotCache({ allowStale:true, allowSessionMismatch:true });
-  let staleRendered = false;
-  if(stale?.value){
-    try{
-      lastSnapshot = stale.value;
-      await renderSnapshot(stale.value);
-      staleRendered = true;
-    }catch(_){}
-  }
-  if(!staleRendered) setLoading(true, '시세를 새로 고치는 중...');
-  const firstVisibleQuoteLoad = !staleRendered && cardsTableLooksUnready();
+  setLoading(true, '시세를 새로 고치는 중...');
+  const firstVisibleQuoteLoad = cardsTableLooksUnready();
   const pollLockKey=`snapshot:${coinQuoteSource()}`;
   let pollLockAcquired=false;
   try{
@@ -4593,11 +4581,6 @@ async function loadSnapshot(options={}){
           if(delayed?.value){
             lastSnapshot=delayed.value;
             await renderSnapshot(delayed.value);
-            setLoading(false);
-            snapshotConsecutiveFailures=0;
-            return;
-          }
-          if(staleRendered){
             setLoading(false);
             snapshotConsecutiveFailures=0;
             return;
@@ -4649,11 +4632,7 @@ async function loadSnapshot(options={}){
     // 일시적인 abort/timeout 은 첫 회는 조용히 무시 (다음 snapshot 사이클에서 재시도).
     // 2회 연속 실패할 때만 토스트로 알림.
     const transient = e && (e.aborted || /timeout|abort/i.test(String(e.message||e)));
-    // stale-while-revalidate 로 이미 직전 가격을 보여준 상태라면 사용자 입장에서
-    // 화면은 멀쩡하다. 토스트 대신 statusbar 만 살짝 바꾼다.
-    if(staleRendered){
-      document.getElementById('statusLeft').textContent='재시도 대기';
-    } else if(snapshotConsecutiveFailures>=2 || !transient){
+    if(snapshotConsecutiveFailures>=2 || !transient){
       document.getElementById('statusLeft').textContent='조회 실패';
       debugWarn('snapshot load failed', e);
       showToast(friendlySnapshotErrorMessage(e), 'err');
@@ -5111,7 +5090,7 @@ if(jt){ jt.addEventListener('click', ()=>{
 document.getElementById('cardsTable').innerHTML=renderLoadingTable('summary');
 (function primeInitialQuoteFromCache(){
   try{
-    const cached=readSnapshotCache({ allowStale:true, allowSessionMismatch:true });
+    const cached=readSnapshotCache();
     if(!cached?.value) return;
     lastSnapshot=cached.value;
     renderSnapshot(cached.value).catch(()=>{});
@@ -5179,7 +5158,7 @@ function recoverInitialSheets(reason='initial-watchdog'){
   if(cardsUnready){
     const cached=(lastSnapshot && isValidSnapshot(lastSnapshot))
       ? { value:lastSnapshot }
-      : sharedOrCachedSnapshotCache({ allowStale:true, allowSessionMismatch:true });
+      : sharedOrCachedSnapshotCache();
     if(cached?.value){
       renderSnapshot(cached.value).catch(()=>{});
     }else{
@@ -5373,7 +5352,7 @@ async function primeSnapshotForResume(){
   if(!cardsTableNeedsResumePrimer()) return;
   const cached = lastSnapshot && isValidSnapshot(lastSnapshot)
     ? { value:lastSnapshot }
-    : sharedOrCachedSnapshotCache({ allowStale:true });
+    : sharedOrCachedSnapshotCache();
   if(!cached?.value) return;
   try{
     await renderSnapshot(cached.value);
