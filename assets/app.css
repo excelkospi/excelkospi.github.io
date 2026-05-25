@@ -1825,15 +1825,15 @@ a.stock-mention-badge:hover{background:#dff1e5;border-color:#86bd96;color:#0b6b3
   #timelineTable.community-table th,#timelineTable.community-table td{font-size:10.8px;padding-left:3px;padding-right:3px}
   #timelineTable.community-table .time{font-size:10px;line-height:1.15;white-space:nowrap}
   #timelineTable.community-table .community-author{max-width:54px;font-size:8.8px;line-height:1.12}
-  .community-poll-row > td:not(.rownum){height:50px}
+  .community-poll-row > td:not(.rownum){height:38px}
   .community-poll-author span{height:17px;padding:0 5px;font-size:9.5px}
   .community-poll-body{padding-right:3px!important}
-  .community-poll-inner{display:grid;grid-template-columns:auto 1fr;gap:3px 5px;align-items:center}
+  .community-poll-inner{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 5px;align-items:center}
   .community-poll-kicker{font-size:9.6px}
   .community-poll-question{font-size:11.1px;line-height:1.18}
   .community-poll-options{grid-column:1 / -1;gap:3px;min-width:0;overflow:hidden}
   .community-poll-choice{height:18px;min-width:0;flex:1 1 0;padding:0 4px;font-size:9.8px;line-height:16px}
-  .community-poll-count{display:inline-flex;grid-column:1 / -1;font-size:9.6px}
+  .community-poll-count{display:inline-flex;grid-column:3;grid-row:1;font-size:9.6px}
   /* base pill 사이즈를 그대로 유지 — 별도 override 없음. */
   #timelineTable.community-table .stock-mention-market{display:none}
   .community-post-body,.community-comment-body{font-size:11.2px;line-height:1.28}
