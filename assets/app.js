@@ -6936,6 +6936,7 @@ function setupChatUi(){
     input?.focus?.({preventScroll:true});
     sendChatMessage(input?.value || '');
   });
+  if(typeof setupChatComposerFallback === 'function') setupChatComposerFallback();
   const attachBtn=document.getElementById('chatAttach');
   attachBtn?.addEventListener('click',(e)=>{
     e.preventDefault();

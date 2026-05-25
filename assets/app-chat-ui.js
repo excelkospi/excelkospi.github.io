@@ -2,17 +2,18 @@
  * Chat panel UI helpers
  * ============================================================ */
 function chatEls(){
+  const fallback = activeChatComposerFallbackParts();
   return {
     panel: document.getElementById('chatPanel'),
     toggle: document.getElementById('chatToggle'),
     close: document.getElementById('chatClose'),
     status: document.getElementById('chatStatus'),
     body: document.getElementById('chatMessages'),
-    form: document.getElementById('chatForm'),
-    nick: document.getElementById('chatNickname'),
-    input: document.getElementById('chatInput'),
-    attach: document.getElementById('chatAttach'),
-    send: document.getElementById('chatSend'),
+    form: fallback?.form || document.getElementById('chatForm'),
+    nick: fallback?.nick || document.getElementById('chatNickname'),
+    input: fallback?.input || document.getElementById('chatInput'),
+    attach: fallback?.attach || document.getElementById('chatAttach'),
+    send: fallback?.send || document.getElementById('chatSend'),
     size: document.getElementById('chatSizeToggle'),
     excel: document.getElementById('chatExcelToggle'),
     dock: document.getElementById('chatDockToggle'),
@@ -21,6 +22,155 @@ function chatEls(){
     floatMount: document.getElementById('chatFloatMount'),
     foot: document.getElementById('chatFootnote'),
   };
+}
+
+function primaryChatComposerParts(){
+  return {
+    form: document.getElementById('chatForm'),
+    nick: document.getElementById('chatNickname'),
+    input: document.getElementById('chatInput'),
+    attach: document.getElementById('chatAttach'),
+    send: document.getElementById('chatSend'),
+  };
+}
+
+function fallbackChatComposerParts(){
+  const form = document.querySelector('[data-xk-reply-bar]');
+  if(!form) return null;
+  return {
+    form,
+    nick: form.querySelector('[data-xk-reply-name]'),
+    input: form.querySelector('[data-xk-reply-text]'),
+    attach: form.querySelector('[data-xk-reply-file]'),
+    send: form.querySelector('[data-xk-reply-submit]'),
+  };
+}
+
+function elementOwnStyleHidden(el){
+  if(!el) return true;
+  try{
+    const style = getComputedStyle(el);
+    return style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse';
+  }catch{
+    return false;
+  }
+}
+
+function elementHasBox(el){
+  if(!el) return false;
+  try{
+    const rect = el.getBoundingClientRect();
+    return rect.width > 8 && rect.height > 8;
+  }catch{
+    return true;
+  }
+}
+
+function primaryChatComposerUsable(){
+  const panel = document.getElementById('chatPanel');
+  const open = !!(document.body?.classList?.contains('chat-open') || panel?.classList?.contains('open'));
+  const {form,input,send} = primaryChatComposerParts();
+  if(!form || !input || !send) return false;
+  if(elementOwnStyleHidden(form) || elementOwnStyleHidden(input) || elementOwnStyleHidden(send)) return false;
+  if(open && (!elementHasBox(form) || !elementHasBox(input) || !elementHasBox(send))) return false;
+  return true;
+}
+
+function activeChatComposerFallbackParts(){
+  const fallback = fallbackChatComposerParts();
+  if(!fallback?.form || fallback.form.hidden) return null;
+  return primaryChatComposerUsable() ? null : fallback;
+}
+
+function ensureChatComposerFallback(){
+  const existing = fallbackChatComposerParts();
+  if(existing?.form) return existing;
+  const primary = document.getElementById('chatForm');
+  const panel = document.getElementById('chatPanel');
+  if(!primary && !panel) return null;
+  const form = document.createElement('form');
+  form.hidden = true;
+  form.setAttribute('data-xk-reply-bar', '1');
+  form.setAttribute('aria-label', '메시지 입력');
+  form.innerHTML = `
+    <input data-xk-reply-name="1" id="xkReplyName" type="text" maxlength="24" autocomplete="nickname" placeholder="월급루팡_123" />
+    <input data-xk-reply-text="1" id="xkReplyText" type="text" maxlength="280" autocomplete="off" placeholder="채팅 입력 / 신고 4회 : 30분 차단" />
+    <button data-xk-reply-file="1" id="xkReplyFile" type="button" title="이미지 첨부(외부 링크)" aria-label="이미지 첨부"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5L19 18H5l3.5-4.5zM8 9.5A1.5 1.5 0 1 1 6.5 8 1.5 1.5 0 0 1 8 9.5z"/></svg></button>
+    <button data-xk-reply-submit="1" type="submit">전송</button>
+  `;
+  if(primary) primary.insertAdjacentElement('afterend', form);
+  else panel?.appendChild(form);
+  return fallbackChatComposerParts();
+}
+
+function syncChatComposerFallbackValues(toFallback=true){
+  const primary = primaryChatComposerParts();
+  const fallback = fallbackChatComposerParts();
+  if(!fallback?.form) return;
+  const from = toFallback ? primary : fallback;
+  const to = toFallback ? fallback : primary;
+  if(from.nick && to.nick && !to.nick.value) to.nick.value = from.nick.value || '';
+  if(from.input && to.input && !to.input.value) to.input.value = from.input.value || '';
+}
+
+function syncChatComposerFallbackVisibility(){
+  const fallback = ensureChatComposerFallback();
+  if(!fallback?.form) return false;
+  const primary = primaryChatComposerParts();
+  if(primary.form?.dataset?.xkSuppressed === '1'){
+    primary.form.hidden = false;
+    delete primary.form.dataset.xkSuppressed;
+  }
+  const useFallback = !primaryChatComposerUsable();
+  if(useFallback){
+    syncChatComposerFallbackValues(true);
+    if(primary.form){
+      primary.form.hidden = true;
+      primary.form.dataset.xkSuppressed = '1';
+    }
+    fallback.form.hidden = false;
+  }else{
+    syncChatComposerFallbackValues(false);
+    if(primary.form){
+      primary.form.hidden = false;
+      delete primary.form.dataset.xkSuppressed;
+    }
+    fallback.form.hidden = true;
+  }
+  document.body?.classList?.toggle('xk-reply-fallback-active', useFallback);
+  return useFallback;
+}
+
+function setupChatComposerFallback(){
+  const fallback = ensureChatComposerFallback();
+  if(!fallback?.form || fallback.form.dataset.bound === '1') return;
+  fallback.form.dataset.bound = '1';
+  fallback.nick?.addEventListener('input', (ev)=>{
+    noteChatActivity(ev);
+    enforceChatNicknameInput();
+  });
+  fallback.input?.addEventListener('input', noteChatActivity);
+  fallback.form.addEventListener('submit', (ev)=>{
+    ev.preventDefault();
+    syncChatComposerFallbackValues(false);
+    sendChatMessage(fallback.input?.value || '');
+  });
+  fallback.send?.addEventListener('pointerdown', (ev)=>{
+    if(!shouldKeepChatInputEnabledWhileSending()) return;
+    ev.preventDefault();
+    chatMobileSendPointerHandledUntil = Date.now() + 900;
+    fallback.input?.focus?.({preventScroll:true});
+    syncChatComposerFallbackValues(false);
+    sendChatMessage(fallback.input?.value || '');
+  });
+  fallback.attach?.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    openImageAttachHelper('xkReplyText');
+  });
+  syncChatComposerFallbackVisibility();
+  setInterval(syncChatComposerFallbackVisibility, 1600);
+  window.addEventListener('resize', ()=>requestAnimationFrame(syncChatComposerFallbackVisibility), {passive:true});
+  document.addEventListener('visibilitychange', ()=>requestAnimationFrame(syncChatComposerFallbackVisibility));
 }
 
 const CHAT_HEADER_ICONS = {
