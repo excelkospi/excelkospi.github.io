@@ -2195,7 +2195,6 @@ function getCardLiveState(card, session){
   if(m==='KR'){
     if(sessionHas(session,'KR_PRE')){
       if(src.includes('NXT')) return {state:'pre'};
-      if(String(card.sessionTag || '') === '프리') return {state:'pre'};
       return {state:'closed'};
     }
     if(sessionHas(session,'KR_AFTER')){

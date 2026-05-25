@@ -13,6 +13,14 @@ function outlookChangePhrase(value){
   return '보합권';
 }
 
+function shouldUseOutlookSessionTag(card){
+  if(!card?.sessionTag || changeWindow !== 'day') return false;
+  if(String(card.market || '').toUpperCase() === 'KR'){
+    return String(card.source || '').toUpperCase().includes('NXT');
+  }
+  return true;
+}
+
 function outlookPreviewHtml(card, changeValue){
   let preview = '';
   const priceText = outlookPriceText(card);
@@ -20,7 +28,7 @@ function outlookPreviewHtml(card, changeValue){
     preview = `${changeHeaderLabel()} 기준 ${outlookChangePhrase(card._momentum)}입니다.`;
   } else if(card.sign && card.priceUnit){
     preview = `${card.key} 수급은 ${priceText || '확인 중'}으로 집계됐습니다.`;
-  } else if(card.sessionTag && changeWindow === 'day'){
+  } else if(shouldUseOutlookSessionTag(card)){
     preview = `${card.sessionTag} 표시 중이며${priceText ? `, 현재가는 ${priceText}입니다` : ' 시세 확인 중입니다'}.`;
   } else if(isRateOnlyCard(card.key)){
     const rateText = priceText || (Number.isFinite(Number(changeValue)) ? pct(changeValue) : '');

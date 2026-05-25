@@ -96,7 +96,7 @@ function cardRenderedCells(c){
       ? '&nbsp;'
       : cardPriceDisplayHtml(c);
     const selectedChange = changeValueFor(c);
-    const changeHtml = c.sessionTag && changeWindow === 'day'
+    const changeHtml = shouldRenderChangeSessionTag(c)
       ? `<span class="flat" title="본장 외 세션 표시">${esc(c.sessionTag)}</span>`
       : pct(selectedChange);
     changeCell = `<span class="change-wrap"><span>${changeHtml}</span></span>`;
@@ -104,6 +104,14 @@ function cardRenderedCells(c){
     previewChangeValue = selectedChange;
   }
   return { priceCell, changeCell, changeClass, previewChangeValue, changeTitle:changeCellTitle(c, previewChangeValue) };
+}
+
+function shouldRenderChangeSessionTag(c){
+  if(!c?.sessionTag || changeWindow !== 'day') return false;
+  if(String(c.market || '').toUpperCase() === 'KR'){
+    return String(c.source || '').toUpperCase().includes('NXT');
+  }
+  return true;
 }
 
 function renderCardsTable(cards, session){
