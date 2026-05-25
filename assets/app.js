@@ -2920,7 +2920,6 @@ let loadInFlight=false;
 let loadQueuedOptions=null;
 let sheetSwitchLoading=false;
 let renderSnapshotSeq=0;
-const USER_WATCHLIST_RENDER_TIMEOUT_MS=2600;
 const USER_WATCHLIST_BACKGROUND_TIMEOUT_MS=12000;
 
 function fmtElapsedSec(sec){
@@ -4473,27 +4472,20 @@ async function renderSnapshot(s){
 
   const baseCards=visibleCards(s.cards, market).slice(0, quoteTableRowLimit());
   const userSlotLimit=userWatchlistSlotsForMarket(market, baseCards.length);
-  const watchlistTask = Promise.race([
+  const hasUserWatchlistRows = userSlotLimit > 0 && limitedUserWatchlistItemsForMarket(wlLoad(), market, userSlotLimit).length > 0;
+  renderSnapshotView(s, market, baseCards, []);
+  if(!hasUserWatchlistRows) return;
+  Promise.race([
     fetchUserWatchlistCards(market, userSlotLimit),
     sleep(USER_WATCHLIST_BACKGROUND_TIMEOUT_MS).then(()=>[]),
-  ]).catch((e)=>{
+  ]).then((userCards)=>{
+    if(seq !== renderSnapshotSeq) return;
+    if(lastSnapshot !== s || currentRenderedMarket !== market) return;
+    if(!Array.isArray(userCards) || !userCards.length) return;
+    renderSnapshotView(s, market, baseCards, userCards);
+  }).catch((e)=>{
     debugWarn('user watchlist quote load failed', e);
-    return [];
   });
-  const earlyUserCards = await Promise.race([
-    watchlistTask,
-    sleep(USER_WATCHLIST_RENDER_TIMEOUT_MS).then(()=>null),
-  ]);
-  if(earlyUserCards === null){
-    renderSnapshotView(s, market, baseCards, []);
-    watchlistTask.then((userCards)=>{
-      if(seq !== renderSnapshotSeq) return;
-      if(lastSnapshot !== s || currentRenderedMarket !== market) return;
-      renderSnapshotView(s, market, baseCards, userCards);
-    });
-    return;
-  }
-  renderSnapshotView(s, market, baseCards, earlyUserCards);
 }
 
 /* Quote table control bindings live in app-quote-controls.js. */
@@ -4569,9 +4561,7 @@ async function loadSnapshot(options={}){
   // stale-while-revalidate: TTL 이 지난 캐시라도 일단 보여주고 백그라운드에서
   // 새 응답을 받아 자연스럽게 덮어쓴다. 사용자는 4초 가까운 빈 시세창 대신
   // 직전 가격을 즉시 보고, 새 응답이 도착하면 부드럽게 갱신된다.
-  const stale = (!forceNetwork || options.silentResume)
-    ? readSnapshotCache({ allowStale:true, allowSessionMismatch:!!options.silentResume })
-    : null;
+  const stale = readSnapshotCache({ allowStale:true, allowSessionMismatch:true });
   let staleRendered = false;
   if(stale?.value){
     try{
@@ -4581,15 +4571,15 @@ async function loadSnapshot(options={}){
     }catch(_){}
   }
   if(!staleRendered) setLoading(true, '시세를 새로 고치는 중...');
+  const firstVisibleQuoteLoad = !staleRendered && cardsTableLooksUnready();
   const pollLockKey=`snapshot:${coinQuoteSource()}`;
   let pollLockAcquired=false;
   try{
-    if(!forceNetwork){
+    if(!forceNetwork && !firstVisibleQuoteLoad){
       pollLockAcquired=tryAcquireSharedPollLock(pollLockKey, 20000);
       if(!pollLockAcquired){
-        const firstVisibleQuoteLoad = !staleRendered && cardsTableLooksUnready();
         const readSharedOrCached = () => sharedOrCachedSnapshotCache();
-        const waited=await waitForSharedValue(readSharedOrCached, firstVisibleQuoteLoad ? 650 : 1200);
+        const waited=await waitForSharedValue(readSharedOrCached, 1200);
         if(waited?.value){
           lastSnapshot=waited.value;
           await renderSnapshot(waited.value);
@@ -4599,22 +4589,19 @@ async function loadSnapshot(options={}){
         }
         pollLockAcquired=tryAcquireSharedPollLock(pollLockKey, 8000);
         if(!pollLockAcquired){
-          if(!firstVisibleQuoteLoad){
-            const delayed=await waitForSharedPollValue(pollLockKey, readSharedOrCached, 4500);
-            if(delayed?.value){
-              lastSnapshot=delayed.value;
-              await renderSnapshot(delayed.value);
-              setLoading(false);
-              snapshotConsecutiveFailures=0;
-              return;
-            }
+          const delayed=await waitForSharedPollValue(pollLockKey, readSharedOrCached, 4500);
+          if(delayed?.value){
+            lastSnapshot=delayed.value;
+            await renderSnapshot(delayed.value);
+            setLoading(false);
+            snapshotConsecutiveFailures=0;
+            return;
           }
           if(staleRendered){
             setLoading(false);
             snapshotConsecutiveFailures=0;
             return;
           }
-          debugWarn('bypass shared snapshot lock for first visible paint', { pollLockKey });
         }
       }
     }
@@ -4635,6 +4622,19 @@ async function loadSnapshot(options={}){
         snapshotConsecutiveFailures=0;
         return;
       }
+      const fresh = await fetchJsonClient(snapshotApiUrl(), 14000, {
+        cache:'reload',
+        returnMeta:true,
+      });
+      const freshSnapshot = fresh.data;
+      if(!isValidSnapshot(freshSnapshot)) throw new Error('snapshot payload incomplete');
+      writeSnapshotCache(freshSnapshot, fresh.headers?.get?.('etag') || '');
+      runtimeShared.snapshot = { at:Date.now(), value:freshSnapshot };
+      postRuntimeMessage('snapshot', freshSnapshot);
+      await renderSnapshot(freshSnapshot);
+      setLoading(false);
+      snapshotConsecutiveFailures=0;
+      return;
     }
     const s = meta.data;
     if(!isValidSnapshot(s)) throw new Error('snapshot payload incomplete');
@@ -5111,7 +5111,7 @@ if(jt){ jt.addEventListener('click', ()=>{
 document.getElementById('cardsTable').innerHTML=renderLoadingTable('summary');
 (function primeInitialQuoteFromCache(){
   try{
-    const cached=readSnapshotCache({ allowStale:true });
+    const cached=readSnapshotCache({ allowStale:true, allowSessionMismatch:true });
     if(!cached?.value) return;
     lastSnapshot=cached.value;
     renderSnapshot(cached.value).catch(()=>{});
@@ -5472,7 +5472,10 @@ rawSettingsRestorePromise.then((restoredAny)=>{
   applyRestoredPersistentSettings(restoredAny);
 });
 const sharedWatchlistImportPromise = settingsRestorePromise.then(()=>maybeImportSharedWatchlistFromUrl());
-const initialSnapshotPromise = sharedWatchlistImportPromise.then(()=>loadSnapshot());
+const initialSnapshotPromise = loadSnapshot();
+sharedWatchlistImportPromise.then((imported)=>{
+  if(imported) loadSnapshot({ force:true, reason:'shared-watchlist-import' });
+}).catch(()=>{});
 // 첫 진입 시 localStorage 캐시된 뉴스 즉시 표시 — cold start 빈 화면 방지
 (function primeNewsFromCache(){
   try{
