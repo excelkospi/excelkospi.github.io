@@ -129,13 +129,13 @@ const COMMUNITY_PAGE_SIZE = 30;
 const COMMUNITY_REPLY_PAGE_SIZE = 5;
 // 0=댓글, 1=대댓글, 2=대대댓글. 그 아래 댓글도 화면상 3단계 들여쓰기까지만 표시.
 const COMMUNITY_MAX_VISUAL_REPLY_DEPTH = 2;
-const COMMUNITY_BODY_LIMIT = 160;
+const COMMUNITY_BODY_LIMIT = 400;
 const COMMUNITY_HIDE_REPORTS = 8;
 const COMMUNITY_RECOMMEND_THRESHOLD = 7;
 const COMMUNITY_REPORT_LIMIT_PER_HOUR = 4;
 const COMMUNITY_REFRESH_MS = 2 * 60 * 1000;
 const COMMUNITY_IDLE_SLEEP_MS = 10 * 60 * 1000;
-const COMMUNITY_COMMENT_LIMIT = 140;
+const COMMUNITY_COMMENT_LIMIT = 400;
 const SHEET_SPLIT_KEY = 'kg_sheet_split_v1';
 const PANEL_ORDER_KEY = 'kg_panel_order_v1';
 const PANEL_IDS = ['summary', 'timeline', 'chat'];
