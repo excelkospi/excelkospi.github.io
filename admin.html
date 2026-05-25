@@ -292,6 +292,30 @@
         </section>
 
         <section>
+          <h2>채팅 링크 허용 <span class="hint">뉴스·유튜브처럼 안전한 도메인만 자동 링크</span></h2>
+          <p class="lead">허용 목록에 있는 도메인과 그 하위 도메인만 채팅에서 클릭 가능한 링크로 표시됩니다. 링크 미리보기나 외부 요청은 하지 않습니다.</p>
+          <div class="form-grid">
+            <div class="field col-4">
+              <label class="field-check" style="width:max-content">
+                <input id="chatLinkEnabled" type="checkbox">
+                채팅 URL 자동 링크 사용
+              </label>
+            </div>
+            <div class="field col-4">
+              <label for="chatLinkDomains">허용 도메인</label>
+              <textarea id="chatLinkDomains" rows="6" spellcheck="false" placeholder="naver.com&#10;news.naver.com&#10;youtube.com&#10;youtu.be"></textarea>
+              <p class="help">한 줄에 하나씩 입력하세요. <code>naver.com</code>을 허용하면 <code>news.naver.com</code>도 함께 허용됩니다.</p>
+            </div>
+          </div>
+          <div class="field-actions">
+            <button class="btn primary" id="chatLinkSaveBtn" type="button">링크 정책 저장</button>
+            <button class="btn" id="chatLinkRefreshBtn" type="button">새로고침</button>
+            <button class="btn danger" id="chatLinkResetBtn" type="button">기본값 복원</button>
+            <span class="inline-status" id="chatLinkStatus"></span>
+          </div>
+        </section>
+
+        <section>
           <h2>최근 채팅 메시지 <span class="hint">신고 받은 글, 차단어 글, 일반 글 모두 표시</span></h2>
           <div class="tablewrap">
             <table>
@@ -615,6 +639,7 @@
     let latestAds=[];
     let latestAdReports=[];
     let latestCustomTerms=[];
+    let latestChatLinkPolicy=null;
     let editingAdId='';
     let editingReportId='';
     let generatedReportLinkState=null;
@@ -929,6 +954,54 @@
       const data=await api('/api/community-admin?action=bans');
       renderCommunityBans(data.bans || []);
       if(!options.silent) showToast('종토방 차단 목록을 새로고침했습니다.');
+      return data;
+    }
+
+    // ========== Chat link policy ==========
+    function renderChatLinkPolicy(policy){
+      latestChatLinkPolicy=policy || {enabled:true, allowedDomains:[]};
+      const enabled=$('chatLinkEnabled');
+      const domains=$('chatLinkDomains');
+      const status=$('chatLinkStatus');
+      if(enabled) enabled.checked=latestChatLinkPolicy.enabled !== false;
+      if(domains) domains.value=(latestChatLinkPolicy.allowedDomains || []).join('\n');
+      if(status){
+        const count=(latestChatLinkPolicy.allowedDomains || []).length;
+        const updated=latestChatLinkPolicy.updatedAt ? ` · ${time(latestChatLinkPolicy.updatedAt)} 저장` : '';
+        status.textContent=`${count}개 도메인 허용${updated}`;
+        status.className='inline-status ok';
+      }
+    }
+    async function loadChatLinkPolicy(options={}){
+      const data=await api('/api/chat-admin?action=link_policy');
+      renderChatLinkPolicy(data.linkPolicy || null);
+      if(!options.silent) showToast('채팅 링크 정책을 새로고침했습니다.');
+      return data;
+    }
+    function chatLinkDomainsFromInput(){
+      return String($('chatLinkDomains')?.value || '')
+        .split(/[\n,]+/)
+        .map((line)=>line.trim())
+        .filter(Boolean);
+    }
+    async function saveChatLinkPolicy(){
+      const data=await api('/api/chat-admin', {
+        method:'POST',
+        body:JSON.stringify({
+          action:'save_link_policy',
+          enabled:!!$('chatLinkEnabled')?.checked,
+          allowedDomains:chatLinkDomainsFromInput(),
+        }),
+      });
+      renderChatLinkPolicy(data.linkPolicy || null);
+      showToast('채팅 링크 정책을 저장했습니다.');
+      return data;
+    }
+    async function resetChatLinkPolicy(){
+      if(!confirm('채팅 링크 허용 도메인을 기본값으로 되돌릴까요?')) return null;
+      const data=await api('/api/chat-admin', {method:'POST', body:JSON.stringify({action:'reset_link_policy'})});
+      renderChatLinkPolicy(data.linkPolicy || null);
+      showToast('채팅 링크 정책을 기본값으로 복원했습니다.');
       return data;
     }
 
@@ -1607,7 +1680,7 @@
     }
     async function load(){
       setStatus('불러오는 중...');
-      const results=await Promise.allSettled([loadChat(), loadCommunityBans({silent:true}), loadBlockedTerms(), loadDonors(), loadAds(), loadAdReports()]);
+      const results=await Promise.allSettled([loadChat(), loadCommunityBans({silent:true}), loadChatLinkPolicy({silent:true}), loadBlockedTerms(), loadDonors(), loadAds(), loadAdReports()]);
       const failed=results.filter((r)=>r.status==='rejected');
       if(failed.length){
         const first=failed[0].reason;
@@ -1655,6 +1728,9 @@
       if(!confirm('현재 채팅 추방 목록을 전부 해제할까요? 신고/차단어 기록까지 함께 초기화됩니다.')) return;
       postAction({action:'clear_bans'}, '전체 추방을 해제했습니다.').catch(handleAdminError);
     });
+    $('chatLinkSaveBtn').addEventListener('click',()=>saveChatLinkPolicy().catch(handleAdminError));
+    $('chatLinkRefreshBtn').addEventListener('click',()=>loadChatLinkPolicy().catch(handleAdminError));
+    $('chatLinkResetBtn').addEventListener('click',()=>resetChatLinkPolicy().catch(handleAdminError));
     $('refreshCommunityBansBtn').addEventListener('click',()=>loadCommunityBans().catch(handleAdminError));
     $('clearCommunityBansBtn').addEventListener('click', async ()=>{
       if(!confirm('기존 종토방 차단만 초기화할까요? 채팅 신고/차단어 추방은 유지됩니다.')) return;

@@ -1634,6 +1634,8 @@ a.stock-mention-badge:hover{background:#dff1e5;border-color:#86bd96;color:#0b6b3
 .message-image-preview.is-broken{max-width:100%;padding:3px 6px;background:#f8f9fa;color:#6a737d;font-size:11px;line-height:1.35;border-color:#d8dde3}
 .message-image-preview.is-broken:hover{color:#3b3f45;text-decoration:none}
 .message-image-fallback{display:inline-flex;align-items:center;gap:4px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-safe-link{color:#0563c1;text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere;word-break:break-word}
+.chat-safe-link:hover{color:#034f9a}
 .community-image-collapsed{display:block;margin-top:4px;white-space:normal}
 .community-post-body > .community-image-collapsed:first-child,
 .community-comment-body > .community-image-collapsed:first-child{margin-top:0}
@@ -3274,6 +3276,8 @@ body.excel-dark-mode:not(.theme-outlook) .chat-donor-marquee-inline .chat-donor-
 .chat-footnote[hidden]{display:none!important}
 body.excel-dark-mode:not(.theme-outlook) .message-image-preview{background:#11161b;border-color:#3a424a}
 body.excel-dark-mode:not(.theme-outlook) .message-image-preview:hover{border-color:#5a8d6b}
+body.excel-dark-mode:not(.theme-outlook) .chat-safe-link{color:#86b7ff}
+body.excel-dark-mode:not(.theme-outlook) .chat-safe-link:hover{color:#a9cbff}
 body.excel-dark-mode:not(.theme-outlook) .community-image-toggle{background:#11161b;border-color:#3a424a;color:#7cd6a2}
 body.excel-dark-mode:not(.theme-outlook) .community-image-toggle:hover{background:#17231c;border-color:#5a8d6b}
 body.excel-dark-mode:not(.theme-outlook) .chat-attach,

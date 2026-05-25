@@ -23,6 +23,41 @@ const APPROVED_IMAGE_HOSTS = new Set([
 ]);
 const URL_TOKEN_RE = /\bhttps?:\/\/[^\s<>"']+|\bwww\.[^\s<>"']+/gi;
 const IMAGE_PATH_RE = /\.(?:png|jpe?g|gif|webp|avif)(?:$|[?#])/i;
+const DEFAULT_CHAT_LINK_DOMAINS = [
+  'naver.com',
+  'news.naver.com',
+  'n.news.naver.com',
+  'finance.naver.com',
+  'm.stock.naver.com',
+  'youtube.com',
+  'youtu.be',
+  'youtube-nocookie.com',
+  'yna.co.kr',
+  'newsis.com',
+  'mk.co.kr',
+  'hankyung.com',
+  'sedaily.com',
+  'edaily.co.kr',
+  'chosun.com',
+  'joongang.co.kr',
+  'donga.com',
+  'khan.co.kr',
+  'hani.co.kr',
+  'sbs.co.kr',
+  'kbs.co.kr',
+  'mbc.co.kr',
+  'jtbc.co.kr',
+  'ytn.co.kr',
+  'reuters.com',
+  'bloomberg.com',
+  'cnbc.com',
+  'marketwatch.com',
+  'investing.com',
+  'tradingview.com',
+  'finance.yahoo.com',
+  'nasdaq.com',
+  'sec.gov',
+];
 
 function normalizeTextUrl(raw){
   const cleaned=String(raw || '').trim().replace(/[),.;!?]+$/g, '');
@@ -34,6 +69,72 @@ function normalizeTextUrl(raw){
   }catch{
     return null;
   }
+}
+
+function splitUrlToken(raw){
+  const token=String(raw || '');
+  const match=token.match(/^(.+?)([),.;!?]*)$/);
+  return {urlText:match?.[1] || token, suffix:match?.[2] || ''};
+}
+
+function normalizeChatLinkDomain(value){
+  let raw=String(value || '').trim().toLowerCase();
+  if(!raw) return '';
+  raw=raw.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/^\*\./, '');
+  raw=raw.split(/[/?#:]/)[0].replace(/\.+$/g, '');
+  if(!raw || raw.length>120 || !raw.includes('.')) return '';
+  if(!/^[a-z0-9.-]+$/.test(raw)) return '';
+  const parts=raw.split('.');
+  if(parts.some((part)=>!part || part.length>63 || part.startsWith('-') || part.endsWith('-'))) return '';
+  return raw;
+}
+
+function normalizedChatLinkPolicy(policy){
+  const raw=policy && typeof policy==='object' ? policy : {};
+  const hasDomains=Array.isArray(raw.allowedDomains) || Array.isArray(raw.domains);
+  const values=hasDomains ? (raw.allowedDomains || raw.domains || []) : DEFAULT_CHAT_LINK_DOMAINS;
+  const seen=new Set();
+  const allowedDomains=[];
+  values.forEach((value)=>{
+    const domain=normalizeChatLinkDomain(value);
+    if(domain && !seen.has(domain)){
+      seen.add(domain);
+      allowedDomains.push(domain);
+    }
+  });
+  return {
+    enabled: raw.enabled !== false,
+    allowedDomains,
+  };
+}
+
+function chatLinkAllowed(url, policy){
+  const normalized=normalizedChatLinkPolicy(policy);
+  if(!normalized.enabled || !normalized.allowedDomains.length) return false;
+  const host=normalizeChatLinkDomain(url?.hostname || '');
+  if(!host) return false;
+  return normalized.allowedDomains.some((domain)=>host===domain || host.endsWith(`.${domain}`));
+}
+
+function renderTextWithSafeLinks(text, policy){
+  const source=String(text || '');
+  const chunks=[];
+  let lastIndex=0;
+  source.replace(URL_TOKEN_RE, (token, offset)=>{
+    chunks.push(esc(source.slice(lastIndex, offset)));
+    const {urlText, suffix}=splitUrlToken(token);
+    const url=normalizeTextUrl(urlText);
+    if(!url || !chatLinkAllowed(url, policy)){
+      chunks.push(esc(token));
+    }else{
+      const href=url.toString();
+      chunks.push(`<a class="chat-safe-link" href="${esc(href)}" target="_blank" rel="noopener noreferrer nofollow ugc">${esc(urlText)}</a>${esc(suffix)}`);
+    }
+    lastIndex=offset + token.length;
+    return token;
+  });
+  chunks.push(esc(source.slice(lastIndex)));
+  return chunks.join('');
 }
 
 function approvedImageUrl(raw){
@@ -88,7 +189,9 @@ function stripApprovedImageTokens(text){
 
 function renderTextWithImagePreviews(text, options={}){
   const displayText = options.hidePreviewUrls ? stripApprovedImageTokens(text) : text;
-  const safe=options.stockMentions ? renderTextWithStockMentions(displayText, options.stockMentionSnapshots) : esc(displayText);
+  const safe=options.stockMentions
+    ? renderTextWithStockMentions(displayText, options.stockMentionSnapshots)
+    : (options.linkUrls ? renderTextWithSafeLinks(displayText, options.linkPolicy) : esc(displayText));
   const previewsData=extractApprovedImagePreviews(text, options.limit || 1);
   if(!previewsData.length) return safe;
   if(options.collapsed){

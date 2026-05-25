@@ -6631,6 +6631,10 @@ function markChatMessageModerated(message, text){
   };
 }
 
+function chatLinkPolicy(){
+  return chatConfig?.linkPolicy || window.__excelkospiChatConfig?.linkPolicy || null;
+}
+
 function renderChatMessagesExcel(body){
   // 엑셀 모드: 한 메시지를 메타 행 + 본문 행으로 나눠 본문 폭을 최대한 확보한다.
   const own=chatUserId();
@@ -6659,7 +6663,7 @@ function renderChatMessagesExcel(body){
       <td class="center chat-excel-time">${fmtTime(m.created_at)}</td>
     </tr>
     <tr class="${rowClass} chat-excel-body-row" data-chat-id="${esc(m.id)}">
-      <td class="left chat-excel-body" colspan="3">${renderTextWithImagePreviews(m.body)}<span class="chat-excel-row-actions"><button class="chat-report chat-excel-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>${adminActions}</span></td>
+      <td class="left chat-excel-body" colspan="3">${renderTextWithImagePreviews(m.body, {linkUrls:true, linkPolicy:chatLinkPolicy()})}<span class="chat-excel-row-actions"><button class="chat-report chat-excel-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>${adminActions}</span></td>
     </tr>`;
   }).join('');
   body.innerHTML=`<table class="chat-excel-table">
@@ -6711,7 +6715,7 @@ function renderChatMessages(options={}){
           <button class="chat-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>
           ${adminActions}
         </div>
-        <div class="chat-text">${renderTextWithImagePreviews(m.body)}</div>
+        <div class="chat-text">${renderTextWithImagePreviews(m.body, {linkUrls:true, linkPolicy:chatLinkPolicy()})}</div>
       </div>`;
     }).join('') + chatSleepNoticeHtml();
   }
