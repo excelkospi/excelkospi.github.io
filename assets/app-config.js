@@ -152,7 +152,7 @@ const SHEET_SPLIT_SUMMARY_MIN_PX = 390;
 const SHEET_SPLIT_SUMMARY_WIDE_MIN_PX = 440;
 const SHEET_SPLIT_TIMELINE_MIN_PX = 460;
 const SHEET_SPLIT_CHAT_MIN_PX = 320;
-// 광고는 /api/ads (KV 우선 + /ads.json 폴백) 로 받는다.
+// 화면 광고 목록은 /api/notices 를 먼저 쓰고, 운영 호환용으로 /api/ads 를 fallback 으로 둔다.
 const AD_ROTATION_MS = 5 * 60 * 1000;
 const SERVER_STATUS_PEAK_KEY = 'kg_server_status_peak_v1';
 const SHARED_POLL_LOCK_PREFIX = 'kg_shared_poll_lock_v1:';

@@ -259,7 +259,7 @@ body.theme-outlook .chat-system{background:#fafafa;color:#3b3a3f;border-radius:6
 body.theme-outlook .chat-list-empty{color:#605e5c}
 body.theme-outlook .chat-cta .lbl::before{content:none}
 .updates-beta{margin:0 0 14px;padding:12px;border:1px solid #bad6ef;border-left:4px solid #0f6cbd;border-radius:8px;background:#f3f9ff;display:flex;align-items:center;justify-content:space-between;gap:12px}
-/* Ootlook beta promo — sits directly under the server status card */
+/* Ootlook beta notice — sits directly under the server status card */
 /* 옛 .outlook-beta-banner 스타일은 .notice-card 통합 카드로 대체됨.
  * data-accent="outlook" 으로 색만 따로 줌. 클래스 자체는 호환을 위해 남겨두지만
  * 별도 스타일은 더 이상 필요 없음. */
@@ -1589,10 +1589,10 @@ tr.news-row.personal-news-pulse > td{animation:personal-news-pulse 1.7s ease-out
 .community-pin-badge,
 .community-hidden-badge,
 .stock-mention-badge,
-.community-ad-badge-cell .ad-badge,
-.community-ad-merged-inner .ad-badge,
-.chat-ad-line .ad-badge,
-tr.summary-sheet-ad-row td.summary-sheet-ad-cell > .ad-badge{
+.community-note-badge-cell .notice-badge,
+.community-note-merged-inner .notice-badge,
+.chat-note-line .notice-badge,
+tr.summary-sheet-note-row td.summary-sheet-note-cell > .notice-badge{
   display:inline-flex;align-items:center;justify-content:center;
   height:18px;padding:0 7px;
   border:1px solid transparent;border-radius:var(--ui-pill-radius);
@@ -1602,12 +1602,12 @@ tr.summary-sheet-ad-row td.summary-sheet-ad-cell > .ad-badge{
 /* color variants — green / beige / neutral */
 .pill-chip--green,
 .stock-mention-badge,
-.chat-ad-line .ad-badge,
-tr.summary-sheet-ad-row td.summary-sheet-ad-cell > .ad-badge{background:#edf8f1;border-color:#b8d7c0;color:#107c41}
+.chat-note-line .notice-badge,
+tr.summary-sheet-note-row td.summary-sheet-note-cell > .notice-badge{background:#edf8f1;border-color:#b8d7c0;color:#107c41}
 .pill-chip--beige,
 .community-pin-badge,
-.community-ad-badge-cell .ad-badge,
-.community-ad-merged-inner .ad-badge{background:#fbf3dc;border-color:#e7d29a;color:#8a6d2a}
+.community-note-badge-cell .notice-badge,
+.community-note-merged-inner .notice-badge{background:#fbf3dc;border-color:#e7d29a;color:#8a6d2a}
 .pill-chip--neutral,
 .community-hidden-badge,
 .stock-mention-badge.pending{background:#f4f5f6;border-color:#d8dde3;color:#6a737d}
@@ -1702,32 +1702,32 @@ a.stock-mention-badge:hover{background:#dff1e5;border-color:#86bd96;color:#0b6b3
 .community-pagination button:hover:not(:disabled){background:#eaf4ef}
 .community-pagination button:disabled{opacity:.42;cursor:default;color:#7b8490}
 /* 광고 행 — 시세표 셀처럼 보이되 아주 옅은 노트 셀 톤으로만 구분. */
-.community-ad-row td:not(.rownum){color:#776b4d;vertical-align:middle;background:#fffdf7;background-clip:padding-box}
-.community-ad-row .rownum{background:var(--head)!important;color:#666!important}
-.community-ad-badge-cell{height:28px;text-align:center;padding:3px 6px!important}
-.community-ad-copy-cell{height:28px;padding:3px 9px!important}
-.community-ad-time-cell{height:28px;padding:3px 6px!important;background:#fffdf7;color:#8a8060;font-size:11px;white-space:nowrap}
-.community-ad-empty-cell{height:28px;padding:3px!important;background:#fffdf7}
-.community-text-ad{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden;font-size:12px;font-weight:560;font-style:normal;color:#6b6046}
+.community-note-row td:not(.rownum){color:#776b4d;vertical-align:middle;background:#fffdf7;background-clip:padding-box}
+.community-note-row .rownum{background:var(--head)!important;color:#666!important}
+.community-note-badge-cell{height:28px;text-align:center;padding:3px 6px!important}
+.community-note-copy-cell{height:28px;padding:3px 9px!important}
+.community-note-time-cell{height:28px;padding:3px 6px!important;background:#fffdf7;color:#8a8060;font-size:11px;white-space:nowrap}
+.community-note-empty-cell{height:28px;padding:3px!important;background:#fffdf7}
+.community-text-note{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden;font-size:12px;font-weight:560;font-style:normal;color:#6b6046}
 /* 광고 배지 — 둥근 알약 모양 칩. 원래 크기(9.5px 폰트) 유지하면서 chip 톤만 적용.
  * line-height 1 + flex 정렬로 텍스트가 알약 가운데에 오게 한다. */
-.community-ad-badge-cell .ad-badge,
-.community-ad-merged-inner .ad-badge{vertical-align:middle}
-.community-text-ad .ad-copy{overflow:hidden;text-overflow:ellipsis;font-style:normal}
+.community-note-badge-cell .notice-badge,
+.community-note-merged-inner .notice-badge{vertical-align:middle}
+.community-text-note .notice-copy{overflow:hidden;text-overflow:ellipsis;font-style:normal}
 /* 본문에 자연스럽게 녹아드는 링크 — 색은 톤다운, underline 은 또렷이 보이게. */
-.community-text-ad a{position:relative;display:inline-block;max-width:100%;padding-right:13px;color:#5a553f;font-weight:600;text-decoration:none;box-shadow:inset 0 -.5px 0 rgba(90,85,63,.72);flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;font-style:normal;vertical-align:bottom}
-.community-text-ad a::after{content:"↗";position:absolute;right:0;top:50%;transform:translateY(-52%);font-size:.86em;line-height:1;opacity:.72;text-decoration:none}
-.community-text-ad a:hover{color:#3a3520;box-shadow:inset 0 -1px 0 currentColor}
-.community-text-ad a:hover::after{opacity:1}
-.summary-sheet-ad .community-text-ad a{box-shadow:none;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;text-decoration-color:rgba(70,83,95,.55)}
-.summary-sheet-ad .community-text-ad a:hover{box-shadow:none;text-decoration-color:currentColor}
+.community-text-note a{position:relative;display:inline-block;max-width:100%;padding-right:13px;color:#5a553f;font-weight:600;text-decoration:none;box-shadow:inset 0 -.5px 0 rgba(90,85,63,.72);flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;font-style:normal;vertical-align:bottom}
+.community-text-note a::after{content:"↗";position:absolute;right:0;top:50%;transform:translateY(-52%);font-size:.86em;line-height:1;opacity:.72;text-decoration:none}
+.community-text-note a:hover{color:#3a3520;box-shadow:inset 0 -1px 0 currentColor}
+.community-text-note a:hover::after{opacity:1}
+.summary-sheet-note .community-text-note a{box-shadow:none;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;text-decoration-color:rgba(70,83,95,.55)}
+.summary-sheet-note .community-text-note a:hover{box-shadow:none;text-decoration-color:currentColor}
 /* 모바일 셀 병합 — 행 번호 옆을 한 칸으로 묶고 inner div 가 flex 정렬 담당.
  * <td> 자체에 display:flex 를 두면 일부 모바일 브라우저(iOS Safari 등)에서
  * 셀 폭 계산이 어그러진다. 셀은 그대로 table-cell, inner 가 flex. */
-.community-ad-merged-cell{height:28px;padding:3px 9px!important;vertical-align:middle}
-.community-ad-merged-inner{display:flex;align-items:center;gap:6px;min-width:0;width:100%;overflow:hidden}
-.community-ad-merged-inner .ad-badge{flex:0 0 auto}
-.community-ad-merged-inner .community-text-ad{flex:1 1 auto;min-width:0;overflow:hidden}
+.community-note-merged-cell{height:28px;padding:3px 9px!important;vertical-align:middle}
+.community-note-merged-inner{display:flex;align-items:center;gap:6px;min-width:0;width:100%;overflow:hidden}
+.community-note-merged-inner .notice-badge{flex:0 0 auto}
+.community-note-merged-inner .community-text-note{flex:1 1 auto;min-width:0;overflow:hidden}
 @media(max-width:700px){
   .news-feed table:not(.community-table){min-width:0;width:100%;table-layout:fixed}
   .news-feed table:not(.community-table) col.news-rownum-col{width:30px}
@@ -1877,16 +1877,16 @@ a.stock-mention-badge:hover{background:#dff1e5;border-color:#86bd96;color:#0b6b3
   .community-reply-btn{max-width:100%;padding-left:4px;padding-right:4px}
   .community-pagination{gap:5px;font-size:10.5px}
   .community-pagination button{padding:0 6px;font-size:10.5px}
-  .community-ad-badge-cell{padding-left:3px!important;padding-right:3px!important}
-  .community-ad-copy-cell{padding-left:5px!important;padding-right:5px!important}
-  .community-text-ad{gap:4px;font-size:10.5px}
-  .community-ad-badge-cell .ad-badge{height:17px;padding:0 6px;font-size:10px;border-radius:999px}
+  .community-note-badge-cell{padding-left:3px!important;padding-right:3px!important}
+  .community-note-copy-cell{padding-left:5px!important;padding-right:5px!important}
+  .community-text-note{gap:4px;font-size:10.5px}
+  .community-note-badge-cell .notice-badge{height:17px;padding:0 6px;font-size:10px;border-radius:999px}
   /* 모바일 셀 병합 한 줄 광고 */
-  .community-ad-merged-cell{padding:3px 6px!important;height:22px}
-  .community-ad-merged-inner{gap:5px}
+  .community-note-merged-cell{padding:3px 6px!important;height:22px}
+  .community-note-merged-inner{gap:5px}
   /* 모바일에서도 base pill 사이즈 유지 (height 18 / font 10.5 / padding 0 7) */
-  .community-ad-merged-inner .ad-badge{padding:0 6px}
-  .community-ad-merged-inner .community-text-ad{gap:4px;font-size:10.7px;font-style:normal}
+  .community-note-merged-inner .notice-badge{padding:0 6px}
+  .community-note-merged-inner .community-text-note{gap:4px;font-size:10.7px;font-style:normal}
   body.readability-mode #timelineTable col.community-rownum-col{width:28px}
   body.readability-mode #timelineTable col.community-author-col{width:50px}
   body.readability-mode #timelineTable col.community-time-col{width:42px}
@@ -2231,14 +2231,14 @@ body.busy .sheet::after{content:"";position:absolute;inset:0;background:rgba(255
 .sheets-grid{display:flex;flex-direction:column;gap:0;margin:0;padding:0;align-items:stretch}
 .sheets-grid .col{min-width:0;position:relative}
 /* 시세창 하단 광고 — 두 가지 노출 방식 공존:
- *   1) 데스크탑(≥701px): col-summary 가장 아래의 floating overlay (#summarySheetAd).
+ *   1) 데스크탑(≥701px): col-summary 가장 아래의 floating overlay (#summarySheetNotice).
  *      시세창 스크롤과 무관하게 한 줄이 시트 위에 떠 있음.
- *   2) 모바일(≤700px): cardsTable 안에 직접 두 행을 추가 (.summary-sheet-ad-row).
+ *   2) 모바일(≤700px): cardsTable 안에 직접 두 행을 추가 (.summary-sheet-note-row).
  *      행번호·격자선이 그대로 유지돼 시트와 자연스럽게 이어짐.
  * 같은 placement='summary' 라 관리자 패널 / GA 식별자 둘 다 통합. */
-tr.summary-sheet-ad-blank-row,
-tr.summary-sheet-ad-row{display:none}
-.summary-sheet-ad{display:none}
+tr.summary-sheet-note-blank-row,
+tr.summary-sheet-note-row{display:none}
+.summary-sheet-note{display:none}
 .col-chat-dock[hidden]{display:none!important}
 .chat-dock-slot{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;overflow:hidden;background:var(--bg);border-top:1px solid var(--grid);border-left:1px solid var(--grid)}
 .sheet-splitter{display:none}
@@ -2319,7 +2319,7 @@ tr.summary-sheet-ad-row{display:none}
     padding-bottom:32px;
     scroll-padding-bottom:36px;
   }
-  .summary-sheet-ad{
+  .summary-sheet-note{
     display:flex;
     position:absolute;
     left:0;right:0;bottom:0;
@@ -2337,38 +2337,38 @@ tr.summary-sheet-ad-row{display:none}
     overflow:hidden;
     box-shadow:0 -2px 6px rgba(15,23,42,.05);
   }
-  .summary-sheet-ad .ad-badge{flex:0 0 auto}
-  .summary-sheet-ad .community-text-ad{
+  .summary-sheet-note .notice-badge{flex:0 0 auto}
+  .summary-sheet-note .community-text-note{
     flex:1 1 auto;min-width:0;
     display:inline-flex;align-items:center;gap:5px;
     color:inherit;font-size:11.5px;font-weight:500;
     overflow:hidden;text-overflow:ellipsis;
   }
-  .summary-sheet-ad .ad-copy{
+  .summary-sheet-note .notice-copy{
     display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;
     color:inherit;font-weight:500;
     text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;
     text-decoration-color:rgba(70,83,95,.55);
     box-shadow:none;
   }
-  .summary-sheet-ad .ad-copy:hover{color:#107c41;text-decoration-color:currentColor}
+  .summary-sheet-note .notice-copy:hover{color:#107c41;text-decoration-color:currentColor}
 }
 /* 다크모드 톤 */
-body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad{
+body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note{
   background:rgba(28,32,36,.985);color:#cbd5ce;border-top-color:#2d3a31;
 }
-body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad .ad-copy{
+body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note .notice-copy{
   color:inherit;text-decoration-color:rgba(203,213,206,.55);
 }
-body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad .ad-copy:hover{color:#7cd6a2}
+body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note .notice-copy:hover{color:#7cd6a2}
 /* 모바일 시세창 하단 광고 — cardsTable 안에 자연스럽게 두 행으로 들어감.
  * 첫 행: rownum + 빈 데이터 셀들 (시각적 여백)
  * 둘째 행: rownum + colspan 3 광고 셀 (badge + 텍스트/링크)
  * 모바일에서만 보이도록 max-width:700px 에서 display:table-row. */
 @media(max-width:700px){
-  tr.summary-sheet-ad-blank-row,
-  tr.summary-sheet-ad-row{display:table-row}
-  tr.summary-sheet-ad-row td.summary-sheet-ad-cell{
+  tr.summary-sheet-note-blank-row,
+  tr.summary-sheet-note-row{display:table-row}
+  tr.summary-sheet-note-row td.summary-sheet-note-cell{
     padding:5px 7px;
     background:#fafdfa;
     color:#4d555c;
@@ -2377,25 +2377,25 @@ body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad .ad-copy:hover{color:
     white-space:nowrap;
     overflow:hidden;
   }
-  tr.summary-sheet-ad-row td.summary-sheet-ad-cell > .ad-badge{
+  tr.summary-sheet-note-row td.summary-sheet-note-cell > .notice-badge{
     display:inline-flex;align-items:center;justify-content:center;
     height:16px;padding:0 6px;margin-right:6px;
     border:1px solid #b9d7c2;border-radius:999px;background:#edf8f1;color:#107c41;
     font-size:9.5px;font-weight:750;line-height:1;vertical-align:middle;
   }
-  tr.summary-sheet-ad-row td.summary-sheet-ad-cell > .community-text-ad{
+  tr.summary-sheet-note-row td.summary-sheet-note-cell > .community-text-note{
     display:inline-flex;align-items:center;gap:5px;min-width:0;
     max-width:calc(100% - 50px);overflow:hidden;text-overflow:ellipsis;
     color:inherit;font-size:11px;vertical-align:middle;
   }
-  tr.summary-sheet-ad-row td.summary-sheet-ad-cell .ad-copy{
+  tr.summary-sheet-note-row td.summary-sheet-note-cell .notice-copy{
     display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;
     color:#46535f;font-weight:500;text-decoration:underline;
     text-decoration-thickness:1px;text-underline-offset:2px;
     text-decoration-color:rgba(74,80,84,.55);
     box-shadow:none;
   }
-  tr.summary-sheet-ad-row td.summary-sheet-ad-cell .ad-copy:hover{
+  tr.summary-sheet-note-row td.summary-sheet-note-cell .notice-copy:hover{
     color:#107c41;text-decoration-color:currentColor;
   }
 }
@@ -2470,8 +2470,8 @@ body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad .ad-copy:hover{color:
     color:var(--txt);
   }
   body.chat-docked .chat-size-toggle{display:none}
-  body.chat-docked .chat-ad-line{min-height:25px;padding:4px 8px;background:#f4fbf6;border-bottom:1px solid var(--grid)}
-  body.chat-docked .chat-ad-line .ad-badge{height:18px;border-radius:999px;background:#edf8f1;color:#107c41;border-color:#b8d7c0}
+  body.chat-docked .chat-note-line{min-height:25px;padding:4px 8px;background:#f4fbf6;border-bottom:1px solid var(--grid)}
+  body.chat-docked .chat-note-line .notice-badge{height:18px;border-radius:999px;background:#edf8f1;color:#107c41;border-color:#b8d7c0}
   body.chat-docked .chat-body{width:100%;box-sizing:border-box;min-height:0;min-width:0;max-width:100%;background:var(--bg);padding:6px;border-bottom:0;overflow-x:hidden}
   body.chat-docked .chat-msg{box-sizing:border-box;min-width:0;max-width:100%;border-radius:3px;box-shadow:none;overflow:visible}
   body.chat-docked .chat-text{min-width:0;max-width:100%;overflow-wrap:break-word}
@@ -2503,7 +2503,7 @@ body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad .ad-copy:hover{color:
   body.excel-theme-silver:not(.excel-dark-mode):not(.theme-outlook).chat-docked .chat-size-toggle:hover,
   body.excel-theme-silver:not(.excel-dark-mode):not(.theme-outlook).chat-docked .chat-head-btn:hover{background:#ecefee;color:#242424;border-color:#d0d7de}
   body.excel-dark-mode:not(.theme-outlook).chat-docked .chat-head{background:var(--head);border-color:var(--grid)}
-  body.excel-dark-mode:not(.theme-outlook).chat-docked .chat-ad-line,
+  body.excel-dark-mode:not(.theme-outlook).chat-docked .chat-note-line,
   body.excel-dark-mode:not(.theme-outlook).chat-docked .chat-body{background:var(--bg)}
   body.excel-dark-mode:not(.theme-outlook).chat-docked .chat-composer{background:var(--soft-bg);border-color:var(--grid)}
 }
@@ -2753,7 +2753,7 @@ body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .colhead
 body.excel-dark-mode:not(.theme-outlook) th.rownum,
 body.excel-dark-mode:not(.theme-outlook) td.rownum,
 body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .rownum,
-body.excel-dark-mode:not(.theme-outlook) .community-ad-row .rownum{color:#b6c0c8!important}
+body.excel-dark-mode:not(.theme-outlook) .community-note-row .rownum{color:#b6c0c8!important}
 body.excel-dark-mode:not(.theme-outlook) td,
 body.excel-dark-mode:not(.theme-outlook) .subhead{background:var(--bg);color:var(--txt)}
 body.excel-dark-mode:not(.theme-outlook) .sheet.summary tr.mood-row td,
@@ -2766,12 +2766,12 @@ body.excel-dark-mode:not(.theme-outlook) .community-hidden-row td:not(.rownum){b
 body.excel-dark-mode:not(.theme-outlook) .community-post-row.is-pinned > td:not(.rownum){background:#211f18}
 body.excel-dark-mode:not(.theme-outlook) .community-pin-badge{background:#2a2418;border-color:#5a4923;color:#dcc488}
 body.excel-dark-mode:not(.theme-outlook) .stock-mention-badge{background:#14261d;border-color:#315842;color:#9ee2b5}
-body.excel-dark-mode:not(.theme-outlook) .community-ad-badge-cell .ad-badge,
-body.excel-dark-mode:not(.theme-outlook) .community-ad-merged-inner .ad-badge{background:#2a2418;border-color:#5a4923;color:#dcc488}
-body.excel-dark-mode:not(.theme-outlook) .community-ad-row td:not(.rownum){background:#1d1b15;color:#c8b988}
-body.excel-dark-mode:not(.theme-outlook) .community-ad-empty-cell,
-body.excel-dark-mode:not(.theme-outlook) .community-ad-time-cell{background:#1d1b15;color:#c8b988}
-body.excel-dark-mode:not(.theme-outlook) .community-ad-row .rownum{background:var(--head)!important;color:#b6c0c8!important}
+body.excel-dark-mode:not(.theme-outlook) .community-note-badge-cell .notice-badge,
+body.excel-dark-mode:not(.theme-outlook) .community-note-merged-inner .notice-badge{background:#2a2418;border-color:#5a4923;color:#dcc488}
+body.excel-dark-mode:not(.theme-outlook) .community-note-row td:not(.rownum){background:#1d1b15;color:#c8b988}
+body.excel-dark-mode:not(.theme-outlook) .community-note-empty-cell,
+body.excel-dark-mode:not(.theme-outlook) .community-note-time-cell{background:#1d1b15;color:#c8b988}
+body.excel-dark-mode:not(.theme-outlook) .community-note-row .rownum{background:var(--head)!important;color:#b6c0c8!important}
 body.excel-dark-mode:not(.theme-outlook) .community-hover-actions{background:linear-gradient(90deg,rgba(21,25,29,0),#15191d 12px)}
 body.excel-dark-mode:not(.theme-outlook) a.stock-mention-badge:hover{background:#193321;border-color:#4a7a5d;color:#b8f2c9}
 body.excel-dark-mode:not(.theme-outlook) .stock-mention-badge.pending{background:#1c2228;border-color:#45505a;color:#aab3bb}
@@ -2780,30 +2780,30 @@ body.excel-dark-mode:not(.theme-outlook) .stock-mention-change{border-left-color
 body.excel-dark-mode:not(.theme-outlook) .stock-mention-change.up{color:#ffb0b0}
 body.excel-dark-mode:not(.theme-outlook) .stock-mention-change.down{color:#bad6ff}
 body.excel-dark-mode:not(.theme-outlook) .stock-mention-change.flat{color:#aab3bb}
-body.excel-dark-mode:not(.theme-outlook) .community-text-ad,
-body.excel-dark-mode:not(.theme-outlook) .community-text-ad .ad-copy{color:#c8b988}
-body.excel-dark-mode:not(.theme-outlook) .community-text-ad a{color:inherit;box-shadow:inset 0 -.5px 0 rgba(200,185,136,.76)}
+body.excel-dark-mode:not(.theme-outlook) .community-text-note,
+body.excel-dark-mode:not(.theme-outlook) .community-text-note .notice-copy{color:#c8b988}
+body.excel-dark-mode:not(.theme-outlook) .community-text-note a{color:inherit;box-shadow:inset 0 -.5px 0 rgba(200,185,136,.76)}
 body.excel-dark-mode:not(.theme-outlook) .watchlist-add,
 body.excel-dark-mode:not(.theme-outlook) .chat-body,
 body.excel-dark-mode:not(.theme-outlook) .chat-composer{background:var(--soft-bg);border-color:var(--sep)}
-body.excel-dark-mode:not(.theme-outlook) .chat-ad-line{background:#16251d;border-color:#2d3a31;color:#cbd5ce}
-body.excel-dark-mode:not(.theme-outlook) .chat-ad-line .ad-badge{background:#17231c;border-color:#3c5c48;color:#7cd6a2}
+body.excel-dark-mode:not(.theme-outlook) .chat-note-line{background:#16251d;border-color:#2d3a31;color:#cbd5ce}
+body.excel-dark-mode:not(.theme-outlook) .chat-note-line .notice-badge{background:#17231c;border-color:#3c5c48;color:#7cd6a2}
 body.excel-dark-mode:not(.theme-outlook) .community-hidden-badge{background:#1c2228;border-color:#45505a;color:#aab3bb}
-body.excel-dark-mode:not(.theme-outlook) .chat-ad-line a{color:inherit;box-shadow:inset 0 -.5px 0 rgba(203,213,206,.72)}
-body.excel-dark-mode:not(.theme-outlook) .chat-ad-line a:hover{color:#7cd6a2;box-shadow:inset 0 -1px 0 currentColor}
-body.excel-dark-mode:not(.theme-outlook) .community-text-ad a{color:inherit;box-shadow:inset 0 -.5px 0 rgba(200,185,136,.76)}
-body.excel-dark-mode:not(.theme-outlook) .community-text-ad a:hover{color:#e4cf91;box-shadow:inset 0 -1px 0 currentColor}
-body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad{background:rgba(21,25,29,.98);border-color:var(--grid);color:#cbd5ce;box-shadow:0 -2px 8px rgba(0,0,0,.22)}
-body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad .ad-badge{background:#17231c;border-color:#3c5c48;color:#7cd6a2}
-body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad a.ad-copy{color:inherit;box-shadow:none;text-decoration-color:rgba(203,213,206,.55)}
-body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad a.ad-copy:hover{color:#7cd6a2;text-decoration-color:currentColor}
-body.excel-dark-mode:not(.theme-outlook) tr.summary-sheet-ad-row td.summary-sheet-ad-cell a.ad-copy{box-shadow:none;text-decoration-color:rgba(203,213,206,.55)}
-body.excel-dark-mode:not(.theme-outlook) tr.summary-sheet-ad-row td.summary-sheet-ad-cell a.ad-copy:hover{color:#7cd6a2;text-decoration-color:currentColor}
+body.excel-dark-mode:not(.theme-outlook) .chat-note-line a{color:inherit;box-shadow:inset 0 -.5px 0 rgba(203,213,206,.72)}
+body.excel-dark-mode:not(.theme-outlook) .chat-note-line a:hover{color:#7cd6a2;box-shadow:inset 0 -1px 0 currentColor}
+body.excel-dark-mode:not(.theme-outlook) .community-text-note a{color:inherit;box-shadow:inset 0 -.5px 0 rgba(200,185,136,.76)}
+body.excel-dark-mode:not(.theme-outlook) .community-text-note a:hover{color:#e4cf91;box-shadow:inset 0 -1px 0 currentColor}
+body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note{background:rgba(21,25,29,.98);border-color:var(--grid);color:#cbd5ce;box-shadow:0 -2px 8px rgba(0,0,0,.22)}
+body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note .notice-badge{background:#17231c;border-color:#3c5c48;color:#7cd6a2}
+body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note a.notice-copy{color:inherit;box-shadow:none;text-decoration-color:rgba(203,213,206,.55)}
+body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note a.notice-copy:hover{color:#7cd6a2;text-decoration-color:currentColor}
+body.excel-dark-mode:not(.theme-outlook) tr.summary-sheet-note-row td.summary-sheet-note-cell a.notice-copy{box-shadow:none;text-decoration-color:rgba(203,213,206,.55)}
+body.excel-dark-mode:not(.theme-outlook) tr.summary-sheet-note-row td.summary-sheet-note-cell a.notice-copy:hover{color:#7cd6a2;text-decoration-color:currentColor}
 @media(max-width:1099px){
-  body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad{background:transparent;border-color:transparent;box-shadow:none;color:#cbd5ce}
-  body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad-rownum{background:var(--head);border-color:var(--grid);color:#b6c0c8}
-  body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad-blank-cell{background:var(--bg);border-color:var(--grid)}
-  body.excel-dark-mode:not(.theme-outlook) .summary-sheet-ad-cell{background:rgba(21,25,29,.98);border-color:var(--grid)}
+  body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note{background:transparent;border-color:transparent;box-shadow:none;color:#cbd5ce}
+  body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note-rownum{background:var(--head);border-color:var(--grid);color:#b6c0c8}
+  body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note-blank-cell{background:var(--bg);border-color:var(--grid)}
+  body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note-cell{background:rgba(21,25,29,.98);border-color:var(--grid)}
 }
 body.excel-dark-mode:not(.theme-outlook) tr.quote-note-row td{background:#1a211d;color:#aebdb4}
 body.excel-dark-mode:not(.theme-outlook) tr.quote-note-row:hover td{background:#1d2a22}
@@ -3160,14 +3160,14 @@ body.excel-theme-silver:not(.excel-dark-mode):not(.theme-outlook) .chat-close,
 body.excel-theme-silver:not(.excel-dark-mode):not(.theme-outlook) .chat-size-toggle{background:rgba(0,0,0,.06);color:#424242}
 body.excel-theme-silver:not(.excel-dark-mode):not(.theme-outlook) .chat-close:hover,
 body.excel-theme-silver:not(.excel-dark-mode):not(.theme-outlook) .chat-size-toggle:hover{background:rgba(0,0,0,.12)}
-.chat-ad-line{min-height:29px;display:flex;align-items:center;gap:7px;padding:5px 10px;border-bottom:1px solid #d9e3dc;background:#f4fbf6;color:#4a5054;font-size:12px;line-height:1.3;white-space:nowrap;overflow:hidden}
-.chat-ad-line .ad-badge{flex:0 0 auto}
-.chat-ad-line .ad-copy{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:12px;font-weight:560}
+.chat-note-line{min-height:29px;display:flex;align-items:center;gap:7px;padding:5px 10px;border-bottom:1px solid #d9e3dc;background:#f4fbf6;color:#4a5054;font-size:12px;line-height:1.3;white-space:nowrap;overflow:hidden}
+.chat-note-line .notice-badge{flex:0 0 auto}
+.chat-note-line .notice-copy{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:12px;font-weight:560}
 /* 본문 색에 맞춘 톤다운 링크 — 색은 본문 톤, underline 은 명확하게. */
-.chat-ad-line a{position:relative;display:inline-block;padding-right:13px;color:inherit;font-weight:600;text-decoration:none;box-shadow:inset 0 -.5px 0 rgba(74,80,84,.72);overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
-.chat-ad-line a::after{content:"↗";position:absolute;right:0;top:50%;transform:translateY(-52%);font-size:.86em;line-height:1;opacity:.72;text-decoration:none}
-.chat-ad-line a:hover{color:#107c41;box-shadow:inset 0 -1px 0 currentColor}
-.chat-ad-line a:hover::after{opacity:1}
+.chat-note-line a{position:relative;display:inline-block;padding-right:13px;color:inherit;font-weight:600;text-decoration:none;box-shadow:inset 0 -.5px 0 rgba(74,80,84,.72);overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
+.chat-note-line a::after{content:"↗";position:absolute;right:0;top:50%;transform:translateY(-52%);font-size:.86em;line-height:1;opacity:.72;text-decoration:none}
+.chat-note-line a:hover{color:#107c41;box-shadow:inset 0 -1px 0 currentColor}
+.chat-note-line a:hover::after{opacity:1}
 /* 후원자 마쿼 — 채팅 입력창 아래의 얇은 회색 정보 라인. 라벨과 ticker 영역을
  * flex 로 분리해 흐르는 글자가 제목 영역을 침범하지 않게 한다. */
 .chat-donor-marquee{position:relative;display:flex;align-items:center;width:100%;height:24px;min-height:24px;border-bottom:1px solid #dedede;background:#f3f3f3;color:#5f6368;font-size:11px;line-height:1.25;overflow:hidden}

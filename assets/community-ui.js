@@ -290,8 +290,8 @@ function textAdLinkHtml(ad, creative){
   const href = safeTextAdHref(ad?.href);
   if(!href) return '';
   const external = /^https?:\/\//i.test(href);
-  const attrs = external ? ' target="_blank" rel="noopener sponsored"' : '';
-  return `<a class="ad-copy" href="${esc(href)}"${attrs} data-ad-click="1">${esc(creative?.text || ad?.text || DEFAULT_TEXT_AD.text)}</a>`;
+  const attrs = external ? ' target="_blank" rel="noopener"' : '';
+  return `<a class="notice-copy" href="${esc(href)}"${attrs} data-xk-click="1">${esc(creative?.text || ad?.text || DEFAULT_TEXT_AD.text)}</a>`;
 }
 
 function textAdTitle(ad, creative){
@@ -303,36 +303,36 @@ function textAdTitle(ad, creative){
 function textAdContentHtml(ad, creative){
   const link = textAdLinkHtml(ad, creative);
   if(link) return link;
-  return `<span class="ad-copy">${esc(creative?.text || ad?.text || DEFAULT_TEXT_AD.text)}</span>`;
+  return `<span class="notice-copy">${esc(creative?.text || ad?.text || DEFAULT_TEXT_AD.text)}</span>`;
 }
 
 function renderCommunityTextAd(ad, placement='community', creative=textAdCreative(ad, placement)){
-  return `<div class="community-text-ad" title="${esc(textAdTitle(ad, creative))}">
+  return `<div class="community-text-note" title="${esc(textAdTitle(ad, creative))}">
         ${textAdContentHtml(ad, creative)}
       </div>`;
 }
 
 // 시세창 하단 광고는 두 곳에 동시에 렌더된다:
-//   - 데스크탑: #summarySheetAd (col-summary 의 floating overlay div)
-//   - 모바일:   cardsTable 안의 .summary-sheet-ad-row <tr>
-// 둘 다 같은 ad 데이터를 받아 data-ad-* 속성·콘텐츠를 동기화한다. CSS media
+//   - 데스크탑: #summarySheetNotice (col-summary 의 floating overlay div)
+//   - 모바일:   cardsTable 안의 .summary-sheet-note-row <tr>
+// 둘 다 같은 광고 데이터를 받아 data-xk-* 속성·콘텐츠를 동기화한다. CSS media
 // query 가 한 쪽만 보이게 처리. observeAdImpression 으로 노출 카운트도 양쪽 다 잡힘.
 function applySummaryAdToEl(el, ad, creative, attrs){
   if(!el) return;
   flushAdHover(el);
-  el.dataset.adId = attrs.adId;
-  el.dataset.adLabel = attrs.adLabel;
-  el.dataset.adCreativeIndex = attrs.creativeIndex;
-  el.dataset.adCreativeText = attrs.creativeText;
+  el.dataset.xkId = attrs.adId;
+  el.dataset.xkLabel = attrs.adLabel;
+  el.dataset.xkVariantIndex = attrs.creativeIndex;
+  el.dataset.xkVariantText = attrs.creativeText;
   el.title = textAdTitle(ad, creative);
   observeAdImpression(el);
 }
 function refreshSummaryAdRow(){
   const ad = textAdForPlacement('summary');
   // 1) 모바일 인라인 <tr>
-  const row = document.querySelector('#cardsTable .summary-sheet-ad-row');
-  const blankRow = row?.previousElementSibling?.classList?.contains('summary-sheet-ad-blank-row') ? row.previousElementSibling : null;
-  const overlay = document.getElementById('summarySheetAd');
+  const row = document.querySelector('#cardsTable .summary-sheet-note-row');
+  const blankRow = row?.previousElementSibling?.classList?.contains('summary-sheet-note-blank-row') ? row.previousElementSibling : null;
+  const overlay = document.getElementById('summarySheetNotice');
   if(!ad){
     [row, blankRow, overlay].forEach((el)=>{
       if(!el) return;
@@ -346,23 +346,23 @@ function refreshSummaryAdRow(){
   if(blankRow) blankRow.hidden = false;
   if(row){
     row.hidden = false;
-    const cell = row.querySelector('.summary-sheet-ad-cell');
+    const cell = row.querySelector('.summary-sheet-note-cell');
     if(cell){
-      cell.innerHTML = `<span class="ad-badge" data-ad-label>${esc(ad.label || '광고')}</span>${renderCommunityTextAd(ad, 'summary', creative)}`;
+      cell.innerHTML = `<span class="notice-badge" data-xk-label>${esc(ad.label || '광고')}</span>${renderCommunityTextAd(ad, 'summary', creative)}`;
     }
     applySummaryAdToEl(row, ad, creative, attrs);
   }
-  // 2) 데스크탑 overlay #summarySheetAd
+  // 2) 데스크탑 overlay #summarySheetNotice
   if(overlay){
     overlay.hidden = false;
-    overlay.innerHTML = `<span class="ad-badge" data-ad-label>${esc(ad.label || '알림')}</span>${renderCommunityTextAd(ad, 'summary', creative)}`;
+    overlay.innerHTML = `<span class="notice-badge" data-xk-label>${esc(ad.label || '알림')}</span>${renderCommunityTextAd(ad, 'summary', creative)}`;
     applySummaryAdToEl(overlay, ad, creative, attrs);
   }
 }
 window.refreshSummaryAdRow = refreshSummaryAdRow;
 
 function updateChatTextAd(){
-  const root = document.querySelector('[data-ad-placement="chat"]');
+  const root = document.querySelector('[data-xk-area="chat"]');
   if(!root) return;
   flushAdHover(root);
   const ad = textAdForPlacement('chat');
@@ -373,11 +373,11 @@ function updateChatTextAd(){
   root.hidden = false;
   const creative = textAdCreative(ad, 'chat');
   const attrs = textAdDataAttrs(ad, creative);
-  root.dataset.adId = attrs.adId;
-  root.dataset.adLabel = attrs.adLabel;
-  root.dataset.adCreativeIndex = attrs.creativeIndex;
-  root.dataset.adCreativeText = attrs.creativeText;
-  root.innerHTML = `<span class="ad-badge" data-ad-label>${esc(ad.label || '알림')}</span>${textAdContentHtml(ad, creative)}`;
+  root.dataset.xkId = attrs.adId;
+  root.dataset.xkLabel = attrs.adLabel;
+  root.dataset.xkVariantIndex = attrs.creativeIndex;
+  root.dataset.xkVariantText = attrs.creativeText;
+  root.innerHTML = `<span class="notice-badge" data-xk-label>${esc(ad.label || '알림')}</span>${textAdContentHtml(ad, creative)}`;
   root.title = textAdTitle(ad, creative);
   observeAdImpression(root);
 }
@@ -387,26 +387,26 @@ function updateSummaryTextAd(){
 }
 
 function updateCommunityTextAdElements(){
-  const rows = document.querySelectorAll('[data-ad-placement="community"]');
+  const rows = document.querySelectorAll('[data-xk-area="community"]');
   if(!rows.length) return 0;
   let updated = 0;
   rows.forEach((root, index)=>{
     flushAdHover(root);
-    const ad = textAdById(root.dataset.adId || root.getAttribute('data-ad-id')) || textAdForPlacementSlot('community', root.dataset.adPosition || `community-row-${index + 1}`);
+    const ad = textAdById(root.dataset.xkId || root.getAttribute('data-xk-id')) || textAdForPlacementSlot('community', root.dataset.xkPosition || `community-row-${index + 1}`);
     if(!ad){
       root.remove();
       return;
     }
     const creative = textAdCreative(ad, 'community', index + 1);
     const attrs = textAdDataAttrs(ad, creative);
-    root.dataset.adId = attrs.adId;
-    root.dataset.adLabel = attrs.adLabel;
-    root.dataset.adCreativeIndex = attrs.creativeIndex;
-    root.dataset.adCreativeText = attrs.creativeText;
+    root.dataset.xkId = attrs.adId;
+    root.dataset.xkLabel = attrs.adLabel;
+    root.dataset.xkVariantIndex = attrs.creativeIndex;
+    root.dataset.xkVariantText = attrs.creativeText;
     root.title = textAdTitle(ad, creative);
-    const badge = root.querySelector('.ad-badge');
+    const badge = root.querySelector('.notice-badge');
     if(badge) badge.textContent = ad.label || '알림';
-    const holder = root.querySelector('.community-text-ad');
+    const holder = root.querySelector('.community-text-note');
     if(holder) holder.outerHTML = renderCommunityTextAd(ad, 'community', creative);
     observeAdImpression(root);
     updated++;
@@ -445,7 +445,7 @@ function adHourKst(date=new Date()){
   }
 }
 function adPositionFromElement(el, placement=''){
-  const explicit = el?.getAttribute?.('data-ad-position') || el?.dataset?.adPosition || '';
+  const explicit = el?.getAttribute?.('data-xk-position') || el?.dataset?.xkPosition || '';
   if(explicit) return explicit;
   if(placement === 'chat') return 'chat-title';
   const row = el?.querySelector?.('.rownum')?.textContent?.trim?.() || '';
@@ -722,11 +722,11 @@ function adElementInView(el){
 }
 function observeAdImpression(el){
   if(!el) return;
-  const placement = el.getAttribute('data-ad-placement');
-  const adId = el.getAttribute('data-ad-id') || el.dataset.adId || '';
-  const adLabel = el.getAttribute('data-ad-label') || el.dataset.adLabel || '';
-  const creativeIndex = el.getAttribute('data-ad-creative-index') || el.dataset.adCreativeIndex || '0';
-  const creativeText = el.getAttribute('data-ad-creative-text') || el.dataset.adCreativeText || '';
+  const placement = el.getAttribute('data-xk-area');
+  const adId = el.getAttribute('data-xk-id') || el.dataset.xkId || '';
+  const adLabel = el.getAttribute('data-xk-label') || el.dataset.xkLabel || '';
+  const creativeIndex = el.getAttribute('data-xk-variant-index') || el.dataset.xkVariantIndex || '0';
+  const creativeText = el.getAttribute('data-xk-variant-text') || el.dataset.xkVariantText || '';
   const position = adPositionFromElement(el, placement);
   if(!placement) return;
   const adKey = adViewCapKey(adId, placement, position);
@@ -774,19 +774,19 @@ function observeAdImpression(el){
 }
 
 function adRootFromTarget(target){
-  return target?.closest?.('[data-ad-placement][data-ad-id]') || null;
+  return target?.closest?.('[data-xk-area][data-xk-id]') || null;
 }
 function adHoverSnapshot(el){
   if(!el) return null;
-  const placement = el.getAttribute('data-ad-placement') || '';
-  const adId = el.getAttribute('data-ad-id') || el.dataset.adId || '';
+  const placement = el.getAttribute('data-xk-area') || '';
+  const adId = el.getAttribute('data-xk-id') || el.dataset.xkId || '';
   if(!placement || !adId) return null;
   return {
     adId,
     placement,
-    adLabel:el.getAttribute('data-ad-label') || el.dataset.adLabel || '',
-    creativeIndex:el.getAttribute('data-ad-creative-index') || el.dataset.adCreativeIndex || '0',
-    creativeText:el.getAttribute('data-ad-creative-text') || el.dataset.adCreativeText || '',
+    adLabel:el.getAttribute('data-xk-label') || el.dataset.xkLabel || '',
+    creativeIndex:el.getAttribute('data-xk-variant-index') || el.dataset.xkVariantIndex || '0',
+    creativeText:el.getAttribute('data-xk-variant-text') || el.dataset.xkVariantText || '',
     position:adPositionFromElement(el, placement),
   };
 }
@@ -820,7 +820,7 @@ function setupAdHoverTracker(){
     flushAdHover(root);
   }, true);
   const flushAll = ()=>{
-    document.querySelectorAll('[data-ad-placement][data-ad-id]').forEach(flushAdHover);
+    document.querySelectorAll('[data-xk-area][data-xk-id]').forEach(flushAdHover);
   };
   document.addEventListener('visibilitychange', ()=>{
     if(document.hidden) flushAll();
@@ -831,18 +831,18 @@ function setupAdClickTracker(){
   if(adClickTrackerReady) return;
   adClickTrackerReady = true;
   document.addEventListener('click', (ev)=>{
-    const link = ev.target?.closest?.('[data-ad-click]');
+    const link = ev.target?.closest?.('[data-xk-click]');
     if(!link) return;
-    const root = link.closest('[data-ad-placement]');
+    const root = link.closest('[data-xk-area]');
     if(!root) return;
     reportAdClick(
-      root.dataset.adId || root.getAttribute('data-ad-id') || '',
-      root.getAttribute('data-ad-placement') || '',
+      root.dataset.xkId || root.getAttribute('data-xk-id') || '',
+      root.getAttribute('data-xk-area') || '',
       link.href || link.getAttribute('href') || '',
-      root.dataset.adCreativeIndex || root.getAttribute('data-ad-creative-index') || '',
-      root.dataset.adCreativeText || root.getAttribute('data-ad-creative-text') || '',
-      root.dataset.adLabel || root.getAttribute('data-ad-label') || '',
-      adPositionFromElement(root, root.getAttribute('data-ad-placement') || ''),
+      root.dataset.xkVariantIndex || root.getAttribute('data-xk-variant-index') || '',
+      root.dataset.xkVariantText || root.getAttribute('data-xk-variant-text') || '',
+      root.dataset.xkLabel || root.getAttribute('data-xk-label') || '',
+      adPositionFromElement(root, root.getAttribute('data-xk-area') || ''),
     );
   }, true);
 }
@@ -855,16 +855,16 @@ function setupAdImpressionTracker(){
       else adVisibilityEnd(entry.target);
     });
   }, { threshold: 0.5 });
-  document.querySelectorAll('[data-ad-placement][data-ad-id]').forEach(observeAdImpression);
+  document.querySelectorAll('[data-xk-area][data-xk-id]').forEach(observeAdImpression);
   const flushAll = ()=>{
-    document.querySelectorAll('[data-ad-placement]').forEach(flushAdImpression);
+    document.querySelectorAll('[data-xk-area]').forEach(flushAdImpression);
   };
   document.addEventListener('visibilitychange', ()=>{
     if(document.hidden) flushAll();
   });
   window.addEventListener('pagehide', flushAll);
   setInterval(()=>{
-    document.querySelectorAll('[data-ad-placement]').forEach((el)=>{
+    document.querySelectorAll('[data-xk-area]').forEach((el)=>{
       const state = adImpressionState.get(el);
       if(!state) return;
       if(state.visibleAt){
@@ -891,12 +891,13 @@ function refreshTextAdCreatives(){
 
 async function loadTextAds(){
   if(adsLoadPromise) return adsLoadPromise;
-  // /api/ads 가 KV 우선 + 정적 /ads.json 자동 폴백. 광고 변경 시 즉시 반영하려면
-  // admin 측에서 edge cache 를 무효화하므로 클라이언트는 캐시 그대로 사용.
+  // 화면 쪽에서는 차단 필터 오탐을 줄이기 위해 중립적인 /api/notices 를 먼저 쓴다.
+  // /api/ads 는 운영/하위 호환용 fallback 으로 유지한다.
   adsLoadPromise = (async()=>{
     try{
-      const res = await fetch(apiUrl('/api/ads'));
-      if(!res.ok) throw new Error(`ads ${res.status}`);
+      let res = await fetch(apiUrl('/api/notices'));
+      if(!res.ok) res = await fetch(apiUrl('/api/ads'));
+      if(!res.ok) throw new Error(`notices ${res.status}`);
       const data = await res.json();
       const parsed = (Array.isArray(data?.ads) ? data.ads : [])
         .map(normalizeTextAd)
@@ -1081,25 +1082,25 @@ function communityTextAdRow(rowNum, compact=false, selection={}){
   const adId = esc(ad.id || '');
   if(compact){
     // 모바일은 작성자/내용 두 칸만 병합하고, 시각 칸은 분리해 표 구조를 유지한다.
-    return `<tr class="community-ad-row community-ad-row-merged" data-ad-placement="community" data-ad-position="${esc(position)}" data-ad-id="${adId}" data-ad-label="${esc(attrs.adLabel)}" data-ad-creative-index="${esc(attrs.creativeIndex)}" data-ad-creative-text="${esc(attrs.creativeText)}" title="${esc(textAdTitle(ad, creative))}">
+    return `<tr class="community-note-row community-note-row-merged" data-xk-area="community" data-xk-position="${esc(position)}" data-xk-id="${adId}" data-xk-label="${esc(attrs.adLabel)}" data-xk-variant-index="${esc(attrs.creativeIndex)}" data-xk-variant-text="${esc(attrs.creativeText)}" title="${esc(textAdTitle(ad, creative))}">
       <td class="rownum">${rowNum}</td>
-      <td colspan="2" class="community-ad-merged-cell">
-        <div class="community-ad-merged-inner">
-          <span class="ad-badge">${esc(ad.label || '알림')}</span>
+      <td colspan="2" class="community-note-merged-cell">
+        <div class="community-note-merged-inner">
+          <span class="notice-badge">${esc(ad.label || '알림')}</span>
           ${renderCommunityTextAd(ad, 'community', creative)}
         </div>
       </td>
-      <td class="center time community-ad-time-cell">광고</td>
+      <td class="center time community-note-time-cell">광고</td>
     </tr>`;
   }
-  return `<tr class="community-ad-row" data-ad-placement="community" data-ad-position="${esc(position)}" data-ad-id="${adId}" data-ad-label="${esc(attrs.adLabel)}" data-ad-creative-index="${esc(attrs.creativeIndex)}" data-ad-creative-text="${esc(attrs.creativeText)}" title="${esc(textAdTitle(ad, creative))}">
+  return `<tr class="community-note-row" data-xk-area="community" data-xk-position="${esc(position)}" data-xk-id="${adId}" data-xk-label="${esc(attrs.adLabel)}" data-xk-variant-index="${esc(attrs.creativeIndex)}" data-xk-variant-text="${esc(attrs.creativeText)}" title="${esc(textAdTitle(ad, creative))}">
     <td class="rownum">${rowNum}</td>
-    <td class="community-ad-badge-cell"><span class="ad-badge">${esc(ad.label || '알림')}</span></td>
-    <td class="community-ad-copy-cell">
+    <td class="community-note-badge-cell"><span class="notice-badge">${esc(ad.label || '알림')}</span></td>
+    <td class="community-note-copy-cell">
       ${renderCommunityTextAd(ad, 'community', creative)}
     </td>
-    <td class="center time community-ad-time-cell">광고</td>
-    <td class="community-ad-empty-cell"></td>
+    <td class="center time community-note-time-cell">광고</td>
+    <td class="community-note-empty-cell"></td>
   </tr>`;
 }
 
@@ -1451,7 +1452,7 @@ function renderCommunityTable(state='ready'){
   bindCommunityTable();
   flushStockMentionQueue();
   if(typeof setupStockMentionMiniChartHover === 'function') setupStockMentionMiniChartHover();
-  table.querySelectorAll('[data-ad-placement][data-ad-id]').forEach(observeAdImpression);
+  table.querySelectorAll('[data-xk-area][data-xk-id]').forEach(observeAdImpression);
   if(state !== 'loading' && typeof scheduleCommunityMarkRead === 'function') scheduleCommunityMarkRead(communityPosts);
   if(communityPostInFlight) setCommunityPostSending(true);
   if(communityCommentInFlight) setCommunityCommentSending(true);

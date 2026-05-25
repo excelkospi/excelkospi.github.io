@@ -224,22 +224,22 @@ function renderCardsTable(cards, session){
   if(summaryRow) rowNo++;
   // 모바일 시세창 하단 광고 — Excel 테이블 안에 두 행을 그대로 더 끼워넣는다.
   // 첫 행은 행번호만 있는 빈 줄 (셀 격자선 유지), 둘째 행은 colspan 으로 광고.
-  // updateSummaryTextAd() 가 나중에 .summary-sheet-ad-row 의 inner 셀을 채운다.
+  // updateSummaryTextAd() 가 나중에 .summary-sheet-note-row 의 inner 셀을 채운다.
   // CSS @media(max-width:700px) 에서만 보이고 데스크탑에선 display:none.
   const adBlankRowNo = rowNo++;
   const adContentRowNo = rowNo++;
   const summaryAdRows = `
-    <tr class="summary-sheet-ad-blank-row" aria-hidden="true">
+    <tr class="summary-sheet-note-blank-row" aria-hidden="true">
       <td class="rownum">${adBlankRowNo}</td>
       <td class="left"></td>
       <td class="right"></td>
       <td class="right"></td>
     </tr>
-    <tr class="summary-sheet-ad-row" data-ad-placement="summary" data-ad-position="summary-bottom" data-ad-id="sponsor-open" data-ad-label="알림" data-ad-creative-index="0" data-ad-creative-text="이곳에 한줄 광고를 넣어주실 광고주를 모십니다.">
+    <tr class="summary-sheet-note-row" data-xk-area="summary" data-xk-position="summary-bottom" data-xk-id="sponsor-open" data-xk-label="알림" data-xk-variant-index="0" data-xk-variant-text="이곳에 한줄 광고를 넣어주실 광고주를 모십니다.">
       <td class="rownum">${adContentRowNo}</td>
-      <td class="left summary-sheet-ad-cell" colspan="3">
-        <span class="ad-badge" data-ad-label>알림</span>
-        <span class="community-text-ad"><a class="ad-copy" href="mailto:excelkospi@outlook.com" data-ad-click="1">이곳에 한줄 광고를 넣어주실 광고주를 모십니다.</a></span>
+      <td class="left summary-sheet-note-cell" colspan="3">
+        <span class="notice-badge" data-xk-label>알림</span>
+        <span class="community-text-note"><a class="notice-copy" href="mailto:excelkospi@outlook.com" data-xk-click="1">이곳에 한줄 광고를 넣어주실 광고주를 모십니다.</a></span>
       </td>
     </tr>`;
   // 데스크탑은 짧은 목록에서도 엑셀 시트처럼 충분한 빈 행을 남긴다.

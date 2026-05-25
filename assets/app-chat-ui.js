@@ -173,6 +173,43 @@ function setupChatComposerFallback(){
   document.addEventListener('visibilitychange', ()=>requestAnimationFrame(syncChatComposerFallbackVisibility));
 }
 
+function clearChatPanelRescueStyle(panel=document.getElementById('chatPanel')){
+  if(!panel || panel.dataset.xkPanelRescued !== '1') return;
+  panel.style.removeProperty('display');
+  panel.style.removeProperty('visibility');
+  panel.style.removeProperty('opacity');
+  delete panel.dataset.xkPanelRescued;
+}
+
+function syncChatPanelRescue(){
+  const panel = document.getElementById('chatPanel');
+  if(!panel) return false;
+  const open = !!(document.body?.classList?.contains('chat-open') || panel.classList.contains('open'));
+  if(!open){
+    clearChatPanelRescueStyle(panel);
+    return false;
+  }
+  const hidden = elementOwnStyleHidden(panel) || !elementHasBox(panel);
+  if(!hidden) return false;
+  panel.hidden = false;
+  panel.classList.add('open');
+  document.body?.classList?.add('chat-open');
+  panel.dataset.xkPanelRescued = '1';
+  panel.style.setProperty('display', 'grid', 'important');
+  panel.style.setProperty('visibility', 'visible', 'important');
+  panel.style.setProperty('opacity', 'var(--chat-panel-opacity, 1)', 'important');
+  if(typeof applyChatPanelPosition === 'function') requestAnimationFrame(()=>applyChatPanelPosition({saveClamp:true}));
+  syncChatComposerFallbackVisibility();
+  return true;
+}
+
+function setupChatPanelRescue(){
+  syncChatPanelRescue();
+  setInterval(syncChatPanelRescue, 1200);
+  window.addEventListener('resize', ()=>requestAnimationFrame(syncChatPanelRescue), {passive:true});
+  document.addEventListener('visibilitychange', ()=>requestAnimationFrame(syncChatPanelRescue));
+}
+
 const CHAT_HEADER_ICONS = {
   expand:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M20 16v4h-4M4 16v4h4"/><path d="M4 4l5 5M20 4l-5 5M20 20l-5-5M4 20l5-5"/></svg>',
   collapse:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M20 15h-5v5M4 15h5v5"/><path d="M9 9 4 4M15 9l5-5M15 15l5 5M9 15l-5 5"/></svg>',
