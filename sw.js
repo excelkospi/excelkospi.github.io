@@ -1,5 +1,5 @@
-const CACHE_NAME = 'excelkospi-static-20260526-522';
-const API_CACHE_NAME = 'excelkospi-api-20260526-522';
+const CACHE_NAME = 'excelkospi-static-20260526-524';
+const API_CACHE_NAME = 'excelkospi-api-20260526-524';
 const API_ORIGINS = new Set([
   location.origin,
   'https://excelkospi-api.alaala3.workers.dev',
@@ -12,8 +12,8 @@ const APP_SHELL = [
   '/apple-touch-icon.png?v=20260526-522',
   '/icon-192.png?v=20260526-522',
   '/icon-512.png?v=20260526-522',
-  '/assets/app.css?v=20260525-518',
-  '/assets/app-config.js?v=20260526-521',
+  '/assets/app.css?v=20260526-523',
+  '/assets/app-config.js?v=20260526-524',
   '/assets/app-utils.js?v=20260526-521',
   '/assets/app-mentions.js?v=20260524-471',
   '/assets/app-community-read.js?v=20260525-499',
@@ -21,7 +21,7 @@ const APP_SHELL = [
   '/assets/app-personal-feed.js?v=20260525-492',
   '/assets/app-outlook.js?v=20260525-518',
   '/assets/app-outlook-preview.js?v=20260525-494',
-  '/assets/app-watchlist-share.js?v=20260525-495',
+  '/assets/app-watchlist-share.js?v=20260526-523',
   '/assets/app-cell-selection.js?v=20260525-510',
   '/assets/app-quote-table.js?v=20260525-505',
   '/assets/app-quote-drag.js?v=20260525-496',

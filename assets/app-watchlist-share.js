@@ -2,6 +2,27 @@
 // This module is browser-only and does not call the server.
 
 const WATCHLIST_SHARE_PATH_PREFIX = '/s/';
+const WATCHLIST_SHARE_DEFAULT_DOMAIN_KEY = 'pages';
+const WATCHLIST_SHARE_DOMAINS = [
+  { key:'pages', label:'pages.dev', origin:'https://excelkospi.pages.dev', hint:'기본 주소', title:'pages.dev 도메인으로 내보내기' },
+  { key:'github', label:'github.io', origin:'https://excelkospi.github.io', hint:'차단 시 보조', title:'github.io 도메인으로 내보내기' },
+];
+
+function watchlistShareDomainOption(value){
+  const key = String(value || '').trim().toLowerCase();
+  return WATCHLIST_SHARE_DOMAINS.find((option)=>option.key === key || option.origin.toLowerCase() === key)
+    || WATCHLIST_SHARE_DOMAINS[0];
+}
+
+function watchlistShareDomainOptionsHtml(selectedKey=WATCHLIST_SHARE_DEFAULT_DOMAIN_KEY){
+  const selected = watchlistShareDomainOption(selectedKey).key;
+  return WATCHLIST_SHARE_DOMAINS.map((option)=>`
+    <button class="${option.key === selected ? 'selected' : ''}" type="button" data-watchlist-share-domain="${esc(option.key)}" aria-pressed="${option.key === selected ? 'true' : 'false'}" title="${esc(option.title)}">
+      <strong>${esc(option.label)}</strong>
+      <span>${esc(option.hint)}</span>
+    </button>
+  `).join('');
+}
 
 function base64UrlEncodeJson(value){
   const bytes = new TextEncoder().encode(JSON.stringify(value));
@@ -124,9 +145,10 @@ function watchlistShareSlug(payload){
   return `l${count}`;
 }
 
-function watchlistShareUrl(payload=currentWatchlistSharePayload()){
+function watchlistShareUrl(payload=currentWatchlistSharePayload(), domainKey=WATCHLIST_SHARE_DEFAULT_DOMAIN_KEY){
   const encoded = base64UrlEncodeJson(payload);
-  return `${location.origin}${WATCHLIST_SHARE_PATH_PREFIX}${watchlistShareSlug(payload)}~${encoded}`;
+  const origin = watchlistShareDomainOption(domainKey).origin;
+  return `${origin}${WATCHLIST_SHARE_PATH_PREFIX}${watchlistShareSlug(payload)}~${encoded}`;
 }
 
 function sharedWatchlistPayloadFromPath(){
@@ -300,69 +322,121 @@ function handleWatchlistPhoneModalKeydown(ev){
 }
 
 function renderWatchlistQrInto(box, url){
+  if(!box) return;
+  box.dataset.watchlistQrUrl = url;
   loadWatchlistQrLibrary().then((qrFactory)=>{
     const qr = qrFactory(0, url.length > 1400 ? 'L' : 'M');
     qr.addData(url);
     qr.make();
+    if(box.dataset.watchlistQrUrl !== url) return;
     box.innerHTML = qr.createSvgTag(5, 2, 'watchlist share QR', 'excelkospi 공유 목록 QR');
   }).catch(()=>{
+    if(box.dataset.watchlistQrUrl !== url) return;
     box.innerHTML = '<div class="watchlist-phone-fallback">QR을 만들지 못했습니다.<br>아래 버튼으로 주소를 복사해 주세요.</div>';
   });
 }
 
+function currentWatchlistShareModalUrl(modal, payload){
+  return watchlistShareUrl(payload, modal?.dataset.watchlistShareSelectedDomain || WATCHLIST_SHARE_DEFAULT_DOMAIN_KEY);
+}
+
+function refreshWatchlistShareModal(modal, payload){
+  if(!modal) return '';
+  const selectedKey = watchlistShareDomainOption(modal.dataset.watchlistShareSelectedDomain).key;
+  const url = watchlistShareUrl(payload, selectedKey);
+  modal.querySelectorAll('[data-watchlist-share-domain]').forEach((button)=>{
+    const active = button.dataset.watchlistShareDomain === selectedKey;
+    button.classList.toggle('selected', active);
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+  const urlEl = modal.querySelector('[data-watchlist-share-url]');
+  if(urlEl) urlEl.textContent = url;
+  const note = modal.querySelector('[data-watchlist-share-length-note]');
+  if(note) note.hidden = url.length <= 1800;
+  const qrBox = modal.querySelector('#watchlistPhoneQr');
+  if(qrBox){
+    qrBox.innerHTML = '<div class="watchlist-phone-loading">QR 코드 만드는 중...</div>';
+    renderWatchlistQrInto(qrBox, url);
+  }
+  return url;
+}
+
 function openWatchlistPhoneShareModal(){
+  openWatchlistShareModal('phone');
+}
+
+function openWatchlistShareModal(mode='phone'){
   const payload = currentWatchlistSharePayload();
   const summary = watchlistShareSummary(payload);
   if(!summary.count && !summary.holdingCount && !(payload.o || []).length && !summary.noteCount && !summary.hiddenCount){
-    showToast('휴대폰으로 옮길 종목이나 평단가 정보가 없습니다', 'warn');
+    showToast(mode === 'phone' ? '휴대폰으로 옮길 종목이나 평단가 정보가 없습니다' : '내보낼 종목이나 평단가 정보가 없습니다', 'warn');
     return;
   }
   closeWatchlistMoreMenu();
   closeWatchlistPhoneModal();
-  markOneTimeTipSeen(WATCHLIST_PHONE_TIP_KEY);
-  const url = watchlistShareUrl(payload);
+  if(mode === 'phone') markOneTimeTipSeen(WATCHLIST_PHONE_TIP_KEY);
+  const isPhone = mode === 'phone';
+  const title = isPhone ? '목록 휴대폰으로 보내기' : '내보내기 / 공유';
+  const icon = isPhone ? 'i-phone' : 'i-ios-share';
+  const subtitle = `종목 ${summary.count}개 · 평단가/수량 ${summary.holdingCount}개 · 빈 행 ${summary.noteCount}개`;
+  const initialUrl = watchlistShareUrl(payload);
   const modal = document.createElement('div');
   modal.className = 'watchlist-phone-modal';
   modal.id = 'watchlistPhoneModal';
+  modal.dataset.watchlistShareSelectedDomain = WATCHLIST_SHARE_DEFAULT_DOMAIN_KEY;
   modal.innerHTML = `
     <div class="watchlist-phone-backdrop" data-watchlist-phone-close></div>
     <section class="watchlist-phone-card" role="dialog" aria-modal="true" aria-labelledby="watchlistPhoneTitle">
       <header class="watchlist-phone-head">
-        <span class="watchlist-phone-icon"><svg aria-hidden="true"><use href="#i-phone"></use></svg></span>
+        <span class="watchlist-phone-icon"><svg aria-hidden="true"><use href="#${icon}"></use></svg></span>
         <span class="watchlist-phone-title">
-          <strong id="watchlistPhoneTitle">목록 휴대폰으로 보내기</strong>
-          <span>종목 ${summary.count}개 · 평단가/수량 ${summary.holdingCount}개 · 빈 행 ${summary.noteCount}개</span>
+          <strong id="watchlistPhoneTitle">${esc(title)}</strong>
+          <span>${esc(subtitle)}</span>
         </span>
         <button class="watchlist-phone-close" type="button" data-watchlist-phone-close aria-label="닫기">×</button>
       </header>
       <div class="watchlist-phone-body">
-        <div class="watchlist-phone-qr-wrap">
-          <div class="watchlist-phone-qr" id="watchlistPhoneQr"><div class="watchlist-phone-loading">QR 코드 만드는 중...</div></div>
+        <div class="watchlist-share-domain-wrap">
+          <div class="watchlist-share-domain-label">내보낼 주소</div>
+          <div class="watchlist-share-domain" role="group" aria-label="내보낼 도메인 선택">
+            ${watchlistShareDomainOptionsHtml(WATCHLIST_SHARE_DEFAULT_DOMAIN_KEY)}
+          </div>
         </div>
-        <div class="watchlist-phone-underqr">
+        ${isPhone ? `<div class="watchlist-phone-qr-wrap">
+          <div class="watchlist-phone-qr" id="watchlistPhoneQr"><div class="watchlist-phone-loading">QR 코드 만드는 중...</div></div>
+        </div>` : `<div class="watchlist-share-explain">
+          선택한 주소로 열면 저장한 종목, 순서, 평단가/수량, 빈 행 메모가 그대로 복원됩니다.
+        </div>`}
+        ${isPhone ? `<div class="watchlist-phone-underqr">
           <span>QR 인식이 잘 안되면 <button type="button" data-watchlist-phone-copy>주소를 복사</button>하세요.</span>
           <span>메신저로 휴대폰에 보내 접속할 수 있습니다.</span>
-        </div>
+        </div>` : ''}
         <div class="watchlist-phone-copy">
-          <strong>휴대폰에서 이 코드를 스캔하시면 저장한 목록 그대로 볼 수 있습니다.</strong>
+          <strong>${isPhone ? '휴대폰에서 이 코드를 스캔하시면 저장한 목록 그대로 볼 수 있습니다.' : '이 주소를 저장하면 목록 백업처럼 다시 불러올 수 있습니다.'}</strong>
           <span>주소 안에 종목 순서, 평단가/수량, 빈 행 메모가 함께 들어갑니다. 공개된 곳에 올릴 때는 주의해 주세요.</span>
-          <span class="watchlist-phone-url">${esc(url)}</span>
+          <span class="watchlist-phone-url" data-watchlist-share-url>${esc(initialUrl)}</span>
         </div>
         <div class="watchlist-phone-actions">
           <button type="button" data-watchlist-phone-copy>주소 복사</button>
           ${navigator.share ? '<button class="primary" type="button" data-watchlist-phone-native>공유창 열기</button>' : ''}
         </div>
-        ${url.length > 1800 ? '<div class="watchlist-phone-note">목록이 길어 QR이 촘촘할 수 있습니다. 인식이 잘 안 되면 주소 복사를 사용해 주세요.</div>' : ''}
+        <div class="watchlist-phone-note" data-watchlist-share-length-note ${initialUrl.length > 1800 ? '' : 'hidden'}>목록이 길어 QR이나 주소가 촘촘할 수 있습니다. 인식이 잘 안 되면 주소 복사를 사용해 주세요.</div>
       </div>
     </section>`;
   document.body.appendChild(modal);
   modal.querySelectorAll('[data-watchlist-phone-close]').forEach((el)=>el.addEventListener('click', closeWatchlistPhoneModal));
+  modal.querySelectorAll('[data-watchlist-share-domain]').forEach((el)=>el.addEventListener('click', ()=>{
+    modal.dataset.watchlistShareSelectedDomain = watchlistShareDomainOption(el.dataset.watchlistShareDomain).key;
+    refreshWatchlistShareModal(modal, payload);
+  }));
   modal.querySelectorAll('[data-watchlist-phone-copy]').forEach((el)=>el.addEventListener('click', async ()=>{
+    const url = currentWatchlistShareModalUrl(modal, payload);
     const copied = await copyTextToClipboard(url);
     showToast(copied ? '휴대폰 공유 주소가 복사되었습니다' : '공유 주소를 만들었습니다', 'info');
   }));
   modal.querySelector('[data-watchlist-phone-native]')?.addEventListener('click', async ()=>{
     try{
+      const url = currentWatchlistShareModalUrl(modal, payload);
       await navigator.share({
         title:'excelkospi 종목 목록',
         text:`이 주소로 열면 종목 ${summary.count}개와 순서${summary.holdingCount ? `, 평단가/수량 정보 ${summary.holdingCount}개` : ''}${summary.noteCount ? `, 빈 행 메모 ${summary.noteCount}개` : ''}가 불러와집니다.`,
@@ -373,32 +447,9 @@ function openWatchlistPhoneShareModal(){
     }
   });
   document.addEventListener('keydown', handleWatchlistPhoneModalKeydown);
-  renderWatchlistQrInto(modal.querySelector('#watchlistPhoneQr'), url);
+  refreshWatchlistShareModal(modal, payload);
 }
 
 async function exportWatchlistShareUrl(){
-  const payload = currentWatchlistSharePayload();
-  const { count, holdingCount, noteCount, hiddenCount } = watchlistShareSummary(payload);
-  if(!count && !holdingCount && !(payload.o || []).length && !noteCount && !hiddenCount){
-    showToast('내보낼 종목이나 평단가 정보가 없습니다', 'warn');
-    return;
-  }
-  const url = watchlistShareUrl(payload);
-  if(shouldUseNativeShare()){
-    if(!window.confirm(watchlistShareConfirmText(count, holdingCount, true))) return;
-    try{
-      await navigator.share({
-        title: 'excelkospi 종목 목록',
-        text: `이 주소로 열면 종목 ${count}개와 순서${holdingCount ? `, 평단가/수량 정보 ${holdingCount}개` : ''}${noteCount ? `, 빈 행 메모 ${noteCount}개` : ''}가 불러와집니다.`,
-        url,
-      });
-      return;
-    }catch(e){
-      if(String(e?.name || '').toLowerCase() === 'aborterror') return;
-    }
-  }
-  const ok = window.confirm(watchlistShareConfirmText(count, holdingCount));
-  if(!ok) return;
-  const copied = await copyTextToClipboard(url);
-  showToast(copied ? '공유 주소가 복사되었습니다' : '공유 주소를 만들었습니다', 'info');
+  openWatchlistShareModal('export');
 }

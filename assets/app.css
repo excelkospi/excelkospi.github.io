@@ -1938,6 +1938,16 @@ a.stock-mention-badge:hover{background:#dff1e5;border-color:#86bd96;color:#0b6b3
 .watchlist-phone-close{width:28px;height:28px;border:1px solid #c8c6c4;border-radius:5px;background:#fff;color:#444;font:inherit;font-size:17px;line-height:1;cursor:pointer}
 .watchlist-phone-close:hover{background:#f3f6f4;border-color:#9db9a7}
 .watchlist-phone-body{padding:14px;display:grid;gap:11px;background:#fff}
+.watchlist-share-domain-wrap{display:grid;gap:5px}
+.watchlist-share-domain-label{font-size:11px;font-weight:700;color:#536159;line-height:1}
+.watchlist-share-domain{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.watchlist-share-domain button{min-width:0;height:42px;padding:0 9px;border:1px solid #cfdad4;border-radius:7px;background:#fff;color:#39433d;font:inherit;text-align:left;display:grid;align-content:center;gap:2px;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(16,124,65,0);transition:background 100ms,border-color 100ms,box-shadow 100ms,color 100ms}
+.watchlist-share-domain button strong{font-size:12px;font-weight:720;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.watchlist-share-domain button span{font-size:10.5px;font-weight:600;color:#77827c;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.watchlist-share-domain button:hover{background:#f3f8f5;border-color:#a9c8b4;color:#107c41}
+.watchlist-share-domain button.selected{background:#eef7f1;border-color:#85b996;color:#0b6f3a;box-shadow:inset 0 0 0 1px rgba(16,124,65,.16)}
+.watchlist-share-domain button.selected span{color:#40764f}
+.watchlist-share-explain{padding:9px 10px;border:1px solid #e1ebe5;border-radius:7px;background:#fbfdfb;color:#65716a;font-size:11.5px;line-height:1.45;word-break:keep-all;text-wrap:pretty}
 .watchlist-phone-qr-wrap{display:grid;place-items:center;padding:11px;background:repeating-linear-gradient(0deg,#fbfdfb,#fbfdfb 23px,#f1f5f2 24px);border:1px solid #dbe6df;border-radius:8px}
 .watchlist-phone-qr{width:min(300px,calc(100vw - 78px));aspect-ratio:1;background:#fff;border:1px solid #d0d7de;border-radius:7px;padding:8px;display:grid;place-items:center;box-shadow:0 1px 2px rgba(0,0,0,.04)}
 .watchlist-phone-qr svg{width:100%;height:100%;display:block;shape-rendering:crispEdges}
@@ -2689,6 +2699,13 @@ body.excel-dark-mode:not(.theme-outlook) .watchlist-phone-note{color:#aab3bb}
 body.excel-dark-mode:not(.theme-outlook) .watchlist-phone-underqr button{color:#8ee1aa}
 body.excel-dark-mode:not(.theme-outlook) .watchlist-phone-underqr button:hover{color:#b8f2c9}
 body.excel-dark-mode:not(.theme-outlook) .watchlist-phone-body{background:#171b20}
+body.excel-dark-mode:not(.theme-outlook) .watchlist-share-domain-label{color:#aab3bb}
+body.excel-dark-mode:not(.theme-outlook) .watchlist-share-domain button{background:#11181d;border-color:#35404a;color:#d7dee5}
+body.excel-dark-mode:not(.theme-outlook) .watchlist-share-domain button span{color:#8f9aa4}
+body.excel-dark-mode:not(.theme-outlook) .watchlist-share-domain button:hover{background:#17231c;border-color:#5a8d6b;color:#b8f2c9}
+body.excel-dark-mode:not(.theme-outlook) .watchlist-share-domain button.selected{background:#17231c;border-color:#5a8d6b;color:#b8f2c9;box-shadow:inset 0 0 0 1px rgba(142,225,170,.18)}
+body.excel-dark-mode:not(.theme-outlook) .watchlist-share-domain button.selected span{color:#8ee1aa}
+body.excel-dark-mode:not(.theme-outlook) .watchlist-share-explain{background:#11181d;border-color:#35404a;color:#aab3bb}
 body.excel-dark-mode:not(.theme-outlook) .watchlist-phone-qr-wrap{background:repeating-linear-gradient(0deg,#11181d,#11181d 23px,#182027 24px);border-color:#35404a}
 body.excel-dark-mode:not(.theme-outlook) .watchlist-phone-qr,
 body.excel-dark-mode:not(.theme-outlook) .watchlist-phone-url{background:#fff;border-color:#35404a;color:#39433d}
@@ -3490,6 +3507,11 @@ body.excel-dark-mode:not(.theme-outlook) .sheet .excel-col-selected.colhead{
   .watchlist-phone-head{min-height:42px;padding:0 8px 0 12px;gap:7px;flex:0 0 auto}
   .watchlist-phone-title strong{font-size:12.5px}
   .watchlist-phone-body{padding:10px;gap:8px;overflow:auto;-webkit-overflow-scrolling:touch}
+  .watchlist-share-domain{gap:5px}
+  .watchlist-share-domain button{height:39px;padding:0 8px}
+  .watchlist-share-domain button strong{font-size:11.6px}
+  .watchlist-share-domain button span{font-size:10px}
+  .watchlist-share-explain{font-size:10.8px;line-height:1.36;padding:8px 9px}
   .watchlist-phone-qr{width:min(280px,calc(100vw - 70px))}
   .watchlist-phone-underqr{max-width:29em;font-size:10.8px;line-height:1.34}
   .watchlist-phone-underqr span{display:block}
@@ -3507,6 +3529,9 @@ body.excel-dark-mode:not(.theme-outlook) .sheet .excel-col-selected.colhead{
     .watchlist-add .watchlist-phone,
     .watchlist-add .watchlist-more{width:27px}
     .watchlist-phone-body{padding:9px;gap:7px}
+    .watchlist-share-domain button{height:37px;padding:0 7px}
+    .watchlist-share-domain button strong{font-size:11.2px}
+    .watchlist-share-domain button span{font-size:9.6px}
     .watchlist-phone-underqr{font-size:10.5px}
     .watchlist-phone-copy strong{font-size:11.3px}
     .watchlist-phone-copy span{font-size:10.5px}
