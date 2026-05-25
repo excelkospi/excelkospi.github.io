@@ -553,6 +553,11 @@
                 <label for="reportEndDate">종료일</label>
                 <input id="reportEndDate" type="text" maxlength="20" value="today" placeholder="today 또는 YYYY-MM-DD">
               </div>
+              <div class="field">
+                <label for="reportCpc">CPC 단가 (원)</label>
+                <input id="reportCpc" type="number" min="0" step="1" inputmode="numeric" placeholder="150">
+                <p class="help">입력하면 리포트에 예상 비용, 도달당 비용, CPM을 표시합니다.</p>
+              </div>
               <div class="field col-2">
                 <label for="reportCreativeIncludes">문구 포함 필터</label>
                 <input id="reportCreativeIncludes" type="text" maxlength="240" placeholder="예: 프로헬스, NMN">
@@ -1352,6 +1357,7 @@
     }
     function readReportForm(){
       const id=cleanReportIdInput($('reportId').value);
+      const cpc=Number($('reportCpc').value);
       return {
         id,
         advertiser:$('reportAdvertiser').value.trim() || '광고주',
@@ -1363,6 +1369,11 @@
           start:$('reportStartDate').value || defaultReportStartDate(),
           end:$('reportEndDate').value.trim() || 'today',
           timezone:'Asia/Seoul',
+        },
+        pricing:{
+          model:Number.isFinite(cpc) && cpc>0 ? 'cpc' : '',
+          cpc:Number.isFinite(cpc) && cpc>0 ? Math.round(cpc) : 0,
+          currency:'KRW',
         },
         notes:$('reportNotes').value.trim(),
       };
@@ -1376,6 +1387,7 @@
       $('reportAdIds').value=(report?.adIds || []).join(', ');
       $('reportStartDate').value=report?.period?.start && report.period.start !== '30daysAgo' ? report.period.start : defaultReportStartDate();
       $('reportEndDate').value=report?.period?.end || 'today';
+      $('reportCpc').value=report?.pricing?.cpc ? String(Math.round(Number(report.pricing.cpc))) : '';
       $('reportCreativeIncludes').value=(report?.creativeIncludes || []).join(', ');
       $('reportCreativeExcludes').value=(report?.creativeExcludes || []).join(', ');
       $('reportNotes').value=report?.notes || '동일 광고 내 문구 로테이션과 30분 기준 노출 cap으로 보정한 기준입니다.';
@@ -1408,6 +1420,7 @@
         creativeIncludes:[],
         creativeExcludes:[],
         period:{start:defaultReportStartDate(), end:'today', timezone:'Asia/Seoul'},
+        pricing:{model:'', cpc:0, currency:'KRW'},
         notes:'동일 광고 내 문구 로테이션과 30분 기준 노출 cap으로 보정한 기준입니다.',
       });
       editingReportId='';
@@ -1438,9 +1451,11 @@
           : (stats.hasStats ? '<span class="pill ok">링크 활성</span>' : '<span class="pill warn">집계 대기</span>');
         const syncStatus=stats.hasStats && stats.tokenSynced===false ? '<span class="pill warn">토큰 동기화 확인</span>' : '';
         const statsText=stats.hasStats
-          ? `보정 노출 ${formatNumber(stats.impressions)} · RAW ${formatNumber(stats.rawImpressions)} · 클릭 ${formatNumber(stats.clicks)}`
+          ? `보정 노출 ${formatNumber(stats.impressions)} · 도달 ${formatNumber(stats.reach)} · 클릭 ${formatNumber(stats.clicks)}`
           : '아직 집계 payload에 없음';
         const updatedText=stats.updatedAt ? time(stats.updatedAt) : '-';
+        const cpc=Number(report.pricing?.cpc || 0);
+        const pricingText=cpc>0 ? `CPC ${formatNumber(cpc)}원` : '단가 미설정';
         const noteClass=report.active===false ? '' : (stats.hasStats ? 'ok' : 'warn');
         const noteText=report.active===false
           ? '비활성 리포트입니다. 기존 광고주 링크는 열리지 않습니다.'
@@ -1472,6 +1487,7 @@
           <div class="report-card-title">${esc(report.advertiser || '광고주')} · ${esc(report.campaign || '광고 캠페인')}</div>
           <div class="report-card-meta">
             <span>기간 ${esc(report.period?.start || '-')} ~ ${esc(report.period?.end || 'today')}</span>
+            <span>${esc(pricingText)}</span>
             <span>광고 ${(report.adIds || []).map((id)=>`<code>${esc(id)}</code>`).join(' ')}</span>
             ${filters.length ? `<span>${filters.map((item)=>`<span class="pill">${item}</span>`).join(' ')}</span>` : ''}
           </div>
@@ -1479,6 +1495,7 @@
             <div class="report-fact"><span class="k">리포트 ID</span><span class="v"><code title="${esc(report.id)}">${esc(report.id)}</code></span></div>
             <div class="report-fact"><span class="k">토큰</span><span class="v">원문 미저장, 새 링크 발급 시 이전 링크 만료</span></div>
             <div class="report-fact"><span class="k">집계 상태</span><span class="v">${esc(statsText)}</span></div>
+            <div class="report-fact"><span class="k">과금 기준</span><span class="v">${esc(pricingText)}${cpc>0 ? ' · 클릭 기준 예상 비용 계산' : ''}</span></div>
             <div class="report-fact"><span class="k">집계 갱신</span><span class="v">${esc(updatedText)}</span></div>
           </div>
           <div class="report-card-note ${noteClass}">${esc(noteText)}</div>
