@@ -20,6 +20,15 @@ function currentApiBase(){
 
 const API_BASE = currentApiBase();
 
+// Public site-level Imgur app Client-ID. End users never enter this. It is
+// intentionally public when enabled because browser-direct upload avoids Worker
+// CPU. Leave empty to keep the old manual Imgur upload-page fallback.
+const IMGUR_CLIENT_ID = '';
+const IMGUR_UPLOAD_MAX_BYTES = 3 * 1024 * 1024;
+const IMGUR_UPLOAD_TARGET_BYTES = 1200 * 1024;
+const IMGUR_UPLOAD_COOLDOWN_MS = 15 * 1000;
+const IMGUR_UPLOAD_COOLDOWN_KEY = 'kg_imgur_upload_last_v1';
+
 function apiUrl(path){
   const value = String(path || '');
   if (!value) return API_BASE || '';

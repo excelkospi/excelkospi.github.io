@@ -121,7 +121,198 @@ function bindMessageImageFallback(root=document){
   });
 }
 
-function openImageAttachHelper(targetInputId){
+function imgurClientId(){
+  const value = typeof IMGUR_CLIENT_ID !== 'undefined' ? String(IMGUR_CLIENT_ID || '').trim() : '';
+  return /^[a-zA-Z0-9]+$/.test(value) ? value : '';
+}
+
+function imageUploadLimit(name, fallback){
+  const value = typeof window !== 'undefined' && typeof window[name] !== 'undefined' ? Number(window[name]) : NaN;
+  if(Number.isFinite(value) && value > 0) return value;
+  try{
+    if(name === 'IMGUR_UPLOAD_MAX_BYTES' && typeof IMGUR_UPLOAD_MAX_BYTES !== 'undefined') return Number(IMGUR_UPLOAD_MAX_BYTES) || fallback;
+    if(name === 'IMGUR_UPLOAD_TARGET_BYTES' && typeof IMGUR_UPLOAD_TARGET_BYTES !== 'undefined') return Number(IMGUR_UPLOAD_TARGET_BYTES) || fallback;
+    if(name === 'IMGUR_UPLOAD_COOLDOWN_MS' && typeof IMGUR_UPLOAD_COOLDOWN_MS !== 'undefined') return Number(IMGUR_UPLOAD_COOLDOWN_MS) || fallback;
+  }catch{}
+  return fallback;
+}
+
+function imageAttachToast(message, type='info'){
+  if(typeof showToast === 'function') showToast(message, type);
+  else alert(message);
+}
+
+function imageAttachInput(targetInputId){
+  return document.getElementById(targetInputId);
+}
+
+function setImageAttachBusy(targetInputId, busy){
+  const escapedId = typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
+    ? CSS.escape(targetInputId)
+    : String(targetInputId || '').replace(/["\\]/g, '\\$&');
+  const buttons = targetInputId === 'chatInput'
+    ? [document.getElementById('chatAttach')].filter(Boolean)
+    : Array.from(document.querySelectorAll(`[data-community-attach="${escapedId}"]`));
+  buttons.forEach((button)=>{
+    button.disabled = !!busy;
+    button.setAttribute('aria-busy', busy ? 'true' : 'false');
+    if(busy) button.dataset.prevTitle = button.title || '';
+    button.title = busy ? '이미지 업로드 중...' : (button.dataset.prevTitle || button.title || '이미지 첨부');
+  });
+}
+
+function rememberImgurUploadNow(){
+  try{ localStorage.setItem(typeof IMGUR_UPLOAD_COOLDOWN_KEY !== 'undefined' ? IMGUR_UPLOAD_COOLDOWN_KEY : 'kg_imgur_upload_last_v1', String(Date.now())); }catch{}
+}
+
+function imgurUploadCooldownLeft(){
+  const cooldown = imageUploadLimit('IMGUR_UPLOAD_COOLDOWN_MS', 15000);
+  try{
+    const key = typeof IMGUR_UPLOAD_COOLDOWN_KEY !== 'undefined' ? IMGUR_UPLOAD_COOLDOWN_KEY : 'kg_imgur_upload_last_v1';
+    const last = Number(localStorage.getItem(key) || 0) || 0;
+    return Math.max(0, cooldown - (Date.now() - last));
+  }catch{
+    return 0;
+  }
+}
+
+function pickImageFile(){
+  return new Promise((resolve)=>{
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/webp';
+    input.style.position = 'fixed';
+    input.style.left = '-9999px';
+    input.addEventListener('change', ()=>{
+      const file = input.files?.[0] || null;
+      input.remove();
+      resolve(file);
+    }, {once:true});
+    document.body.appendChild(input);
+    input.click();
+    setTimeout(()=>input.remove(), 60 * 1000);
+  });
+}
+
+function blobFromCanvas(canvas, type, quality){
+  return new Promise((resolve)=>canvas.toBlob(resolve, type, quality));
+}
+
+async function imageBitmapFromFile(file){
+  if(typeof createImageBitmap === 'function') return createImageBitmap(file);
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = ()=>{
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = (error)=>{
+      URL.revokeObjectURL(url);
+      reject(error);
+    };
+    img.src = url;
+  });
+}
+
+async function prepareImageForUpload(file){
+  const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
+  if(!file || !allowed.has(file.type)) throw new Error('jpg, png, webp 이미지만 올릴 수 있습니다');
+  const hardMax = imageUploadLimit('IMGUR_UPLOAD_MAX_BYTES', 3 * 1024 * 1024);
+  const target = imageUploadLimit('IMGUR_UPLOAD_TARGET_BYTES', 1200 * 1024);
+  if(file.size <= target) return file;
+
+  const bitmap = await imageBitmapFromFile(file);
+  const maxEdge = 1800;
+  const scale = Math.min(1, maxEdge / Math.max(bitmap.width || 1, bitmap.height || 1));
+  const width = Math.max(1, Math.round((bitmap.width || 1) * scale));
+  const height = Math.max(1, Math.round((bitmap.height || 1) * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  if(typeof bitmap.close === 'function') bitmap.close();
+
+  for(const quality of [0.84, 0.76, 0.68, 0.6]){
+    const blob = await blobFromCanvas(canvas, 'image/jpeg', quality);
+    if(blob && (blob.size <= hardMax || quality === 0.6)){
+      if(blob.size > hardMax) throw new Error('이미지를 3MB 이하로 줄인 뒤 다시 올려주세요');
+      return new File([blob], `${(file.name || 'excelkospi').replace(/\.[^.]+$/, '')}.jpg`, {type:'image/jpeg'});
+    }
+  }
+  throw new Error('이미지 압축에 실패했습니다');
+}
+
+async function uploadImageToImgur(file, clientId){
+  const body = new FormData();
+  body.append('image', file);
+  body.append('type', 'file');
+  body.append('title', 'excelkospi image');
+  const response = await fetch('https://api.imgur.com/3/image', {
+    method:'POST',
+    headers:{ Authorization:`Client-ID ${clientId}` },
+    body,
+  });
+  const data = await response.json().catch(()=>null);
+  if(!response.ok || !data?.success || !data?.data?.link){
+    const message = data?.data?.error || data?.error || `Imgur 업로드 실패(${response.status})`;
+    throw new Error(String(message));
+  }
+  return String(data.data.link);
+}
+
+function insertTextAtCursor(el, text){
+  if(!el) return;
+  const value = String(el.value || '');
+  const start = Number.isInteger(el.selectionStart) ? el.selectionStart : value.length;
+  const end = Number.isInteger(el.selectionEnd) ? el.selectionEnd : start;
+  const prefix = value.slice(0, start);
+  const suffix = value.slice(end);
+  const spacerBefore = prefix && !/[\s\n]$/.test(prefix) ? ' ' : '';
+  const spacerAfter = suffix && !/^[\s\n]/.test(suffix) ? ' ' : '';
+  const next = `${prefix}${spacerBefore}${text}${spacerAfter}${suffix}`;
+  el.value = next;
+  const cursor = (prefix + spacerBefore + text).length;
+  try{ el.setSelectionRange(cursor, cursor); }catch{}
+  el.dispatchEvent(new Event('input', {bubbles:true}));
+  el.focus?.({preventScroll:true});
+}
+
+async function uploadAndInsertImgurImage(targetInputId, clientId){
+  const left = imgurUploadCooldownLeft();
+  if(left > 0){
+    imageAttachToast(`이미지 업로드는 ${Math.ceil(left / 1000)}초 뒤 다시 시도해 주세요`, 'info');
+    return false;
+  }
+  const file = await pickImageFile();
+  if(!file) return false;
+  const target = imageAttachInput(targetInputId);
+  if(!target) return false;
+  setImageAttachBusy(targetInputId, true);
+  try{
+    imageAttachToast('이미지를 Imgur에 올리는 중입니다...', 'info');
+    const prepared = await prepareImageForUpload(file);
+    const link = await uploadImageToImgur(prepared, clientId);
+    insertTextAtCursor(target, link);
+    rememberImgurUploadNow();
+    imageAttachToast('이미지 링크를 본문에 넣었습니다', 'info');
+    return true;
+  }finally{
+    setImageAttachBusy(targetInputId, false);
+  }
+}
+
+async function openImageAttachHelper(targetInputId){
+  const clientId = imgurClientId();
+  if(clientId){
+    try{
+      await uploadAndInsertImgurImage(targetInputId, clientId);
+      return;
+    }catch(error){
+      imageAttachToast(error?.message || '이미지 업로드에 실패했습니다', 'err');
+    }
+  }
   const msg='확인을 누르면 이미지 업로드 사이트(Imgur)로 이동합니다.\n이미지를 올리고 링크를 복사해서 붙여 넣어주세요.';
   let opened=false;
   try{
