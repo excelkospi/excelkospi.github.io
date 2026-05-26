@@ -1862,7 +1862,7 @@ function sessionHas(session, part){
 }
 
 function isAlwaysLiveCard(card){
-  return card.market === 'COIN' || ['BTC(USD)','김프(%)','원/달러','코스피야선','나스닥 선물','수급','국장 15분 변동','국장 30분 변동','미장 15분 변동','미장 30분 변동','WTI 원유','KRW 금현물','국고채 10년','미국채 10년'].includes(card.key);
+  return card.market === 'COIN' || ['BTC(USD)','김프(%)','원/달러','나스닥 선물','수급','국장 15분 변동','국장 30분 변동','미장 15분 변동','미장 30분 변동','WTI 원유','KRW 금현물','국고채 10년','미국채 10년'].includes(card.key);
 }
 
 function holdingsLoad(){ try{ return JSON.parse(localStorage.getItem(HOLDINGS_KEY)||'{}'); }catch{ return {}; } }
@@ -2314,6 +2314,7 @@ function getCardLiveState(card, session){
   const m=(card.market||'').toUpperCase();
   const ms=(card.marketState||'').toUpperCase();
   const src=String(card.source||'');
+  if(card?.key === '코스피야선') return ms === 'REGULAR' ? {state:'live'} : {state:'closed'};
   if(isAlwaysLiveCard(card)) return {state:'live'};
   if(m==='KR'){
     if(sessionHas(session,'KR_PRE')){
@@ -6269,7 +6270,7 @@ function normalizeChatRecommendBadge(badge){
   if(!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
   return {
     active:true,
-    label:String(badge.label || '추천 7+'),
+    label:String(badge.label || '추천'),
     mark:String(badge.mark || '✦'),
     count:Math.max(7, Number(badge.count || 0) || 7),
     expires_at:new Date(expiresAt).toISOString(),
@@ -6916,10 +6917,20 @@ function chatAwardNoticesHtml(){
   const now=Date.now();
   chatAwardNotices=chatAwardNotices.filter((notice)=>now-Number(notice.at || 0) < 30000);
   if(!chatAwardNotices.length) return '';
-  return chatAwardNotices.map((notice)=>`<div class="chat-award-notice" role="status">
-    <span class="chat-award-mark" aria-hidden="true">${esc(notice.badge.mark || '✦')}</span>
-    <span><b>${esc(notice.nickname)}</b>님에게 ${esc(notice.badge.label || '추천 7+')} 별이 붙었습니다</span>
+  return chatAwardNotices.map((notice)=>`<div class="chat-msg chat-award-message" role="status">
+    <div class="chat-meta"><span class="chat-nick chat-award-nick">추천</span><span class="chat-time">${fmtTime(new Date(notice.at).toISOString())}</span></div>
+    <div class="chat-text"><span class="chat-award-mark" aria-hidden="true">${esc(notice.badge.mark || '✦')}</span><b>${esc(notice.nickname)}</b>님이 추천 받았습니다</div>
   </div>`).join('');
+}
+
+function chatAwardNoticeRowsHtml(startRow=1){
+  const now=Date.now();
+  chatAwardNotices=chatAwardNotices.filter((notice)=>now-Number(notice.at || 0) < 30000);
+  if(!chatAwardNotices.length) return '';
+  return chatAwardNotices.map((notice, index)=>`<tr class="chat-excel-row chat-award-row">
+    <td class="rownum">${startRow + index}</td>
+    <td class="left chat-excel-body chat-award-excel-body" colspan="3"><span class="chat-award-mark" aria-hidden="true">${esc(notice.badge.mark || '✦')}</span><b>${esc(notice.nickname)}</b>님이 추천 받았습니다</td>
+  </tr>`).join('');
 }
 
 function syncChatRecommendBadgesFromMessages(options={}){
@@ -6961,7 +6972,7 @@ function chatNickMarkup(message, options={}){
   const nickClass=`chat-nick${isAdminNick?' admin-nick':''}${badge?' recommended-nick':''}`;
   const title=badge ? `${nick} · 최근 추천 ${Math.max(7, Number(badge.count || 0) || 7)}회` : nick;
   const badgeHtml=badge
-    ? `<span class="chat-recommend-badge" title="최근 추천 7회 이상">${esc(badge.mark || '✦')} ${esc(badge.label || '추천 7+')}</span>`
+    ? `<span class="chat-recommend-badge" title="최근 추천 7회 이상">추천</span>`
     : '';
   return `<span class="chat-nick-wrap${badge ? ' recommended-wrap' : ''}" title="${esc(title)}"><span class="${nickClass}">${esc(nick)}${badge ? '<span class="chat-recommend-star" aria-hidden="true">✦</span>' : ''}</span>${badgeHtml}</span>`;
 }
@@ -7012,8 +7023,8 @@ function renderChatMessagesExcel(body){
       <col class="chat-excel-col-body"/>
       <col class="chat-excel-col-time"/>
     </colgroup>
-    <tbody>${rows}</tbody>
-  </table>${chatAwardNoticesHtml()}${chatSleepNoticeHtml()}`;
+    <tbody>${rows}${chatAwardNoticeRowsHtml(chatMessages.length + 1)}</tbody>
+  </table>${chatSleepNoticeHtml()}`;
 }
 
 function renderChatMessages(options={}){
@@ -7297,8 +7308,8 @@ async function recommendChatMessage(id){
       saveChatRecommended();
     }
     applyChatRecommendResult(id, data || {});
-    if(data?.authorBadgeJustAwarded) showToast('추천 7+ 별이 붙었습니다', 'info');
-    else if(data?.authorBadge?.active) showToast('추천 7+ 표시가 유지됩니다', 'info');
+    if(data?.authorBadgeJustAwarded) showToast('추천 표시가 붙었습니다', 'info');
+    else if(data?.authorBadge?.active) showToast('추천 표시가 유지됩니다', 'info');
     else showToast(data?.already ? '이미 추천한 채팅입니다' : '추천했습니다', 'info');
   }catch(e){
     const error=e?.payload?.error || '';
