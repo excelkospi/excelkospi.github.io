@@ -601,7 +601,7 @@
               <button class="btn primary" id="reportSaveBtn" type="button">토큰 발급</button>
               <button class="btn" id="reportCancelEditBtn" type="button" hidden>수정 취소</button>
               <button class="btn" id="reportResetBtn" type="button">리포트 폼 초기화</button>
-              <button class="btn" id="reportRefreshBtn" type="button">리포트 새로고침</button>
+              <button class="btn" id="reportRefreshBtn" type="button">리포트 재집계 요청</button>
             </div>
           </div>
         </section>
@@ -695,6 +695,8 @@
       if(text.includes('invalid_token_hash')) return '토큰 해시 생성에 실패했습니다. 브라우저 보안 설정을 확인한 뒤 다시 시도해 주세요.';
       if(text.includes('invalid_report')) return '리포트 필수값을 확인해 주세요. 리포트 ID, 광고주, 캠페인, 광고 식별자가 필요합니다.';
       if(text.includes('report_not_found')) return '수정할 리포트를 찾지 못했습니다.';
+      if(text.includes('github_workflow_token_missing')) return '리포트 재집계용 GitHub 토큰이 API 런타임에 설정되어 있지 않습니다.';
+      if(text.includes('workflow_dispatch_failed')) return '리포트 재집계 워크플로우 요청에 실패했습니다. GitHub Actions 권한과 워크플로우 이름을 확인해 주세요.';
       if(text.includes('store_not_configured')) return 'D1/KV 저장소가 설정되어 있지 않아 차단 키워드를 저장할 수 없습니다.';
       if(text.includes('kv_not_configured')) return 'Cloudflare KV가 설정되어 있지 않아 저장할 수 없습니다.';
       return text;
@@ -713,7 +715,10 @@
     }
     function handleAdminError(error){
       const raw=String(error?.message || error || '');
-      const authProblem=raw.includes('토큰') || raw.includes('unauthorized') || raw.includes('admin_token_not_configured');
+      const authProblem=raw.includes('unauthorized')
+        || raw.includes('admin_token_not_configured')
+        || raw.includes('관리자 토큰을 입력')
+        || raw.includes('토큰이 맞지');
       setLoginState(authProblem ? 'bad' : 'ok', authProblem ? '확인 필요' : '인증됨');
       if(authProblem) setAdminUnlocked(false);
       showToast(friendlyError(raw), 'bad');
@@ -747,6 +752,55 @@
       setLoginState('ok', '인증됨');
       setAdminUnlocked(true);
       return data;
+    }
+    async function requestAdStatsRefresh(url){
+      const value=token();
+      if(!value) throw new Error('관리자 토큰을 입력하세요.');
+      const res=await fetch(url, {
+        method:'POST',
+        headers:{
+          authorization:`Bearer ${value}`,
+          'content-type':'application/json',
+        },
+        body:JSON.stringify({action:'refresh'}),
+        cache:'no-store',
+      });
+      const data=await res.json().catch(()=>({ok:false,error:'invalid_response'}));
+      if(!res.ok || data.ok===false){
+        const err=new Error(data.error || `요청 실패 ${res.status}`);
+        err.status=res.status;
+        err.code=data.error || '';
+        throw err;
+      }
+      setLoginState('ok', '인증됨');
+      setAdminUnlocked(true);
+      return data;
+    }
+    function shouldRetryAdStatsRefreshOnWorker(error, url){
+      const code=String(error?.code || error?.message || '');
+      return !String(url || '').startsWith(WORKERS_API_BASE) && code.includes('github_workflow_token_missing');
+    }
+    async function refreshAdStats(){
+      const btn=$('reportRefreshBtn');
+      if(btn) btn.disabled=true;
+      setStatus('리포트 재집계 요청 중...');
+      const primaryUrl=apiUrl('/api/admin/ad-stats');
+      let usedWorker=false;
+      try{
+        try{
+          await requestAdStatsRefresh(primaryUrl);
+        }catch(error){
+          if(!shouldRetryAdStatsRefreshOnWorker(error, primaryUrl)) throw error;
+          setStatus('Pages API에 재집계 토큰이 없어 Worker API로 재시도 중...');
+          await requestAdStatsRefresh(`${WORKERS_API_BASE}/api/admin/ad-stats`);
+          usedWorker=true;
+        }
+        await loadAdReports().catch(()=>null);
+        setStatus(`리포트 재집계를 요청했습니다. GitHub Actions 완료 후 수치가 갱신됩니다.${usedWorker ? ' Worker API로 요청했습니다.' : ''}`);
+        showToast('리포트 재집계를 요청했습니다.');
+      }finally{
+        if(btn) btn.disabled=false;
+      }
     }
     function time(value){
       if(!value) return '-';
@@ -1668,7 +1722,7 @@
     });
     $('reportCancelEditBtn').addEventListener('click', resetReportForm);
     $('reportResetBtn').addEventListener('click', resetReportForm);
-    $('reportRefreshBtn').addEventListener('click', ()=>loadAdReports().catch(handleAdminError));
+    $('reportRefreshBtn').addEventListener('click', ()=>refreshAdStats().catch(handleAdminError));
     document.addEventListener('click', async (ev)=>{
       const copyBtn=ev.target.closest('[data-report-copy-generated]');
       const hideBtn=ev.target.closest('[data-report-hide-generated]');
