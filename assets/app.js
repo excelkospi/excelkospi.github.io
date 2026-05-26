@@ -5565,7 +5565,7 @@ function chatImagePreviewEnabled(){
   return readBoolSetting(CHAT_IMAGE_PREVIEW_KEY, true);
 }
 function chatImagePreviewOptions(extra={}){
-  return {...extra, collapsed: !chatImagePreviewEnabled()};
+  return {...extra, collapsed: !chatImagePreviewEnabled(), stockMentions:true};
 }
 // 넓은 데스크탑(>=1600px)에 처음 접속한 사용자에겐 dock 을 기본 ON 으로 한다.
 // 사용자가 한 번이라도 toggle 을 누르면 localStorage 가 '0'/'1' 로 저장되어
@@ -6863,6 +6863,8 @@ function renderChatMessages(options={}){
     }).join('') + chatSleepNoticeHtml();
   }
   bindCollapsedImageToggles(body);
+  flushStockMentionQueue();
+  if(typeof setupStockMentionMiniChartHover === 'function') setupStockMentionMiniChartHover(body);
   body.querySelectorAll('[data-report-id]').forEach(btn=>{
     btn.addEventListener('click',()=>reportChatMessage(Number(btn.dataset.reportId)));
   });

@@ -261,9 +261,10 @@ function setupMiniChartHover(){
   });
 }
 
-function setupStockMentionMiniChartHover(){
-  if(!timelineIsCommunity() || !miniChartSupported()) return;
-  document.querySelectorAll('#timelineTable .stock-mention-badge[data-stock-mention-token]').forEach((el)=>{
+function setupStockMentionMiniChartHover(root=document){
+  if(!miniChartSupported()) return;
+  const scope = root?.querySelectorAll ? root : document;
+  scope.querySelectorAll('.stock-mention-badge[data-stock-mention-token]').forEach((el)=>{
     if(el.dataset.miniChartBound === '1') return;
     el.dataset.miniChartBound = '1';
     const token = el.dataset.stockMentionToken || '';

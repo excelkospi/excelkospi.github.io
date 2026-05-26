@@ -173,7 +173,9 @@ function renderTextWithStockMentions(text, snapshots=null){
 }
 
 async function flushStockMentionQueue(){
-  if(stockMentionInFlight || !stockMentionPending.size || !timelineIsCommunity()) return;
+  const communityActive = typeof timelineIsCommunity === 'function' && timelineIsCommunity();
+  const chatActive = typeof chatIsOpen !== 'undefined' && chatIsOpen;
+  if(stockMentionInFlight || !stockMentionPending.size || (!communityActive && !chatActive)) return;
   const terms = Array.from(stockMentionPending).slice(0, 12);
   terms.forEach((term)=>stockMentionPending.delete(term));
   if(!terms.length) return;
@@ -199,7 +201,8 @@ async function flushStockMentionQueue(){
       if(!returned.has(stockMentionKey(term))) cache.set(stockMentionKey(term), { ok:false });
     });
     writeStockMentionCache();
-    if(timelineIsCommunity()) renderCommunityTable();
+    if(communityActive && typeof renderCommunityTable === 'function') renderCommunityTable();
+    if(chatActive && typeof renderChatMessages === 'function') renderChatMessages({preserveScroll:true});
   }catch{
     terms.forEach((term)=>stockMentionPending.add(term));
   }finally{

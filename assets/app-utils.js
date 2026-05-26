@@ -137,6 +137,27 @@ function renderTextWithSafeLinks(text, policy){
   return chunks.join('');
 }
 
+function renderTextWithSafeLinksAndStockMentions(text, options={}){
+  const source=String(text || '');
+  const chunks=[];
+  let lastIndex=0;
+  source.replace(URL_TOKEN_RE, (token, offset)=>{
+    chunks.push(renderTextWithStockMentions(source.slice(lastIndex, offset), options.stockMentionSnapshots));
+    const {urlText, suffix}=splitUrlToken(token);
+    const url=normalizeTextUrl(urlText);
+    if(!url || !chatLinkAllowed(url, options.linkPolicy)){
+      chunks.push(esc(token));
+    }else{
+      const href=url.toString();
+      chunks.push(`<a class="chat-safe-link" href="${esc(href)}" target="_blank" rel="noopener noreferrer nofollow ugc">${esc(urlText)}</a>${esc(suffix)}`);
+    }
+    lastIndex=offset + token.length;
+    return token;
+  });
+  chunks.push(renderTextWithStockMentions(source.slice(lastIndex), options.stockMentionSnapshots));
+  return chunks.join('');
+}
+
 function approvedImageUrl(raw){
   const preview=approvedImagePreview(raw);
   return preview ? preview.src : '';
@@ -190,7 +211,9 @@ function stripApprovedImageTokens(text){
 function renderTextWithImagePreviews(text, options={}){
   const displayText = options.hidePreviewUrls ? stripApprovedImageTokens(text) : text;
   const safe=options.stockMentions
-    ? renderTextWithStockMentions(displayText, options.stockMentionSnapshots)
+    ? (options.linkUrls
+      ? renderTextWithSafeLinksAndStockMentions(displayText, options)
+      : renderTextWithStockMentions(displayText, options.stockMentionSnapshots))
     : (options.linkUrls ? renderTextWithSafeLinks(displayText, options.linkPolicy) : esc(displayText));
   const previewsData=extractApprovedImagePreviews(text, options.limit || 1);
   if(!previewsData.length) return safe;
