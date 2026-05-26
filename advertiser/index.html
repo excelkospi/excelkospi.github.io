@@ -6,7 +6,7 @@
   <title>excelkospi 광고 리포트</title>
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#107c41" />
-  <meta name="build-id" content="20260526-556-ad-report-kst-meta" />
+  <meta name="build-id" content="20260526-557-ad-report-metric-help" />
   <link rel="icon" href="/favicon.ico?v=20260521-408" sizes="any" />
   <style>
     :root{
@@ -237,6 +237,45 @@
     }
     .panel-head h2{margin:0;font-size:15px;letter-spacing:-.01em}
     .panel-head span{font-size:12px;color:var(--muted);font-weight:800;white-space:nowrap}
+    .concept-panel{margin-top:10px}
+    .concept-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:1px;
+      background:#e8eee9;
+    }
+    .concept-item{
+      min-width:0;
+      background:#fff;
+      padding:12px;
+    }
+    .concept-item .term{
+      color:#24332b;
+      font-size:13px;
+      font-weight:950;
+      line-height:1.35;
+    }
+    .concept-item .value{
+      margin-top:5px;
+      color:var(--green-ink);
+      font-size:19px;
+      font-weight:950;
+      letter-spacing:-.025em;
+      font-variant-numeric:tabular-nums;
+    }
+    .concept-item .desc{
+      margin-top:5px;
+      color:#53635a;
+      font-size:12px;
+      line-height:1.55;
+    }
+    .concept-item .formula{
+      margin-top:6px;
+      color:#7a887f;
+      font-size:11.5px;
+      font-weight:850;
+      line-height:1.45;
+    }
     .sections{grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr);align-items:start;margin-top:10px}
     .table-wrap{overflow:auto}
     table{width:100%;border-collapse:collapse;min-width:640px}
@@ -338,7 +377,7 @@
     <section class="access-panel">
       <div>
         <h1 class="access-title">리포트 토큰으로 광고 성과를 확인합니다.</h1>
-        <p class="access-copy">광고 시작 이후의 노출, 클릭, 도달수 흐름을 30분 단위로 정리합니다. RAW 노출과 RAW CTR은 소재별 반응 분석용으로 따로 표시합니다.</p>
+        <p class="access-copy">광고 시작 이후의 유효 노출, 클릭, 도달수 흐름을 30분 단위로 정리합니다. 문구별 RAW 노출은 소재 반응을 확인하는 참고 지표로 함께 표시합니다.</p>
         <div class="status" id="status" role="status"></div>
       </div>
       <form class="token-card" id="tokenForm">
@@ -359,16 +398,24 @@
 
       <div class="grid metrics" id="metricGrid"></div>
 
+      <section class="panel concept-panel">
+        <div class="panel-head">
+          <h2>지표 설명</h2>
+          <span>노출 · 도달 · 비용 기준</span>
+        </div>
+        <div class="concept-grid" id="conceptGrid"></div>
+      </section>
+
       <div class="grid sections">
         <section class="panel">
           <div class="panel-head">
             <h2>영역별 성과</h2>
-            <span>보정 노출</span>
+            <span>유효 노출 기준</span>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
-                <tr><th>영역</th><th>보정 노출</th><th>RAW 노출</th><th>클릭</th><th>보정 CTR</th><th>RAW CTR</th><th>비중</th></tr>
+                <tr><th>영역</th><th>유효 노출</th><th>문구별 RAW</th><th>클릭</th><th>유효 CTR</th><th>RAW CTR</th><th>비중</th></tr>
               </thead>
               <tbody id="placementRows"></tbody>
             </table>
@@ -378,7 +425,7 @@
         <section class="panel">
           <div class="panel-head">
             <h2>일별 추이</h2>
-            <span>노출 / 클릭</span>
+            <span>유효 노출 / 클릭</span>
           </div>
           <div class="daily" id="dailyRows"></div>
         </section>
@@ -392,7 +439,7 @@
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>광고 문구</th><th>RAW 노출</th><th>클릭</th><th>RAW CTR</th><th>평균 hover</th></tr>
+              <tr><th>광고 문구</th><th>문구별 RAW</th><th>클릭</th><th>RAW CTR</th><th>평균 hover</th></tr>
             </thead>
             <tbody id="creativeRows"></tbody>
           </table>
@@ -443,8 +490,10 @@
         summary: '시세창 하단',
         notice: '공지 영역',
       };
-      const correctedImpressionHelp = '보정 노출은 같은 광고 안의 문구 로테이션 중복과 과거 1시간 노출 cap 기간을 30분 단위로 정리한 노출수입니다.';
+      const effectiveImpressionHelp = '유효 노출은 광고가 화면의 50% 이상에서 1초 이상 보인 뒤, 같은 브라우저의 같은 광고·영역·위치가 30분 안에 반복된 경우 1회로 묶고 문구 로테이션 중복도 제거한 보고 기준입니다.';
+      const rawImpressionHelp = '문구별 RAW 노출은 GA4에 소재/문구 단위로 쌓인 노출 합산입니다. 같은 광고 안에서 문구만 바뀌어도 여러 행으로 잡힐 수 있으며, 과거 1시간 cap 기간은 비교를 위해 30분 기준으로 환산합니다.';
       const reachHelp = '도달수는 GA4 totalUsers 기준입니다. 해당 광고 ID의 프로모션 노출/클릭 이벤트가 1회 이상 기록된 고유 사용자 수입니다.';
+      const costHelp = '비용 지표는 설정된 CPC 단가와 클릭수를 바탕으로 계산한 예상값입니다. CPM은 이 예상 비용을 유효 노출 1,000회 기준으로 환산한 값입니다.';
 
       function numberValue(value) {
         const n = Number(value);
@@ -539,13 +588,20 @@
         return tip;
       }
 
+      function helpForLabel(label) {
+        if (label.includes('CPM') || label.includes('예상 비용')) return costHelp;
+        if (label.includes('유효 노출') || label.includes('유효 CTR')) return effectiveImpressionHelp;
+        if (label.includes('RAW')) return rawImpressionHelp;
+        if (label === '도달수' || label.includes('도달당')) return reachHelp;
+        return '';
+      }
+
       function appendLabelWithHelp(target, label) {
-        const needsHelp = label.includes('보정 노출') || label === '30분 기준 보정' || label === '도달수';
-        if (!needsHelp) {
+        const help = helpForLabel(label);
+        if (!help) {
           target.textContent = label;
           return;
         }
-        const help = label === '도달수' ? reachHelp : correctedImpressionHelp;
         const wrap = document.createElement('span');
         wrap.className = 'with-help';
         wrap.append(document.createTextNode(label), helpTip(help));
@@ -603,6 +659,88 @@
         subEl.textContent = sub || '';
         node.append(labelEl, valueEl, subEl);
         return node;
+      }
+
+      function renderConceptItem(term, value, desc, formula) {
+        const node = document.createElement('div');
+        node.className = 'concept-item';
+        const termEl = document.createElement('div');
+        termEl.className = 'term';
+        termEl.textContent = term;
+        const valueEl = document.createElement('div');
+        valueEl.className = 'value';
+        valueEl.textContent = value;
+        const descEl = document.createElement('div');
+        descEl.className = 'desc';
+        descEl.textContent = desc;
+        node.append(termEl, valueEl, descEl);
+        if (formula) {
+          const formulaEl = document.createElement('div');
+          formulaEl.className = 'formula';
+          formulaEl.textContent = formula;
+          node.append(formulaEl);
+        }
+        return node;
+      }
+
+      function renderConceptGrid(basis) {
+        const grid = $('conceptGrid');
+        grid.textContent = '';
+        const items = [
+          renderConceptItem(
+            '유효 노출',
+            formatNumber(basis.corrected),
+            '광고가 화면의 50% 이상에서 1초 이상 보인 뒤, 같은 브라우저·광고·영역·위치의 30분 내 반복과 문구 로테이션 중복을 제거한 보고 기준입니다.',
+            '유효 CTR, CPM, 빈도 계산의 기준'
+          ),
+          renderConceptItem(
+            '문구별 RAW 노출',
+            formatNumber(basis.raw),
+            'GA4에 소재/문구 단위로 쌓인 노출 합산입니다. 같은 광고 안에서 문구만 바뀌어도 각각 잡힐 수 있어 소재 비교용으로 봅니다.',
+            basis.duplicated ? `유효 기준에서 로테이션/중복 ${formatNumber(basis.duplicated)}회 차감` : '유효 노출과 차이 없음'
+          ),
+          renderConceptItem(
+            'GA 실측 RAW',
+            formatNumber(basis.measuredRaw),
+            '30분 환산을 적용하기 전 GA4에 실제 기록된 문구별 원본입니다. 과거 계측 조건 차이를 확인할 때만 참고합니다.',
+            basis.capAdded ? `1시간 cap 구간을 30분 기준으로 환산하며 ${formatNumber(basis.capAdded)}회 반영` : '추가 cap 환산 없음'
+          ),
+          renderConceptItem(
+            '도달수',
+            formatNumber(basis.reach),
+            '해당 광고 ID의 프로모션 노출 또는 클릭 이벤트가 1회 이상 기록된 고유 사용자 수입니다.',
+            basis.frequency ? `평균 빈도 ${basis.frequency.toFixed(2)}회` : ''
+          ),
+          renderConceptItem(
+            'CTR',
+            formatPercent(basis.ctr),
+            '유효 CTR은 클릭을 유효 노출로 나눈 보고용 클릭률입니다. RAW CTR은 클릭을 문구별 RAW 노출로 나눈 소재 참고 지표입니다.',
+            `RAW CTR ${formatPercent(basis.rawCtr)}`
+          ),
+        ];
+        if (basis.estimatedCost) {
+          items.push(
+            renderConceptItem(
+              '예상 비용',
+              formatCurrency(basis.estimatedCost, basis.currency),
+              '설정된 CPC 단가에 클릭수를 곱한 예상 정산액입니다.',
+              `CPC ${formatCurrency(basis.cpc, basis.currency)} × 클릭 ${formatNumber(basis.clicks)}회`
+            ),
+            renderConceptItem(
+              '도달당 비용',
+              formatCurrency(basis.costPerReach, basis.currency),
+              '예상 비용을 도달수로 나눈 값입니다. 한 명에게 광고가 도달하는 데 든 비용을 봅니다.',
+              '예상 비용 / 도달수'
+            ),
+            renderConceptItem(
+              'CPM',
+              formatCurrency(basis.cpm, basis.currency),
+              '예상 비용을 유효 노출 1,000회 기준으로 환산한 값입니다.',
+              '예상 비용 / 유효 노출 × 1,000'
+            )
+          );
+        }
+        grid.append(...items);
       }
 
       function renderBar(ratio) {
@@ -702,12 +840,12 @@
 
       function buildExplanation(report, basis) {
         const capCopy = basis.capAdded > 0
-          ? ` 과거 일부 기간은 같은 광고·위치·슬롯을 1시간에 한 번만 집계한 구간이 있어, 평균 세션 시간을 바탕으로 30분 단위 환산분 ${formatNumber(basis.capAdded)}회를 더했습니다. GA 실측 보정 노출은 ${formatNumber(basis.measured)}회입니다.`
+          ? ` 과거 일부 기간은 같은 광고·위치·슬롯을 1시간에 한 번만 집계한 구간이 있어, 평균 세션 시간을 바탕으로 현재 기준인 30분 단위 환산분 ${formatNumber(basis.capAdded)}회를 반영했습니다. GA 실측 유효 노출은 ${formatNumber(basis.measured)}회입니다.`
           : '';
         const costCopy = basis.estimatedCost
           ? ` CPC ${formatCurrency(basis.cpc, basis.currency)} 기준 예상 비용은 ${formatCurrency(basis.estimatedCost, basis.currency)}, 도달당 비용은 ${formatCurrency(basis.costPerReach, basis.currency)}, CPM은 ${formatCurrency(basis.cpm, basis.currency)}입니다.`
           : '';
-        return `수치는 GA4 이벤트를 30분 단위로 정리한 결과입니다. 같은 광고 ID와 같은 영역·슬롯에 나온 문구 로테이션은 하나의 광고 묶음으로 합쳐 보정 노출 ${formatNumber(basis.corrected)}회로 표시합니다.${capCopy} 도달수 ${formatNumber(basis.reach)}명은 해당 광고 ID의 프로모션 이벤트가 1회 이상 기록된 고유 사용자 수입니다. 보정 CTR ${formatPercent(basis.ctr)}는 클릭을 보정 노출로 나눈 값이고, RAW CTR ${formatPercent(basis.rawCtr)}는 클릭을 RAW 노출 ${formatNumber(basis.raw)}회로 나눈 소재별 참고 지표입니다.${costCopy}`;
+        return `유효 노출은 광고가 화면의 50% 이상에서 1초 이상 보인 뒤, 같은 브라우저에서 같은 광고·영역·위치가 30분 안에 반복된 경우 1회로 묶고 문구 로테이션 중복도 제거한 보고 기준입니다. 이 기준의 유효 노출은 ${formatNumber(basis.corrected)}회입니다.${capCopy} 문구별 RAW 노출 ${formatNumber(basis.raw)}회는 GA4에 소재/문구 단위로 쌓인 합산값이라, 같은 광고 안에서 문구만 바뀌어도 여러 행으로 잡힐 수 있습니다. 도달수 ${formatNumber(basis.reach)}명은 해당 광고 ID의 프로모션 이벤트가 1회 이상 기록된 고유 사용자 수입니다. 유효 CTR ${formatPercent(basis.ctr)}는 클릭을 유효 노출로 나눈 보고용 클릭률이고, RAW CTR ${formatPercent(basis.rawCtr)}는 클릭을 문구별 RAW 노출로 나눈 소재 참고 지표입니다.${costCopy}`;
       }
 
       function renderReport(payload, token) {
@@ -725,34 +863,37 @@
         $('campaignFacts').textContent = '';
         addFact('업데이트 시각', updatedKst || '-');
         addFact('광고 시작시각', adStartKst || '-');
+        addFact('노출 기준', '50% 이상 1초 · 30분 중복 제거');
+        addFact('RAW 기준', '문구/소재 단위 GA4 합산');
         const metricGrid = $('metricGrid');
         metricGrid.textContent = '';
         const metrics = [
-          renderMetric(basis.capAdded > 0 ? '30분 보정 노출' : '보정 노출', formatNumber(basis.corrected), basis.capAdded > 0 ? `GA 실측 ${formatNumber(basis.measured)}회` : '로테이션 중복 조정', 'primary'),
-          renderMetric('클릭', formatNumber(basis.clicks), `보정 CTR ${formatPercent(basis.ctr)}`),
-          renderMetric('보정 CTR', formatPercent(basis.ctr), '클릭 / 보정 노출'),
+          renderMetric('유효 노출', formatNumber(basis.corrected), basis.capAdded > 0 ? `GA 실측 ${formatNumber(basis.measured)}회에서 30분 기준 환산` : '30분 중복 제거 · 문구 로테이션 정리', 'primary'),
+          renderMetric('클릭', formatNumber(basis.clicks), `유효 CTR ${formatPercent(basis.ctr)}`),
+          renderMetric('유효 CTR', formatPercent(basis.ctr), '클릭 / 유효 노출'),
           renderMetric('도달수', formatNumber(basis.reach), basis.frequency ? `고유 사용자 · 빈도 ${basis.frequency.toFixed(2)}회` : '고유 사용자')
         ];
         if (basis.estimatedCost) {
           metrics.push(
             renderMetric('예상 비용', formatCurrency(basis.estimatedCost, basis.currency), `CPC ${formatCurrency(basis.cpc, basis.currency)}`),
             renderMetric('도달당 비용', formatCurrency(basis.costPerReach, basis.currency), '예상 비용 / 도달수'),
-            renderMetric('CPM', formatCurrency(basis.cpm, basis.currency), '예상 비용 / 보정 노출 × 1,000')
+            renderMetric('CPM', formatCurrency(basis.cpm, basis.currency), '예상 비용 / 유효 노출 × 1,000')
           );
         }
         metrics.push(
-          renderMetric('RAW 노출', formatNumber(basis.raw), basis.duplicated ? `문구 합산 차이 ${formatNumber(basis.duplicated)}` : '보정 차이 없음'),
-          renderMetric('RAW CTR', formatPercent(basis.rawCtr), '클릭 / RAW 노출', 'warn')
+          renderMetric('문구별 RAW 노출', formatNumber(basis.raw), basis.duplicated ? `유효 기준 차감 ${formatNumber(basis.duplicated)}회` : '유효 노출과 차이 없음'),
+          renderMetric('RAW CTR', formatPercent(basis.rawCtr), '클릭 / 문구별 RAW 노출', 'warn')
         );
         metricGrid.append(...metrics);
+        renderConceptGrid(basis);
         renderBreakdown(report.placements || [], $('placementRows'), basis.corrected || 0, '영역별 데이터가 아직 없습니다.');
         renderCreatives(report.creatives || []);
         renderDaily(report.daily || []);
         currentExplanation = buildExplanation(report, basis);
         $('reportCopy').textContent = currentExplanation;
         const defaultNote = basis.capAdded > 0
-          ? 'GA4 이벤트 기준입니다. 클릭은 광고 링크 클릭입니다. 도달수는 고유 사용자 수입니다. 보정 노출은 문구별 중복 집계와 일부 1시간 cap 구간을 30분 단위로 정리한 값입니다. RAW 노출과 RAW CTR은 문구별 소재 반응을 보기 위한 참고 지표입니다. 광고 차단, 브라우저 제한, GA 집계 지연으로 일부 수치는 늦게 반영될 수 있습니다.'
-          : 'GA4 이벤트 기준입니다. 클릭은 광고 링크 클릭입니다. 도달수는 고유 사용자 수입니다. 보정 노출은 문구별 중복 집계를 동일 광고 묶음으로 정리한 값입니다. RAW 노출과 RAW CTR은 문구별 소재 반응을 보기 위한 참고 지표입니다. 광고 차단, 브라우저 제한, GA 집계 지연으로 일부 수치는 늦게 반영될 수 있습니다.';
+          ? 'GA4 이벤트 기준입니다. 클릭은 광고 링크 클릭입니다. 도달수는 고유 사용자 수입니다. 유효 노출은 화면 50% 이상 1초 노출, 30분 중복 제거, 문구 로테이션 정리를 반영한 보고 기준입니다. 문구별 RAW 노출과 RAW CTR은 소재 반응을 보기 위한 참고 지표입니다. 일부 과거 1시간 cap 구간은 현재 30분 기준으로 환산했습니다. 광고 차단, 브라우저 제한, GA 집계 지연으로 일부 수치는 늦게 반영될 수 있습니다.'
+          : 'GA4 이벤트 기준입니다. 클릭은 광고 링크 클릭입니다. 도달수는 고유 사용자 수입니다. 유효 노출은 화면 50% 이상 1초 노출, 30분 중복 제거, 문구 로테이션 정리를 반영한 보고 기준입니다. 문구별 RAW 노출과 RAW CTR은 소재 반응을 보기 위한 참고 지표입니다. 광고 차단, 브라우저 제한, GA 집계 지연으로 일부 수치는 늦게 반영될 수 있습니다.';
         $('reportNotes').textContent = report.notes ? `${report.notes} ${defaultNote}` : defaultNote;
         reportEl.style.display = 'block';
         setupHelp.style.display = 'none';
