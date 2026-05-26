@@ -20,6 +20,23 @@ function currentApiBase(){
 
 const API_BASE = currentApiBase();
 
+function currentSiteSurface(){
+  const host = String(location.hostname || '').toLowerCase();
+  if(host === 'excelkospi.github.io') return 'github_pages';
+  if(host === 'excelkospi.pages.dev' || host.endsWith('.pages.dev')) return 'cloudflare_pages';
+  if(host === 'localhost' || host === '127.0.0.1' || host === '' || host.endsWith('.local')) return 'local';
+  return 'custom_domain';
+}
+
+function gaSiteContext(){
+  const host = String(location.hostname || '').toLowerCase() || 'local';
+  return {
+    site_host: host,
+    site_origin: String(location.origin || ''),
+    site_surface: currentSiteSurface(),
+  };
+}
+
 // Public site-level Imgur app Client-ID. End users never enter this. It is
 // intentionally public when enabled because browser-direct upload avoids Worker
 // CPU. Leave empty to keep the old manual Imgur upload-page fallback.
@@ -40,6 +57,7 @@ function apiUrl(path){
 
 try{
   window.EXCELKOSPI_API_BASE = API_BASE;
+  window.EXCELKOSPI_SITE_CONTEXT = gaSiteContext();
   window.apiUrl = apiUrl;
 }catch{}
 
