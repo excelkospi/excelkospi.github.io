@@ -2664,9 +2664,10 @@ function visitorId(){
 /* 동접 표시
  *  - 사이트 접속자와 채팅을 실제로 열어둔 사람을 분리해서 표시한다.
  *  - 기본 경로는 Durable Object, 서비스 바인딩 장애 시 기존 KV 근사치로 fallback. */
-let presenceState = { online: null, chatOnline: null, today: null, todayMode: '', peakToday: null, onlineDirectAt: 0 };
+let presenceState = { online: null, chatOnline: null, today: null, todayMode: '', todayPageViews: null, peakToday: null, onlineDirectAt: 0 };
 const PRESENCE_DIRECT_FRESH_MS = 90 * 1000;
 let presenceToggleIdx = 0;
+let presencePageViewPending = true;
 let chatPresenceCount=0;
 let chatOpenForPresence=false;
 let chatPresencePingTimer=null;
@@ -2686,6 +2687,9 @@ function renderPresenceToggled(){
   if(Number.isFinite(presenceState.today) && presenceState.today > 0){
     const count = presenceState.today.toLocaleString('ko-KR');
     items.push(presenceState.todayMode === 'visits_30m' ? `오늘 사용자 ${count}명` : `오늘 ${count}명`);
+  }
+  if(Number.isFinite(presenceState.todayPageViews) && presenceState.todayPageViews > 0){
+    items.push(`오늘 페이지뷰 ${presenceState.todayPageViews.toLocaleString('ko-KR')}회`);
   }
   if(items.length === 0){ el.textContent = '현재 접속 -'; return; }
   el.textContent = items[presenceToggleIdx % items.length];
@@ -2730,6 +2734,7 @@ async function pingPresence(options={}){
   if(document.hidden && !options.force) return;
   try{
     const entryRef = entryRefForPresence();
+    const includePageView = presencePageViewPending && !options.leaving;
     const p=await fetchJsonClient('/api/presence', 3000, {
       method:'POST',
       headers:{'content-type':'application/json'},
@@ -2739,9 +2744,11 @@ async function pingPresence(options={}){
         page_id: VISITOR_PAGE_ID,
         chat_open: !!chatOpenForPresence,
         leaving: !!options.leaving,
+        ...(includePageView ? {page_view:true} : {}),
         ...(entryRef ? {entry_ref: entryRef} : {}),
       }),
     });
+    if(includePageView) presencePageViewPending = false;
     if(typeof p.online==='number') {
       presenceState.online = p.online;
       presenceState.onlineDirectAt = Date.now();
@@ -2758,6 +2765,9 @@ async function pingPresence(options={}){
     }
     if(typeof p.todayMode==='string') {
       presenceState.todayMode = p.todayMode;
+    }
+    if(typeof p.todayPageViews==='number' && p.todayPageViews > 0) {
+      presenceState.todayPageViews = p.todayPageViews;
     }
     if(typeof p.peakToday==='number' && p.peakToday > 0) {
       presenceState.peakToday = p.peakToday;
@@ -2786,6 +2796,7 @@ function absorbPresence(snap){
   }
   if(typeof snap.presence.today === 'number') presenceState.today = snap.presence.today;
   if(typeof snap.presence.todayMode === 'string') presenceState.todayMode = snap.presence.todayMode;
+  if(typeof snap.presence.todayPageViews === 'number') presenceState.todayPageViews = snap.presence.todayPageViews;
   if(typeof snap.presence.peakToday === 'number') {
     presenceState.peakToday = snap.presence.peakToday;
     updateServerStatusPeak(snap.presence.peakToday);
