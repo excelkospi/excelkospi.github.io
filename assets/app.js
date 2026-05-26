@@ -71,6 +71,7 @@ const communityPollsByChannel = {};
 const communityPollUnavailableByChannel = {};
 let communityPollVoteInFlight = false;
 const communityReplyVisibleCounts = {};
+const communityUiStateByChannel = {};
 const QUOTE_NOTE_MARKETS = new Set(['KR','US','COIN','ALL']);
 function validCommunityChannel(value){
   const id=String(value || '').trim();
@@ -692,6 +693,53 @@ function readCommunityPostsCache(channel, options={}){
   if(!entry || !Array.isArray(entry.posts)) return null;
   if(!options.allowStale && Date.now() - Number(entry.at || 0) > COMMUNITY_POSTS_PRELOAD_TTL_MS) return null;
   return entry.posts.slice();
+}
+
+function clearCommunityReplyVisibleCounts(){
+  Object.keys(communityReplyVisibleCounts).forEach((key)=>{ delete communityReplyVisibleCounts[key]; });
+}
+
+function resetCommunityUiState(){
+  communityPage = 1;
+  communityReplyPostId = '';
+  communityReplyParentCommentId = '';
+  communityMobileActionPostId = '';
+  communityMobileActionCommentId = '';
+  communityDraftReplyBody = '';
+  clearCommunityReplyVisibleCounts();
+}
+
+function saveCommunityUiState(channel=communityActiveChannel()){
+  const key = validCommunityChannel(channel);
+  const bodyEl = document.getElementById('communityBody');
+  const replyEl = document.getElementById('communityReplyBody');
+  if(bodyEl) communityDraftBody = bodyEl.value || '';
+  if(replyEl) communityDraftReplyBody = replyEl.value || '';
+  communityUiStateByChannel[key] = {
+    page:communityPage,
+    replyPostId:communityReplyPostId,
+    replyParentCommentId:communityReplyParentCommentId,
+    mobileActionPostId:communityMobileActionPostId,
+    mobileActionCommentId:communityMobileActionCommentId,
+    draftBody:communityDraftBody,
+    draftReplyBody:communityDraftReplyBody,
+    replyVisibleCounts:{ ...communityReplyVisibleCounts },
+  };
+}
+
+function restoreCommunityUiState(channel){
+  const state = communityUiStateByChannel[validCommunityChannel(channel)];
+  if(!state) return false;
+  communityPage = Math.max(1, Number(state.page) || 1);
+  communityReplyPostId = String(state.replyPostId || '');
+  communityReplyParentCommentId = String(state.replyParentCommentId || '');
+  communityMobileActionPostId = String(state.mobileActionPostId || '');
+  communityMobileActionCommentId = String(state.mobileActionCommentId || '');
+  communityDraftBody = String(state.draftBody || '');
+  communityDraftReplyBody = String(state.draftReplyBody || '');
+  clearCommunityReplyVisibleCounts();
+  Object.assign(communityReplyVisibleCounts, state.replyVisibleCounts || {});
+  return true;
 }
 
 async function preloadCommunityPosts(channel){
@@ -5364,6 +5412,7 @@ function setTimelineTab(tab, options={}){
   const next = timelineTabParts(tab);
   const nextKey = next.tab === 'community' ? `community-${next.channel}` : next.tab;
   const preferCached = !!options.preferCached;
+  if(wasCommunity) saveCommunityUiState(communityActiveChannel());
   trackTimelineGaEvent('timeline_tab_click', timelineAnalyticsPayload(nextKey, {
     previous_timeline_tab_key:previousKey,
     value:1,
@@ -5373,14 +5422,12 @@ function setTimelineTab(tab, options={}){
   timelineTab = next.tab;
   if(next.tab === 'community') communityChannel = next.channel;
   const shouldPrimeCommunity = next.tab === 'community' && (!wasCommunity || channelChanged);
+  let primedCommunityCache = null;
   if(shouldPrimeCommunity){
-    communityPage=1;
-    communityReplyPostId='';
-    communityReplyParentCommentId='';
-    communityMobileActionPostId='';
-    communityMobileActionCommentId='';
-    communityDraftReplyBody='';
-    communityPosts=readCommunityPostsCache(next.channel) || [];
+    if(!restoreCommunityUiState(next.channel)) resetCommunityUiState();
+    primedCommunityCache = readCommunityPostsCache(next.channel);
+    communityPosts = primedCommunityCache || [];
+    clampCommunityPage();
   }
   try{
     localStorage.setItem(TIMELINE_TAB_KEY, timelineTab);
@@ -5401,8 +5448,10 @@ function setTimelineTab(tab, options={}){
   }
   if(timelineIsCommunity()){
     clearCommunitySummaryRefresh();
-    if(shouldPrimeCommunity) renderCommunityTable(communityPosts.length ? 'ready' : 'loading');
-    loadCommunityPosts({ force:channelChanged && !preferCached });
+    if(shouldPrimeCommunity) renderCommunityTable(Array.isArray(primedCommunityCache) ? 'ready' : (communityPosts.length ? 'ready' : 'loading'));
+    if(!(preferCached && shouldPrimeCommunity && Array.isArray(primedCommunityCache))){
+      loadCommunityPosts({ force:channelChanged && !preferCached, preferCached });
+    }
     scheduleCommunityRefresh();
   }
   else if(timelineIsEtf()){
@@ -5481,12 +5530,14 @@ updateTimelineTabs();
   let stageDirection = 0;
   let releaseScrollReserve = null;
   const SWIPE_MS = 150;
+  const SWIPE_SHEET_CACHE_TTL_MS = 5 * 60 * 1000;
   const interactiveSelector = [
     'button', 'input', 'select', 'textarea', '[contenteditable="true"]',
     '.timeline-tabs', '.community-compose-row', '.etf-filter-cell',
     '.etf-detail-cell'
   ].join(',');
   const SWIPE_PRELOAD_PROGRESS = 0.2;
+  const swipeSheetSnapshots = {};
   let stagePreloadKey = '';
   let suppressSwipeClickUntil = 0;
   const isMobile = ()=> mobileQuery ? mobileQuery.matches : window.innerWidth <= 700;
@@ -5629,7 +5680,41 @@ updateTimelineTabs();
     if(table) table.classList.add('timeline-swipe-table');
     return sheet;
   };
+  const rememberSwipeSheetSnapshot = (key, sheet)=>{
+    if(!key || !sheet) return;
+    const table = sheet.querySelector?.('table');
+    if(!table) return;
+    swipeSheetSnapshots[key] = {
+      at:Date.now(),
+      className:sheet.className || 'sheet timeline news-feed',
+      html:sheet.innerHTML,
+      scrollTop:Number(sheet.scrollTop || 0),
+      scrollLeft:Number(sheet.scrollLeft || 0),
+    };
+    const keys = Object.keys(swipeSheetSnapshots);
+    if(keys.length > TIMELINE_TAB_ORDER.length + 1){
+      const oldest = keys.sort((a,b)=>Number(swipeSheetSnapshots[a]?.at || 0) - Number(swipeSheetSnapshots[b]?.at || 0))[0];
+      if(oldest) delete swipeSheetSnapshots[oldest];
+    }
+  };
+  const cachedSwipeSheetSnapshot = (key)=>{
+    const cached = swipeSheetSnapshots[key];
+    if(!cached) return null;
+    if(Date.now() - Number(cached.at || 0) > SWIPE_SHEET_CACHE_TTL_MS){
+      delete swipeSheetSnapshots[key];
+      return null;
+    }
+    const sheet = document.createElement('div');
+    sheet.className = cached.className || 'sheet timeline news-feed';
+    sheet.style.marginTop = '0';
+    sheet.innerHTML = cached.html || '';
+    sheet.scrollTop = Number(cached.scrollTop || 0);
+    sheet.scrollLeft = Number(cached.scrollLeft || 0);
+    return markSwipeSheet(sheet);
+  };
   const previewSheetForKey = (key)=>{
+    const cached = cachedSwipeSheetSnapshot(key);
+    if(cached) return cached;
     const { tableClass, html } = previewTableForKey(key);
     const sheet = document.createElement('div');
     sheet.className = 'sheet timeline news-feed';
@@ -5743,6 +5828,7 @@ updateTimelineTabs();
     nextLayer.className = 'timeline-swipe-layer timeline-swipe-next';
     const currentSheet = cloneCurrentSheet();
     if(!currentSheet) return false;
+    rememberSwipeSheetSnapshot(swipeFromKey, currentSheet);
     currentLayer.appendChild(currentSheet);
     nextLayer.appendChild(previewSheetForKey(next));
     stage.append(currentLayer, nextLayer);
