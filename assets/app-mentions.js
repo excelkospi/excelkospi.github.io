@@ -4,7 +4,10 @@
 const STOCK_MENTION_RE = /(^|[\s([{<])@([가-힣A-Za-z0-9._+\-=^&%()]{1,32})/g;
 let stockMentionCache = null;
 const stockMentionPending = new Set();
+const stockMentionResolving = new Set();
+const stockMentionRetryAfter = new Map();
 let stockMentionInFlight = false;
+const STOCK_MENTION_RETRY_DELAY_MS = 5 * 60 * 1000;
 
 function stockMentionKey(value){
   return String(value || '')
@@ -98,7 +101,9 @@ function writeStockMentionCache(){
 
 function queueStockMentionResolve(term){
   const key = stockMentionKey(term);
-  if(!key || readStockMentionCache().has(key) || stockMentionPending.has(key)) return;
+  if(!key || readStockMentionCache().has(key) || stockMentionPending.has(key) || stockMentionResolving.has(key)) return;
+  const retryAt = Number(stockMentionRetryAfter.get(key) || 0);
+  if(retryAt && retryAt > Date.now()) return;
   stockMentionPending.add(key);
 }
 
@@ -172,13 +177,14 @@ function renderTextWithStockMentions(text, snapshots=null){
   return html;
 }
 
-async function flushStockMentionQueue(){
-  const communityActive = typeof timelineIsCommunity === 'function' && timelineIsCommunity();
-  const chatActive = typeof chatIsOpen !== 'undefined' && chatIsOpen;
+async function flushStockMentionQueue(options={}){
+  const communityActive = options.community === true || (typeof timelineIsCommunity === 'function' && timelineIsCommunity());
+  const chatActive = options.chat === true;
   if(stockMentionInFlight || !stockMentionPending.size || (!communityActive && !chatActive)) return;
   const terms = Array.from(stockMentionPending).slice(0, 12);
   terms.forEach((term)=>stockMentionPending.delete(term));
   if(!terms.length) return;
+  terms.forEach((term)=>stockMentionResolving.add(stockMentionKey(term)));
   stockMentionInFlight = true;
   try{
     const url = `/api/resolve-mentions?terms=${encodeURIComponent(terms.join(','))}&market=AUTO`;
@@ -189,6 +195,7 @@ async function flushStockMentionQueue(){
       const key = stockMentionKey(item?.term);
       if(!key) return;
       returned.add(key);
+      stockMentionRetryAfter.delete(key);
       cache.set(key, item?.ok ? {
         ok:true,
         market:item.market,
@@ -198,14 +205,18 @@ async function flushStockMentionQueue(){
       } : { ok:false });
     });
     terms.forEach((term)=>{
-      if(!returned.has(stockMentionKey(term))) cache.set(stockMentionKey(term), { ok:false });
+      const key = stockMentionKey(term);
+      if(!returned.has(key)) cache.set(key, { ok:false });
+      stockMentionRetryAfter.delete(key);
     });
     writeStockMentionCache();
     if(communityActive && typeof renderCommunityTable === 'function') renderCommunityTable();
     if(chatActive && typeof renderChatMessages === 'function') renderChatMessages({preserveScroll:true});
   }catch{
-    terms.forEach((term)=>stockMentionPending.add(term));
+    const retryAt = Date.now() + STOCK_MENTION_RETRY_DELAY_MS;
+    terms.forEach((term)=>stockMentionRetryAfter.set(stockMentionKey(term), retryAt));
   }finally{
+    terms.forEach((term)=>stockMentionResolving.delete(stockMentionKey(term)));
     stockMentionInFlight = false;
   }
 }

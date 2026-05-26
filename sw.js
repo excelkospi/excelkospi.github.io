@@ -1,5 +1,5 @@
-const CACHE_NAME = 'excelkospi-static-20260526-553';
-const API_CACHE_NAME = 'excelkospi-api-20260526-553';
+const CACHE_NAME = 'excelkospi-static-20260526-565';
+const API_CACHE_NAME = 'excelkospi-api-20260526-565';
 const API_ORIGINS = new Set([
   location.origin,
   'https://excelkospi-api.alaala3.workers.dev',
@@ -12,10 +12,10 @@ const APP_SHELL = [
   '/apple-touch-icon.png?v=20260526-522',
   '/icon-192.png?v=20260526-522',
   '/icon-512.png?v=20260526-522',
-  '/assets/app.css?v=20260526-553',
-  '/assets/app-config.js?v=20260526-546',
-  '/assets/app-utils.js?v=20260526-547',
-  '/assets/app-mentions.js?v=20260524-471',
+  '/assets/app.css?v=20260526-559',
+  '/assets/app-config.js?v=20260526-563',
+  '/assets/app-utils.js?v=20260526-564',
+  '/assets/app-mentions.js?v=20260526-565',
   '/assets/app-community-read.js?v=20260525-499',
   '/assets/community-ui.js?v=20260526-545',
   '/assets/app-personal-feed.js?v=20260525-492',
@@ -25,11 +25,11 @@ const APP_SHELL = [
   '/assets/app-cell-selection.js?v=20260525-510',
   '/assets/app-quote-table.js?v=20260526-553',
   '/assets/app-quote-drag.js?v=20260525-496',
-  '/assets/app-quote-controls.js?v=20260525-506',
-  '/assets/app-mini-chart.js?v=20260525-511',
+  '/assets/app-quote-controls.js?v=20260526-559',
+  '/assets/app-mini-chart.js?v=20260526-564',
   '/assets/app-tradingview.js?v=20260525-510',
   '/assets/app-chat-ui.js?v=20260526-546',
-  '/assets/app.js?v=20260526-552',
+  '/assets/app.js?v=20260526-565',
   '/assets/favicon.svg?v=20260526-522',
   '/assets/favicon-32.png?v=20260526-522',
   '/assets/icon-192.png?v=20260526-522',

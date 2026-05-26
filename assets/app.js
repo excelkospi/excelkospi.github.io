@@ -2586,7 +2586,7 @@ function canRetryFetch(url, init){
   if(init?.body != null) return false;
   let pathname=String(url || '');
   try{ pathname=new URL(apiUrl(pathname), location.href).pathname; }catch{}
-  return /^\/api\/(?:snapshot|community|chat-messages|chat-config|timeline|quote|chart|presence)\b/.test(pathname);
+  return /^\/api\/(?:snapshot|community|chat-messages|chat-config|timeline|quote|chart|presence|resolve-mentions)\b/.test(pathname);
 }
 function isRetryableFetchError(error){
   const msg=String(error?.message || error || '');
@@ -6863,7 +6863,7 @@ function renderChatMessages(options={}){
     }).join('') + chatSleepNoticeHtml();
   }
   bindCollapsedImageToggles(body);
-  flushStockMentionQueue();
+  flushStockMentionQueue({chat:true});
   if(typeof setupStockMentionMiniChartHover === 'function') setupStockMentionMiniChartHover(body);
   body.querySelectorAll('[data-report-id]').forEach(btn=>{
     btn.addEventListener('click',()=>reportChatMessage(Number(btn.dataset.reportId)));
