@@ -50,7 +50,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="excelkospi" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="build-id" content="20260526-576-cost-hotpath" />
+  <meta name="build-id" content="20260526-577-ga-standard" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -983,25 +983,10 @@
   <span id="loadingText">시장 데이터를 불러오는 중...</span>
 </div>
 
-  <script src="/assets/app-config.js?v=20260526-576"></script>
+  <script src="/assets/app-config.js?v=20260526-577"></script>
   <script>
     (() => {
       if (typeof GA_MEASUREMENT_ID !== 'string' || !GA_MEASUREMENT_ID) return;
-      const gaContext = () => {
-        if (typeof gaSiteContext === 'function') return gaSiteContext();
-        const host = String(location.hostname || '').toLowerCase() || 'local';
-        return {
-          site_host: host,
-          site_origin: String(location.origin || ''),
-          site_surface: host === 'excelkospi.github.io'
-            ? 'github_pages'
-            : ((host === 'excelkospi.pages.dev' || host.endsWith('.pages.dev')) ? 'cloudflare_pages' : 'custom_domain')
-        };
-      };
-      const withGaContext = (params) => ({
-        ...gaContext(),
-        ...(params && typeof params === 'object' ? params : {})
-      });
       const installEngagementFallback = () => {
         const MIN_ENGAGEMENT_MS = 10000;
         const SESSION_REFRESH_MS = 30 * 60 * 1000;
@@ -1029,13 +1014,11 @@
           const engagementMs = Math.min(MAX_EVENT_ENGAGEMENT_MS, Math.max(MIN_ENGAGEMENT_MS, Math.round(elapsed)));
           try {
             window.gtag('event', 'site_engagement_ping', {
-              ...withGaContext({
-                event_category: 'site',
-                engagement_source: 'excelkospi_fallback',
-                engagement_reason: reason,
-                engagement_time_msec: engagementMs,
-                transport_type: 'beacon'
-              })
+              event_category: 'site',
+              engagement_source: 'excelkospi_fallback',
+              engagement_reason: reason,
+              engagement_time_msec: engagementMs,
+              transport_type: 'beacon'
             });
             markSent();
             return true;
@@ -1079,17 +1062,8 @@
       s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA_MEASUREMENT_ID);
       document.head.appendChild(s);
       window.dataLayer = window.dataLayer || [];
-      window.gtag = function(command, name, params){
-        if((command === 'event' || command === 'config') && params && typeof params === 'object'){
-          window.dataLayer.push(arguments.length > 2
-            ? [command, name, withGaContext(params)]
-            : [command, withGaContext(name)]);
-          return;
-        }
-        window.dataLayer.push(arguments);
-      };
+      window.gtag = function(){ window.dataLayer.push(arguments); };
       window.gtag('js', new Date());
-      window.gtag('set', gaContext());
       window.gtag('config', GA_MEASUREMENT_ID, { send_page_view: true });
       installEngagementFallback();
     })();
