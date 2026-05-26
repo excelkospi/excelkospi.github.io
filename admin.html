@@ -569,13 +569,14 @@
                 <p class="help">등록된 광고 카드의 식별자와 GA4 itemPromotionId를 기준으로 묶습니다.</p>
               </div>
               <div class="field">
-                <label for="reportStartDate">시작일</label>
-                <input id="reportStartDate" type="date">
-                <p class="help">기본값은 광고 계측 기준 시작일인 2026-05-20입니다.</p>
+                <label for="reportStartDate">집계 시작 시각</label>
+                <input id="reportStartDate" type="datetime-local">
+                <p class="help">한국시간 기준. 기본값은 광고 계측 시작일 00:00입니다.</p>
               </div>
               <div class="field">
-                <label for="reportEndDate">종료일</label>
-                <input id="reportEndDate" type="text" maxlength="20" value="today" placeholder="today 또는 YYYY-MM-DD">
+                <label for="reportEndDate">집계 종료 시각</label>
+                <input id="reportEndDate" type="datetime-local">
+                <p class="help">비워두면 현재까지 자동 집계합니다.</p>
               </div>
               <div class="field">
                 <label for="reportCpc">CPC 단가 (원)</label>
@@ -1390,6 +1391,32 @@
     function defaultReportStartDate(){
       return DEFAULT_AD_REPORT_START_DATE;
     }
+    function dateToKstDateTimeInput(date, fallbackTime='00:00'){
+      const text=String(date || '').trim();
+      return /^\d{4}-\d{2}-\d{2}$/.test(text) ? `${text}T${fallbackTime}` : '';
+    }
+    function kstDateFromDateTimeInput(value){
+      const text=String(value || '').trim();
+      const match=text.match(/^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}$/);
+      return match ? match[1] : '';
+    }
+    function reportStartInputValue(period={}){
+      return isoToKstDateTimeInput(period.startAt)
+        || dateToKstDateTimeInput(period.start && period.start !== '30daysAgo' ? period.start : defaultReportStartDate(), '00:00');
+    }
+    function reportEndInputValue(period={}){
+      return isoToKstDateTimeInput(period.endAt)
+        || (period.end && period.end !== 'today' ? dateToKstDateTimeInput(period.end, '23:59') : '');
+    }
+    function reportPeriodText(period={}){
+      const start=isoToKstDateTimeInput(period.startAt)
+        ? formatKstDateTime(period.startAt)
+        : (period.start ? `${period.start} 00:00` : '-');
+      const end=isoToKstDateTimeInput(period.endAt)
+        ? formatKstDateTime(period.endAt)
+        : (period.end && period.end !== 'today' ? `${period.end} 23:59` : '현재');
+      return `${start} ~ ${end}`;
+    }
     function cleanReportIdInput(value){
       return String(value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0,64);
     }
@@ -1431,6 +1458,22 @@
     function readReportForm(){
       const id=cleanReportIdInput($('reportId').value);
       const cpc=Number($('reportCpc').value);
+      const startInput=$('reportStartDate').value || dateToKstDateTimeInput(defaultReportStartDate(), '00:00');
+      const endInput=$('reportEndDate').value;
+      const startAt=kstDateTimeInputToIso(startInput);
+      const endAt=kstDateTimeInputToIso(endInput);
+      if(!startAt){
+        showToast('집계 시작 시각을 확인해 주세요.', 'bad');
+        return null;
+      }
+      if(endInput && !endAt){
+        showToast('집계 종료 시각을 확인해 주세요.', 'bad');
+        return null;
+      }
+      if(startAt && endAt && Date.parse(endAt)<=Date.parse(startAt)){
+        showToast('집계 종료 시각은 시작 시각보다 뒤여야 합니다.', 'bad');
+        return null;
+      }
       return {
         id,
         advertiser:$('reportAdvertiser').value.trim() || '광고주',
@@ -1439,8 +1482,10 @@
         creativeIncludes:splitListInput($('reportCreativeIncludes').value),
         creativeExcludes:splitListInput($('reportCreativeExcludes').value),
         period:{
-          start:$('reportStartDate').value || defaultReportStartDate(),
-          end:$('reportEndDate').value.trim() || 'today',
+          start:kstDateFromDateTimeInput(startInput) || defaultReportStartDate(),
+          end:endInput ? kstDateFromDateTimeInput(endInput) : 'today',
+          startAt,
+          endAt,
           timezone:'Asia/Seoul',
         },
         pricing:{
@@ -1458,8 +1503,8 @@
       $('reportAdvertiser').value=report?.advertiser || '';
       $('reportCampaign').value=report?.campaign || '';
       $('reportAdIds').value=(report?.adIds || []).join(', ');
-      $('reportStartDate').value=report?.period?.start && report.period.start !== '30daysAgo' ? report.period.start : defaultReportStartDate();
-      $('reportEndDate').value=report?.period?.end || 'today';
+      $('reportStartDate').value=reportStartInputValue(report?.period || {});
+      $('reportEndDate').value=reportEndInputValue(report?.period || {});
       $('reportCpc').value=report?.pricing?.cpc ? String(Math.round(Number(report.pricing.cpc))) : '';
       $('reportCreativeIncludes').value=(report?.creativeIncludes || []).join(', ');
       $('reportCreativeExcludes').value=(report?.creativeExcludes || []).join(', ');
@@ -1469,8 +1514,8 @@
     }
     function resetReportForm(){
       setReportForm(null);
-      $('reportStartDate').value=defaultReportStartDate();
-      $('reportEndDate').value='today';
+      $('reportStartDate').value=dateToKstDateTimeInput(defaultReportStartDate(), '00:00');
+      $('reportEndDate').value='';
     }
     function fillReportFromAd(id){
       const ad=latestAds.find((item)=>item.id===id);
@@ -1492,7 +1537,13 @@
         adIds:[ad.id],
         creativeIncludes:[],
         creativeExcludes:[],
-        period:{start:defaultReportStartDate(), end:'today', timezone:'Asia/Seoul'},
+        period:{
+          start:ad.startAt ? isoToKstDateTimeInput(ad.startAt).slice(0,10) : defaultReportStartDate(),
+          end:ad.endAt ? isoToKstDateTimeInput(ad.endAt).slice(0,10) : 'today',
+          startAt:ad.startAt || '',
+          endAt:ad.endAt || '',
+          timezone:'Asia/Seoul',
+        },
         pricing:{model:'', cpc:0, currency:'KRW'},
         notes:'동일 광고 내 문구 로테이션과 30분 기준 노출 cap으로 보정한 기준입니다.',
       });
@@ -1524,7 +1575,7 @@
           : (stats.hasStats ? '<span class="pill ok">링크 활성</span>' : '<span class="pill warn">집계 대기</span>');
         const syncStatus=stats.hasStats && stats.tokenSynced===false ? '<span class="pill warn">토큰 동기화 확인</span>' : '';
         const statsText=stats.hasStats
-          ? `보정 노출 ${formatNumber(stats.impressions)} · 도달 ${formatNumber(stats.reach)} · 클릭 ${formatNumber(stats.clicks)}`
+          ? `확인 노출 ${formatNumber(stats.impressions)} · 도달 ${formatNumber(stats.reach)} · 클릭 ${formatNumber(stats.clicks)}`
           : '아직 집계 payload에 없음';
         const updatedText=stats.updatedAt ? time(stats.updatedAt) : '-';
         const cpc=Number(report.pricing?.cpc || 0);
@@ -1559,7 +1610,7 @@
           </header>
           <div class="report-card-title">${esc(report.advertiser || '광고주')} · ${esc(report.campaign || '광고 캠페인')}</div>
           <div class="report-card-meta">
-            <span>기간 ${esc(report.period?.start || '-')} ~ ${esc(report.period?.end || 'today')}</span>
+            <span>집계 ${esc(reportPeriodText(report.period || {}))}</span>
             <span>${esc(pricingText)}</span>
             <span>광고 ${(report.adIds || []).map((id)=>`<code>${esc(id)}</code>`).join(' ')}</span>
             ${filters.length ? `<span>${filters.map((item)=>`<span class="pill">${item}</span>`).join(' ')}</span>` : ''}
@@ -1597,6 +1648,7 @@
     }
     $('reportSaveBtn').addEventListener('click', async ()=>{
       const report=readReportForm();
+      if(!report) return;
       if(!report.id){ showToast('리포트 ID를 입력해 주세요.', 'bad'); return; }
       if(!report.adIds.length){ showToast('광고 식별자를 입력해 주세요.', 'bad'); return; }
       try{

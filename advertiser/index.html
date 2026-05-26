@@ -6,7 +6,7 @@
   <title>excelkospi 광고 리포트</title>
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#107c41" />
-  <meta name="build-id" content="20260526-560-confirmed-impressions" />
+  <meta name="build-id" content="20260526-561-report-time-window" />
   <link rel="icon" href="/favicon.ico?v=20260521-408" sizes="any" />
   <style>
     :root{
@@ -482,6 +482,14 @@
         return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute} KST`;
       }
 
+      function formatReportRange(period = {}) {
+        const startAt = formatKstDateTime(period.startAt || '');
+        const endAt = formatKstDateTime(period.endAt || '');
+        const start = startAt || (period.start ? `${formatDate(period.start)} 00:00 KST` : '-');
+        const end = endAt || (period.end && period.end !== 'today' ? `${formatDate(period.end)} 23:59 KST` : '현재까지');
+        return `${start} ~ ${end}`;
+      }
+
       function addFact(label, value) {
         const node = document.createElement('div');
         node.className = 'report-fact';
@@ -705,6 +713,7 @@
         $('campaignFacts').textContent = '';
         addFact('업데이트 시각', updatedKst || '-');
         addFact('광고 시작시각', adStartKst || '-');
+        addFact('집계 범위', formatReportRange(report.period || {}));
         addFact('확인된 노출 기준', '화면 50% 이상 1초 · 30분 기준');
         addFact('원본 기록 기준', 'GA4 소재 단위 기록');
         const metricGrid = $('metricGrid');
