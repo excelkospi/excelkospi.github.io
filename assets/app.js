@@ -5562,7 +5562,7 @@ let chatLastActivityAt=Date.now();
 let chatPanelLarge=readStringSetting(CHAT_SIZE_KEY, 'normal', new Set(['normal','large'])) === 'large';
 let chatExcelMode=readBoolSetting(CHAT_EXCEL_MODE_KEY, false);
 function chatImagePreviewEnabled(){
-  return readBoolSetting(CHAT_IMAGE_PREVIEW_KEY, true);
+  return readBoolSetting(CHAT_IMAGE_PREVIEW_KEY, false);
 }
 function chatImagePreviewOptions(messageOrOptions={}, maybeOptions={}){
   const isMessage = messageOrOptions && typeof messageOrOptions === 'object' && Object.prototype.hasOwnProperty.call(messageOrOptions, 'body');
