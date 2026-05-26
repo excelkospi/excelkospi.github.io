@@ -2099,7 +2099,7 @@ function holdingSummary(cards){
   const pnlText = signedHoldingSummaryMoneyText(pnl, currency);
   const dayPnlText = dailyAvailable ? signedHoldingSummaryMoneyText(dayPnl, currency) : '';
   const dayPctText = dailyAvailable ? pctOne(dayPctValue) : '-';
-  const title = `보유 입력 ${count}건 · 현재가치 ${valueText} · 원금 ${investedText} · 누적 손익 ${pnlText}${dailyAvailable ? ` · 일간 손익 ${dayPnlText}` : ''}${converted ? ` · 원/달러 ${num(fx)}원 환산` : ''}`;
+  const title = `보유 입력 ${count}건 · 평가액 ${valueText} · 원금 ${investedText} · 누적 손익 ${pnlText}${dailyAvailable ? ` · 일간 손익 ${dayPnlText}` : ''}${converted ? ` · 원/달러 ${num(fx)}원 환산` : ''}`;
   return { count, mixed:false, value, invested, pnl, pctValue, pctText:pctOne(pctValue), valueText, pnlText, title, converted, modeLabel:'누적', dailyAvailable, dayPnl, dayPctValue, dayPnlText, dayPctText };
 }
 function holdingSummaryView(cards){
@@ -2131,9 +2131,9 @@ function renderHoldingSummaryRow(cards, rowNo){
       <td class="rownum">${rowNo}</td>
       <td class="left holding-summary-merged-cell" colspan="3">
         <span class="holding-summary-content">
-          <span class="holding-summary-title">보유 합계</span>
+          <span class="holding-summary-title">내 보유</span>
           <span class="holding-summary-meta">${esc(meta)}</span>
-          <span class="holding-summary-value-label">현재가치</span>
+          <span class="holding-summary-value-label">평가액</span>
           <span class="holding-summary-value">${esc(valueText)}</span>
           <span class="${klass} holding-summary-pct">${esc(metricPctText)}</span>
         </span>
