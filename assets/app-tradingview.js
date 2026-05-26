@@ -121,6 +121,25 @@ function safariTradingViewIsolationRequired(){
   return /Safari/i.test(ua) && !/(Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS|Android)/i.test(ua);
 }
 
+// 첫 차트를 띄울 때 Safari WebKit 이 iframe 합성기와 sandbox 초기화 비용을
+// 한 번에 처리하면서 잠깐 멈춘 적이 있었다. 첫 마운트 직전에 hidden 한
+// noop iframe 으로 합성기를 warm-up 해 두면 본 차트 iframe 의 첫 패스가
+// 부드러워진다. requestIdleCallback 이 있으면 그쪽으로 미룬다.
+let tradingViewIsolationWarmed = false;
+function warmIsolatedTradingView(){
+  if(tradingViewIsolationWarmed) return;
+  tradingViewIsolationWarmed = true;
+  try{
+    const warm = document.createElement('iframe');
+    warm.setAttribute('aria-hidden', 'true');
+    warm.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+    warm.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:2px;height:2px;border:0;opacity:0;pointer-events:none';
+    warm.srcdoc = '<!doctype html><meta charset="utf-8"><body></body>';
+    document.body?.appendChild(warm);
+    setTimeout(()=>{ try{ warm.remove(); }catch{} }, 4000);
+  }catch{}
+}
+
 function tradingViewFrameSrcdoc(config){
   const payload = JSON.stringify(config).replace(/</g, '\\u003c');
   const bg = tradingViewTheme() === 'dark' ? '#11161b' : '#ffffff';
@@ -130,6 +149,8 @@ function tradingViewFrameSrcdoc(config){
 function renderIsolatedTradingViewWidget(widget, config){
   const token = `${config.symbol}:${Date.now()}`;
   widget.dataset.tvLoadToken = token;
+  warmIsolatedTradingView();
+  // Safari 합성기에 한 박자 더 여유를 준다.
   window.setTimeout(()=>{
     if(widget.dataset.tvLoadToken !== token) return;
     const frame = document.createElement('iframe');
@@ -140,7 +161,7 @@ function renderIsolatedTradingViewWidget(widget, config){
     frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms');
     frame.srcdoc = tradingViewFrameSrcdoc(config);
     widget.replaceChildren(frame);
-  }, 180);
+  }, 280);
 }
 
 function renderTradingViewWidgetIn(widget, symbol){

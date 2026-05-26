@@ -1421,11 +1421,6 @@ function renderCommunityTable(state='ready'){
     rows.push(pollRow);
     rowNum++;
   }
-  const briefRow = typeof personalFeedRow === 'function' ? personalFeedRow(rowNum, dataCols, 'community') : '';
-  if(briefRow){
-    rows.push(briefRow);
-    rowNum++;
-  }
   if(state==='loading'){
     rows.push(`<tr><td class="rownum">${rowNum++}</td><td colspan="${dataCols}" class="community-ready-cell">게시글 불러오는 중...</td></tr>`);
   }else if(!posts.length){

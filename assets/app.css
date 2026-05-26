@@ -56,7 +56,7 @@ body.excel-dark-mode{
   --statusbar-bg:#0b5a36; --statusbar-fg:#f8fff9; --statusbar-button-bg:rgba(248,255,249,.12); --statusbar-button-border:rgba(248,255,249,.38);
   --hover:#203329; --hover-border:#38664d; --pressed:#284536;
   --grid:#3a424a; --head:#20262c; --bg:#15191d; --txt:#eef2f4; --muted:#aab3bb;
-  --up:#ff8f8f; --down:#8bbdff; --flat:#aab3bb;
+  --up:#ff7a7a; --down:#79b1ff; --flat:#aab3bb;
   --sep:#303840; --tab-bg:#1b2025; --ribbon-bg:#171b20; --formula-bg:#14181c;
   --top-tab-bg:#171b20; --sheet-tab-bg:#11161b;
   --panel-bg:#171b20; --soft-bg:#1d2328; --control-bg:#11161b; --control-border:#3a424a;
@@ -100,7 +100,7 @@ body.readability-mode .holding-value-cell.down,
 body.readability-mode .holding-return-cell.down,
 body.readability-mode .holding-summary-return-cell.down{color:#1f6fd6;font-weight:400}
 body.excel-dark-mode.readability-mode{
-  --txt:#f3f7f8; --muted:#c1cad2; --flat:#c1cad2; --up:#ff9a9a; --down:#9fc8ff;
+  --txt:#f3f7f8; --muted:#c1cad2; --flat:#c1cad2; --up:#ff8585; --down:#88baff;
   color:#f3f7f8;font-weight:450;
 }
 body.excel-dark-mode.readability-mode th,
@@ -1310,18 +1310,31 @@ body.readability-mode .news-feed table:not(.community-table) td:nth-child(2){wid
 }
 .quote-sort-select:focus{outline:none;border-color:var(--excel);box-shadow:0 0 0 1px rgba(16,124,65,.14)}
 body.quote-sort-auto #cardsTable .quote-row-handle{cursor:default}
-.timeline-title{height:30px;padding-top:4px;padding-bottom:4px;gap:6px;min-width:0}
+.timeline-title{height:34px;padding-top:4px;padding-bottom:0;gap:6px;min-width:0;align-items:flex-end}
 .col-timeline > .timeline-title{border-bottom:0}
 .col-timeline > .sheet.timeline{border-top:0}
-.timeline-tabs{display:inline-flex;align-items:center;gap:5px;width:max-content;height:22px;border:0;background:transparent;border-radius:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;flex:0 1 auto;min-width:0;max-width:100%}
+/* 시트 위 타임라인 탭 — Excel 시트탭 + 모던 underline tab 톤을 섞었다.
+ * 좌우 가로 스크롤이 가능하다는 사실을 edge fade(mask-image)로 자연스럽게 알린다.
+ * 그룹 사이 간격은 12px 로 늘려 뉴스/ETF 그룹과 토론 그룹의 시각 구분이 살아난다. */
+.timeline-tabs-wrap{position:relative;flex:0 1 auto;min-width:0;max-width:100%;display:flex;align-items:flex-end;height:28px}
+.timeline-tabs{display:inline-flex;align-items:stretch;gap:12px;width:max-content;height:28px;border:0;background:transparent;border-radius:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;flex:0 1 auto;min-width:0;max-width:100%;scroll-behavior:smooth;scroll-snap-type:x proximity;padding:0 2px}
 .timeline-tabs::-webkit-scrollbar{display:none}
-.timeline-tab-group{display:inline-flex;align-items:center;height:22px;border:1px solid #d0d7de;background:#fff;border-radius:3px;overflow:hidden;flex:0 0 auto}
-.timeline-tabs button{position:relative;height:22px;border:0;border-left:1px solid #e5e7eb;background:transparent;color:#605e5c;padding:0 8px;font:inherit;font-size:11.5px;font-weight:650;line-height:20px;cursor:pointer;white-space:nowrap;flex:0 0 auto}
+.timeline-tab-group{display:inline-flex;align-items:stretch;height:28px;gap:2px;background:transparent;border:0;border-radius:0;overflow:visible;flex:0 0 auto}
+.timeline-tabs button{position:relative;height:28px;border:0;background:transparent;color:#5b6770;padding:0 11px;font:inherit;font-size:12.5px;font-weight:650;line-height:28px;cursor:pointer;white-space:nowrap;flex:0 0 auto;border-radius:6px 6px 0 0;scroll-snap-align:start;transition:color 100ms ease, background 100ms ease}
 .timeline-tab-label-tight{display:none}
-.timeline-tab-group button:first-child{border-left:0}
-.timeline-tabs button.active,.timeline-tabs button[aria-selected="true"]{background:#eaf4ef;color:var(--excel-dark);font-weight:700}
-.timeline-tabs button:hover{background:#f3f2f1}
-.timeline-tabs button.has-unread::after{content:"";position:absolute;right:4px;top:3px;width:5px;height:5px;border-radius:999px;background:#20a464;box-shadow:0 0 0 1px #fff}
+.timeline-tabs button.active,.timeline-tabs button[aria-selected="true"]{background:var(--panel-bg);color:var(--excel-dark);font-weight:750;box-shadow:inset 0 -2px 0 var(--excel)}
+.timeline-tabs button:hover:not([aria-selected="true"]){background:#eef3f0;color:var(--excel-dark)}
+.timeline-tabs button:focus-visible{outline:2px solid var(--excel);outline-offset:-2px}
+.timeline-tabs button.has-unread::after{content:"";position:absolute;right:5px;top:5px;width:6px;height:6px;border-radius:999px;background:#20a464;box-shadow:0 0 0 1.5px var(--panel-bg,#fff)}
+/* edge fade 인디케이터 — 양옆에 잘린 탭이 있으면 흐릿한 그라데이션이 보여
+ * 사용자가 직관적으로 좌우 스크롤이 가능하다는 걸 인지한다.
+ * data-overflow 속성은 JS 가 ResizeObserver 로 동기화한다. */
+.timeline-tabs-wrap::before,
+.timeline-tabs-wrap::after{content:"";position:absolute;top:0;bottom:0;width:18px;pointer-events:none;opacity:0;transition:opacity 140ms ease;z-index:2}
+.timeline-tabs-wrap::before{left:0;background:linear-gradient(90deg, var(--panel-bg, #fff) 35%, rgba(255,255,255,0))}
+.timeline-tabs-wrap::after{right:0;background:linear-gradient(-90deg, var(--panel-bg, #fff) 35%, rgba(255,255,255,0))}
+.timeline-tabs-wrap[data-overflow-start="1"]::before{opacity:.95}
+.timeline-tabs-wrap[data-overflow-end="1"]::after{opacity:.95}
 #timelineTable.community-table{min-width:0!important;width:100%;table-layout:fixed}
 #timelineTable.community-table th,#timelineTable.community-table td{overflow:hidden;border-width:1px;border-style:solid;border-color:var(--grid);background-clip:padding-box}
 #timelineTable.community-table .rownum,#timelineTable.community-table .colhead{background:var(--head)!important;color:#555}
@@ -1653,8 +1666,11 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
 .community-image-preview-slot{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
 .community-image-preview-slot[hidden]{display:none}
 .community-post-row.is-just-posted > td:not(.rownum){animation:community-post-inserted 5s ease-out forwards}
-.community-poll-row > td:not(.rownum){height:40px;background:#fbfdfb}
-.community-poll-row.is-voted > td:not(.rownum){background:#f7fbf8}
+/* 투표 행 하단을 살짝 두꺼운 선으로 구분해 게시물 영역과 분리감을 준다.
+ * #timelineTable td 기본 box-shadow 가 셀 우측·하단 1px 선을 그리고 있어
+ * 같은 specificity 이상으로 한 번에 4 면을 덮어쓴다. */
+#timelineTable.community-table .community-poll-row > td:not(.rownum){height:40px;background:#fbfdfb;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #97aea3}
+#timelineTable.community-table .community-poll-row.is-voted > td:not(.rownum){background:#f7fbf8;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #97aea3}
 .community-poll-author span{display:inline-flex;align-items:center;justify-content:center;height:18px;padding:0 7px;border:1px solid #b8d7c0;border-radius:999px;background:#edf8f1;color:#107c41;font-size:10.5px;font-weight:750}
 .community-poll-body{padding-right:6px!important;white-space:normal}
 .community-poll-inner{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:3px 7px;min-width:0;line-height:1.2}
@@ -1748,16 +1764,25 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
   .news-feed table:not(.community-table) .news-title-link{display:block;font-size:11.4px;line-height:1.32}
   .news-mobile-market{display:inline-flex;align-items:center;height:15px;margin-right:4px;padding:0 3px;border-radius:2px;background:#eef4f1;color:#107c41;font-size:9px;font-weight:750;vertical-align:1px}
   .timeline-title .hint{display:none}
-  .timeline-tabs{gap:2px;flex:0 1 auto}
-  .timeline-tabs button{padding:0 4px;font-size:10.6px}
-  .timeline-tabs button.has-unread::after{right:2px;top:3px;width:4px;height:4px}
+  /* 모바일에서 탭 톤은 유지하되 탭 자체를 더 크고 누르기 좋게.
+   * 가로 스크롤이 가능하다는 점은 edge fade 가 알려준다 (.timeline-tabs-wrap). */
+  .timeline-title{height:38px}
+  .timeline-tabs-wrap,
+  .timeline-tabs{height:34px}
+  .timeline-tabs{gap:10px}
+  .timeline-tab-group{height:34px;gap:2px}
+  .timeline-tabs button{height:34px;line-height:34px;padding:0 11px;font-size:12px;border-radius:7px 7px 0 0}
+  .timeline-tabs button.active,
+  .timeline-tabs button[aria-selected="true"]{box-shadow:inset 0 -2.5px 0 var(--excel)}
+  .timeline-tabs button.has-unread::after{right:5px;top:6px;width:6px;height:6px}
   .personal-feed-row td:not(.rownum){height:24px;font-size:10.7px}
   .personal-feed-title{height:17px;margin-right:4px;padding:0 5px;font-size:9.5px;line-height:15px}
   .personal-feed-author .personal-feed-title{margin-right:0;padding:0 3px;font-size:9px}
   .personal-feed-muted{display:none}
   .community-read-marker-row td:not(.rownum){height:20px;font-size:10.2px}
-  @media(max-width:340px){
-    .timeline-tabs button{padding:0 3px}
+  @media(max-width:360px){
+    .timeline-tabs{gap:8px}
+    .timeline-tabs button{padding:0 9px;font-size:11.5px}
     .timeline-tab-label-full{display:none}
     .timeline-tab-label-tight{display:inline}
   }
@@ -2082,16 +2107,18 @@ tr.holding-row:hover .holding-row-add,.holding-row-add:focus-visible{opacity:.78
 .holding-return-cell,.holding-summary-return-cell{font-size:11px;font-weight:500}
 .holding-line.up,.holding-meta-line .up,.holding-value-cell.up,.holding-return-cell.up,.holding-summary-return-cell.up{color:#6f8a56}
 .holding-line.down,.holding-meta-line .down,.holding-value-cell.down,.holding-return-cell.down,.holding-summary-return-cell.down{color:#7b7474}
-body.excel-dark-mode:not(.theme-outlook) .holding-line.up,
-body.excel-dark-mode:not(.theme-outlook) .holding-meta-line .up,
-body.excel-dark-mode:not(.theme-outlook) .holding-value-cell.up,
-body.excel-dark-mode:not(.theme-outlook) .holding-return-cell.up,
-body.excel-dark-mode:not(.theme-outlook) .holding-summary-return-cell.up{color:var(--up)}
-body.excel-dark-mode:not(.theme-outlook) .holding-line.down,
-body.excel-dark-mode:not(.theme-outlook) .holding-meta-line .down,
-body.excel-dark-mode:not(.theme-outlook) .holding-value-cell.down,
-body.excel-dark-mode:not(.theme-outlook) .holding-return-cell.down,
-body.excel-dark-mode:not(.theme-outlook) .holding-summary-return-cell.down{color:var(--down)}
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-row .holding-line.up,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-row .holding-line.down,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-row .holding-meta-line .up,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-row .holding-meta-line .down,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-row .holding-value-cell.up,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-row .holding-value-cell.down,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-row .holding-return-cell.up,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-row .holding-return-cell.down,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-summary-row .holding-summary-pct.up,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-summary-row .holding-summary-pct.down,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-summary-row .holding-summary-return-cell.up,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable tr.holding-summary-row .holding-summary-return-cell.down{color:#aab3bb}
 /* 보유 합계 row — border-color 를 임의로 지정하면 border-collapse 가 인접 행의 더
  * 짙은 var(--grid) 를 채택해서 가로 보더만 진해지고 세로 보더가 옅게 보이는 비대칭이
  * 생긴다. 그래서 보더 색은 표준 --grid 그대로 두고, 행의 distinction 은 배경색·텍스트
@@ -2924,8 +2951,8 @@ body.excel-dark-mode:not(.theme-outlook) tr.news-row.personal-news-pulse > td{an
 body.excel-dark-mode:not(.theme-outlook) .community-read-marker-row td:not(.rownum){background:#151a17;color:#98a69d}
 body.excel-dark-mode:not(.theme-outlook) .community-read-marker-cell span{color:#a9b8af}
 body.excel-dark-mode:not(.theme-outlook) .community-read-marker-cell em{color:#77877f}
-body.excel-dark-mode:not(.theme-outlook) .community-poll-row > td:not(.rownum){background:#111a15}
-body.excel-dark-mode:not(.theme-outlook) .community-poll-row.is-voted > td:not(.rownum){background:#152019}
+body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .community-poll-row > td:not(.rownum){background:#111a15;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #50725d}
+body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .community-poll-row.is-voted > td:not(.rownum){background:#152019;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #50725d}
 body.excel-dark-mode:not(.theme-outlook) .community-poll-author span{background:#193321;border-color:#4a7a5d;color:#b8f2c9}
 body.excel-dark-mode:not(.theme-outlook) .community-author-admin{color:#b8cabf}
 body.excel-dark-mode:not(.theme-outlook) .community-poll-kicker{color:#b8f2c9}
@@ -3078,6 +3105,12 @@ button.notice-card{cursor:pointer}
  * 만든사람 커피값 카드는 이제 data-accent="coffee" 로 처리. */
 .updates-error{color:#a4262c}
 @media(max-width:760px){
+  /* 시세창 하단과 하단 시트 탭(자동/국장/...) 사이에 약간의 간격을 둔다.
+   * floating-tabs 가 fixed 라 .app padding-bottom 이 곧 가시 영역 여백.
+   * 64 → 76px 로 늘려 마지막 행과 탭 사이 공기를 더 준다. */
+  .app{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  .floating-tabs{box-shadow:0 -6px 12px -8px rgba(15,23,28,.18)}
+  body.excel-dark-mode:not(.theme-outlook) .floating-tabs{box-shadow:0 -6px 14px -8px rgba(0,0,0,.55)}
   .toast-stack{bottom:calc(150px + env(safe-area-inset-bottom))}
   .toast.desktop-notice{min-width:min(350px,calc(100vw - 16px));max-width:calc(100vw - 16px);padding:10px 14px;border-radius:14px;font-size:12.5px}
   .loading-toast{bottom:calc(150px + env(safe-area-inset-bottom));padding:9px 13px;font-size:12px}
@@ -3415,6 +3448,17 @@ body.excel-dark-mode:not(.theme-outlook) .chat-new-inline:hover{background:#38bd
   [data-xk-reply-name]::placeholder,
   [data-xk-reply-text]::placeholder,
   #timelineTable.community-table .community-post-input::placeholder{font-size:var(--mobile-form-placeholder-size)!important;line-height:normal;color:#8a8f98;opacity:1}
+}
+/* 좁은 모바일에서 닉네임 칸이 "월급루팡_0420" 길이를 잘라 보여주는 문제 완화.
+ * 닉네임 폭과 패딩을 조정해 8~10자가 화면에 들어오게 한다.
+ * 입력 가능 길이(maxlength=24)는 그대로 둔다. */
+@media(max-width:390px){
+  .chat-composer,
+  [data-xk-reply-bar]{grid-template-columns:60px minmax(0,1fr) 30px 42px;gap:4px}
+  .chat-attach,
+  [data-xk-reply-file]{height:34px;width:30px}
+  .chat-nickname,
+  [data-xk-reply-name]{letter-spacing:0;padding:0 4px;font-size:12px!important}
 }
 
 /* === Cell selection — 진짜 Excel 처럼 ===

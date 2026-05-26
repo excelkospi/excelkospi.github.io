@@ -706,7 +706,7 @@ function etfStatusText(filteredCount=0){
   if(etfLoading && !etfRows.length) return 'ETF 데이터 불러오는 중';
   if(etfError && !etfRows.length) return 'ETF 데이터 조회 실패';
   const age = etfLoadedAt ? relativeTimeKR(new Date(etfLoadedAt).toISOString()) : '';
-  const base = etfRows.length ? `ETF ${filteredCount.toLocaleString('ko-KR')}/${etfRows.length.toLocaleString('ko-KR')}개` : 'ETF 둘러보기';
+  const base = etfRows.length ? `ETF ${filteredCount.toLocaleString('ko-KR')}/${etfRows.length.toLocaleString('ko-KR')}개` : 'ETF 탐색기';
   return `${base}${age ? ` · ${age} 불러옴` : ''}`;
 }
 
@@ -737,7 +737,7 @@ function renderEtfBrowser(options={}){
   const compact=etfCompactLayout();
   const dataCols=compact ? 4 : 6;
   let html=etfTableHeader(compact);
-  html += `<tr class="etf-filter-row"><td class="rownum">1</td><td colspan="${dataCols}" class="etf-filter-cell">${etfControlsHtml(etfLoading && !etfRows.length)}<div class="etf-beta-note">ETF 둘러보기 기능은 베타로 현재 기능을 점검 및 추가 중입니다. <a href="https://etf-search.vercel.app/etf_list.html" target="_blank" rel="noopener noreferrer">데이터 소스</a></div></td></tr>`;
+  html += `<tr class="etf-filter-row"><td class="rownum">1</td><td colspan="${dataCols}" class="etf-filter-cell">${etfControlsHtml(etfLoading && !etfRows.length)}<div class="etf-beta-note">ETF 탐색기 기능은 베타로 현재 기능을 점검 및 추가 중입니다. <a href="https://etf-search.vercel.app/etf_list.html" target="_blank" rel="noopener noreferrer">데이터 소스</a></div></td></tr>`;
   html += etfSubheadRow(compact);
   if(etfLoading && !etfRows.length){
     html += `<tr class="loading-row"><td class="rownum">3</td><td colspan="${dataCols}" class="etf-loading-cell"><span class="news-loading-spin"></span> ETF 데이터를 불러오는 중...</td></tr>`;

@@ -86,7 +86,7 @@ let timelineTab = (()=>{
     return v==='community' || v==='etf' ? v : 'news';
   }catch{ return 'news'; }
 })();
-const ETF_SCRIPT_VERSION = '20260524-485';
+const ETF_SCRIPT_VERSION = '20260527-586';
 let etfModulePromise = null;
 
 function etfModule(){
@@ -102,7 +102,7 @@ function etfHasRows(){
   return !!etfModuleState().hasRows;
 }
 
-function renderEtfPlaceholder(message='ETF 둘러보기 준비 중...'){
+function renderEtfPlaceholder(message='ETF 탐색기 준비 중...'){
   const table=document.getElementById('timelineTable');
   if(!table) return;
   table.classList.remove('community-table');
@@ -165,7 +165,7 @@ function updateEtfHint(filteredCount){
   const mod=etfModule();
   if(mod) return mod.updateEtfHint(filteredCount);
   const tlHintEl=document.getElementById('timelineHint');
-  if(tlHintEl && timelineIsEtf()) tlHintEl.textContent='ETF 둘러보기 준비 중';
+  if(tlHintEl && timelineIsEtf()) tlHintEl.textContent='ETF 탐색기 준비 중';
 }
 
 function handleEtfControlInput(ev){
@@ -2879,12 +2879,10 @@ function renderNewsFeedTable(rows){
   const { compact, dataCols, header } = newsTableLayout();
   const EMPTY_TARGET = newsPadTarget();
   let rowNo = 2;
-  const briefRow = typeof personalFeedRow === 'function' ? personalFeedRow(rowNo, dataCols) : '';
-  if(briefRow) rowNo++;
   if(items.length===0){
     const emptyRowNo = rowNo++;
     const empties=makeEmptyRows(rowNo, Math.max(0, EMPTY_TARGET - (rowNo - 2)), dataCols);
-    return header + briefRow + `<tr><td class="rownum">${emptyRowNo}</td><td colspan="${dataCols}" class="center flat">표시할 뉴스가 없습니다</td></tr>` + empties;
+    return header + `<tr><td class="rownum">${emptyRowNo}</td><td colspan="${dataCols}" class="center flat">표시할 뉴스가 없습니다</td></tr>` + empties;
   }
   const personalKeys = personalNewsKeySet(items);
   const rowsHtml = items.map((n,i)=>{
@@ -2921,7 +2919,7 @@ function renderNewsFeedTable(rows){
   const startIdx=rowNo + items.length;
   const padCount=Math.max(0, EMPTY_TARGET - (startIdx - 2));
   const empties=makeEmptyRows(startIdx, padCount, dataCols);
-  return header + briefRow + rowsHtml + empties;
+  return header + rowsHtml + empties;
 }
 
 /* ETF browser implementation lives in /assets/app-etf.js and is lazy-loaded on demand. */
@@ -4855,11 +4853,10 @@ async function loadSnapshot(options={}){
             snapshotConsecutiveFailures=0;
             return;
           }
-          if(staleRendered){
-            setLoading(false);
-            snapshotConsecutiveFailures=0;
-            return;
-          }
+          // 락 보유 탭이 BFCache 등으로 응답 없으면 staleRendered 라도 네트워크
+          // 재시도까지 넘어가게 둔다. 옛 동작은 60s 폴링 직전까지 stale 화면
+          // 그대로 멈춰 보였다.
+          debugWarn('shared poll lock unresponsive, fall through to network', { pollLockKey, staleRendered });
         }
       }
     }
@@ -5327,6 +5324,41 @@ document.querySelectorAll('[data-timeline-tab]').forEach((btn)=>{
   btn.addEventListener('click',()=>setTimelineTab(btn.dataset.timelineTab));
 });
 updateTimelineTabs();
+// 타임라인 탭 가로 스크롤 인디케이터 — 좌우에 잘린 탭이 있으면 edge fade 가 보이도록
+// data-overflow-start/end 속성을 동기화한다. 활성 탭은 화면 안으로 스크롤한다.
+(function bindTimelineTabsOverflow(){
+  const wrap = document.querySelector('[data-timeline-tabs-wrap]');
+  const scroller = wrap?.querySelector('.timeline-tabs');
+  if(!wrap || !scroller) return;
+  const sync = ()=>{
+    const max = scroller.scrollWidth - scroller.clientWidth;
+    const start = scroller.scrollLeft > 2 ? '1' : '0';
+    const end = (max - scroller.scrollLeft) > 2 ? '1' : '0';
+    if(wrap.dataset.overflowStart !== start) wrap.dataset.overflowStart = start;
+    if(wrap.dataset.overflowEnd !== end) wrap.dataset.overflowEnd = end;
+  };
+  const scrollActiveIntoView = ()=>{
+    const active = scroller.querySelector('button[aria-selected="true"]');
+    if(!active) return;
+    const aRect = active.getBoundingClientRect();
+    const sRect = scroller.getBoundingClientRect();
+    if(aRect.left < sRect.left + 8){
+      scroller.scrollBy({ left: aRect.left - sRect.left - 12, behavior:'smooth' });
+    }else if(aRect.right > sRect.right - 8){
+      scroller.scrollBy({ left: aRect.right - sRect.right + 12, behavior:'smooth' });
+    }
+  };
+  scroller.addEventListener('scroll', sync, { passive:true });
+  window.addEventListener('resize', sync, { passive:true });
+  if(typeof ResizeObserver === 'function') new ResizeObserver(sync).observe(scroller);
+  scroller.addEventListener('click', (ev)=>{
+    if(ev.target?.closest?.('button[data-timeline-tab]')) setTimeout(scrollActiveIntoView, 60);
+  });
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) sync(); });
+  sync();
+  // 첫 진입 시 활성 탭이 화면 밖에 있으면 한 번 자연스럽게 스크롤
+  setTimeout(scrollActiveIntoView, 200);
+})();
 startTimelineTabEngagement(timelineActiveTabKey(), 'initial');
 document.addEventListener('visibilitychange', ()=>{
   if(document.hidden) flushTimelineTabEngagement('hidden');
