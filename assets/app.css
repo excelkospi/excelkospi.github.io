@@ -1311,7 +1311,7 @@ body.readability-mode .news-feed table:not(.community-table) td:nth-child(2){wid
 .quote-sort-select:focus{outline:none;border-color:var(--excel);box-shadow:0 0 0 1px rgba(16,124,65,.14)}
 body.quote-sort-auto #cardsTable .quote-row-handle{cursor:default}
 .timeline-title{height:30px;padding:1px 7px 0;gap:6px;min-width:0;align-items:flex-end}
-.col-timeline > .timeline-title{border-bottom:0}
+.col-timeline > .timeline-title{border-bottom:1px solid var(--sep)}
 .col-timeline > .sheet.timeline{border-top:0}
 /* 시트 위 타임라인 탭 — Excel 시트탭 + 조용한 underline tab 톤을 섞었다.
  * 좌우 가로 스크롤이 가능하다는 사실을 edge fade(mask-image)로 자연스럽게 알린다.
@@ -1463,6 +1463,12 @@ tr.news-row.personal-news-pulse > td{animation:personal-news-pulse 1.7s ease-out
 }
 :is(#timelineTable,.timeline-swipe-table) tr:first-child > :first-child{
   box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 1px 0 var(--grid),inset 0 -1px 0 var(--grid)!important;
+}
+.col-timeline > .sheet.timeline :is(#timelineTable,.timeline-swipe-table) tr:first-child > *{
+  box-shadow:inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)!important;
+}
+.col-timeline > .sheet.timeline :is(#timelineTable,.timeline-swipe-table) tr:first-child > :first-child{
+  box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)!important;
 }
 :is(#timelineTable,.timeline-swipe-table) col.etf-rownum-col{width:34px}
 :is(#timelineTable,.timeline-swipe-table) col.etf-name-col{width:210px}
