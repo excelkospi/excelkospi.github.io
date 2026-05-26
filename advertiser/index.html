@@ -729,19 +729,21 @@
         metricGrid.textContent = '';
         const metrics = [
           renderMetric(basis.capAdded > 0 ? '30분 보정 노출' : '보정 노출', formatNumber(basis.corrected), basis.capAdded > 0 ? `GA 실측 ${formatNumber(basis.measured)}회` : '로테이션 중복 조정', 'primary'),
-          renderMetric('도달수', formatNumber(basis.reach), basis.frequency ? `고유 사용자 · 빈도 ${basis.frequency.toFixed(2)}회` : '고유 사용자'),
           renderMetric('클릭', formatNumber(basis.clicks), `보정 CTR ${formatPercent(basis.ctr)}`),
           renderMetric('보정 CTR', formatPercent(basis.ctr), '클릭 / 보정 노출'),
-          renderMetric('RAW CTR', formatPercent(basis.rawCtr), '클릭 / RAW 노출', 'warn'),
-          renderMetric('RAW 노출', formatNumber(basis.raw), basis.duplicated ? `문구 합산 차이 ${formatNumber(basis.duplicated)}` : '보정 차이 없음')
+          renderMetric('도달수', formatNumber(basis.reach), basis.frequency ? `고유 사용자 · 빈도 ${basis.frequency.toFixed(2)}회` : '고유 사용자')
         ];
         if (basis.estimatedCost) {
-          metrics.splice(3, 0,
+          metrics.push(
             renderMetric('예상 비용', formatCurrency(basis.estimatedCost, basis.currency), `CPC ${formatCurrency(basis.cpc, basis.currency)}`),
             renderMetric('도달당 비용', formatCurrency(basis.costPerReach, basis.currency), '예상 비용 / 도달수'),
             renderMetric('CPM', formatCurrency(basis.cpm, basis.currency), '예상 비용 / 보정 노출 × 1,000')
           );
         }
+        metrics.push(
+          renderMetric('RAW 노출', formatNumber(basis.raw), basis.duplicated ? `문구 합산 차이 ${formatNumber(basis.duplicated)}` : '보정 차이 없음'),
+          renderMetric('RAW CTR', formatPercent(basis.rawCtr), '클릭 / RAW 노출', 'warn')
+        );
         metricGrid.append(...metrics);
         renderBreakdown(report.placements || [], $('placementRows'), basis.corrected || 0, '영역별 데이터가 아직 없습니다.');
         renderCreatives(report.creatives || []);
