@@ -6,7 +6,7 @@
   <title>excelkospi 광고 리포트</title>
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#107c41" />
-  <meta name="build-id" content="20260526-555-ad-stats-schedule-repair" />
+  <meta name="build-id" content="20260526-556-ad-report-kst-meta" />
   <link rel="icon" href="/favicon.ico?v=20260521-408" sizes="any" />
   <style>
     :root{
@@ -144,6 +144,21 @@
     }
     .campaign-title{margin:0;font-size:21px;letter-spacing:-.025em;line-height:1.25}
     .meta{margin-top:6px;color:var(--muted);font-size:12px;line-height:1.5}
+    .report-facts{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+      gap:7px;
+      margin-top:10px;
+    }
+    .report-fact{
+      min-width:0;
+      border:1px solid #e4ece6;
+      border-radius:7px;
+      background:#fbfdfb;
+      padding:7px 9px;
+    }
+    .report-fact .k{font-size:11px;font-weight:900;color:var(--muted)}
+    .report-fact .v{margin-top:3px;font-size:13px;font-weight:850;color:#24332b;line-height:1.35}
     .tag-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
     .tag{
       min-height:24px;
@@ -359,6 +374,7 @@
         <div>
           <h2 class="campaign-title" id="campaignTitle"></h2>
           <div class="meta" id="campaignMeta"></div>
+          <div class="report-facts" id="campaignFacts"></div>
           <div class="tag-row">
             <span class="tag">광고주 보고 기준</span>
             <span class="tag">문구 로테이션 보정</span>
@@ -465,6 +481,7 @@
         notice: '공지 영역',
       };
       const correctedImpressionHelp = '보정 노출은 같은 광고 안의 문구 로테이션 중복과 과거 1시간 노출 cap 기간을 광고주 보고 기준으로 환산한 노출수입니다.';
+      const reachHelp = '도달수는 GA4 totalUsers 기준입니다. 보고 기간 안에 해당 광고 ID의 프로모션 노출/클릭 이벤트가 1회 이상 기록된 고유 사용자 수입니다.';
 
       function numberValue(value) {
         const n = Number(value);
@@ -501,6 +518,37 @@
         return text || '-';
       }
 
+      function formatKstDateTime(value) {
+        const time = Date.parse(String(value || ''));
+        if (!Number.isFinite(time)) return '';
+        const parts = new Intl.DateTimeFormat('ko-KR', {
+          timeZone: 'Asia/Seoul',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }).formatToParts(new Date(time)).reduce((acc, part) => {
+          acc[part.type] = part.value;
+          return acc;
+        }, {});
+        return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute} KST`;
+      }
+
+      function addFact(label, value) {
+        const node = document.createElement('div');
+        node.className = 'report-fact';
+        const k = document.createElement('div');
+        k.className = 'k';
+        k.textContent = label;
+        const v = document.createElement('div');
+        v.className = 'v';
+        v.textContent = value || '-';
+        node.append(k, v);
+        $('campaignFacts').append(node);
+      }
+
       function setStatus(message, type) {
         statusEl.textContent = message || '';
         statusEl.className = `status ${type === 'good' ? 'good' : ''}`;
@@ -529,14 +577,15 @@
       }
 
       function appendLabelWithHelp(target, label) {
-        const needsHelp = label.includes('보정 노출') || label === '30분 기준 보정';
+        const needsHelp = label.includes('보정 노출') || label === '30분 기준 보정' || label === '도달수';
         if (!needsHelp) {
           target.textContent = label;
           return;
         }
+        const help = label === '도달수' ? reachHelp : correctedImpressionHelp;
         const wrap = document.createElement('span');
         wrap.className = 'with-help';
-        wrap.append(document.createTextNode(label), helpTip(correctedImpressionHelp));
+        wrap.append(document.createTextNode(label), helpTip(help));
         target.append(wrap);
       }
 
@@ -737,7 +786,7 @@
         const costCopy = basis.estimatedCost
           ? ` CPC ${formatCurrency(basis.cpc, basis.currency)} 기준 예상 비용은 ${formatCurrency(basis.estimatedCost, basis.currency)}, 도달당 비용은 ${formatCurrency(basis.costPerReach, basis.currency)}, CPM은 ${formatCurrency(basis.cpm, basis.currency)}입니다.`
           : '';
-        return `초기 GA4 RAW 노출은 문구별 소재 행을 그대로 합산한 값입니다. 초창기에는 같은 광고라도 문구 A/B/C가 번갈아 나가면 각 문구가 별도 소재처럼 집계되어, 한 광고 묶음의 실제 노출 기회보다 RAW 노출이 크게 보일 수 있었습니다. 이 리포트는 같은 광고 ID와 같은 영역·슬롯에 나온 문구 로테이션을 하나의 광고 묶음으로 다시 합쳐 보정 노출 ${formatNumber(basis.corrected)}회를 보고 기준으로 사용합니다.${capCopy} 보정 CTR ${formatPercent(basis.ctr)}는 클릭을 보정 노출로 나눈 광고주 보고 기준이고, RAW CTR ${formatPercent(basis.rawCtr)}는 클릭을 RAW 노출 ${formatNumber(basis.raw)}회로 나눈 소재별 참고 지표입니다.${costCopy}`;
+        return `초기 GA4 RAW 노출은 문구별 소재 행을 그대로 합산한 값입니다. 초창기에는 같은 광고라도 문구 A/B/C가 번갈아 나가면 각 문구가 별도 소재처럼 집계되어, 한 광고 묶음의 실제 노출 기회보다 RAW 노출이 크게 보일 수 있었습니다. 이 리포트는 같은 광고 ID와 같은 영역·슬롯에 나온 문구 로테이션을 하나의 광고 묶음으로 다시 합쳐 보정 노출 ${formatNumber(basis.corrected)}회를 보고 기준으로 사용합니다.${capCopy} 도달수 ${formatNumber(basis.reach)}명은 GA4 totalUsers 기준으로, 보고 기간 안에 해당 광고 ID의 프로모션 이벤트가 1회 이상 기록된 고유 사용자 수입니다. 보정 CTR ${formatPercent(basis.ctr)}는 클릭을 보정 노출로 나눈 광고주 보고 기준이고, RAW CTR ${formatPercent(basis.rawCtr)}는 클릭을 RAW 노출 ${formatNumber(basis.raw)}회로 나눈 소재별 참고 지표입니다.${costCopy}`;
       }
 
       function renderReport(payload, token) {
@@ -748,13 +797,20 @@
         document.title = `${report.advertiser || '광고주'} 광고 리포트 - excelkospi`;
         $('campaignTitle').textContent = `${report.advertiser || '광고주'} · ${report.campaign || '광고 캠페인'}`;
         const periodText = [period.start, period.end].filter(Boolean).join(' ~ ');
-        $('campaignMeta').textContent = `${periodText || '기간 미지정'} · ${period.timezone || 'Asia/Seoul'} · 업데이트 ${payload.updatedAt || report.updatedAt || '-'}`;
+        const updatedAt = payload.updatedAt || report.updatedAt || '';
+        const updatedKst = formatKstDateTime(updatedAt);
+        const adStartKst = formatKstDateTime(report.adStartAt || '');
+        $('campaignMeta').textContent = '보고 기준: 30분 기준 보정 노출 · GA4 정제 데이터';
+        $('campaignFacts').textContent = '';
+        addFact('기준 시각', updatedKst || '-');
+        addFact('광고 시작시각', adStartKst || (period.start ? `${formatDate(period.start)} 00:00 KST` : '-'));
+        addFact('집계 기간', `${periodText || '기간 미지정'} · ${period.timezone || 'Asia/Seoul'}`);
         $('billingTag').hidden = !basis.estimatedCost;
         const metricGrid = $('metricGrid');
         metricGrid.textContent = '';
         const metrics = [
           renderMetric(basis.capAdded > 0 ? '30분 기준 보정 노출' : '보정 노출', formatNumber(basis.corrected), basis.capAdded > 0 ? `GA 실측 ${formatNumber(basis.measured)}회` : '광고주 보고 기준', 'primary'),
-          renderMetric('도달수', formatNumber(basis.reach), basis.frequency ? `빈도 ${basis.frequency.toFixed(2)}회` : '광고를 본 사용자'),
+          renderMetric('도달수', formatNumber(basis.reach), basis.frequency ? `GA4 totalUsers · 빈도 ${basis.frequency.toFixed(2)}회` : 'GA4 totalUsers 기준'),
           renderMetric('클릭', formatNumber(basis.clicks), `보정 CTR ${formatPercent(basis.ctr)}`),
           renderMetric('보정 CTR', formatPercent(basis.ctr), '클릭 / 보정 노출'),
           renderMetric('RAW CTR', formatPercent(basis.rawCtr), '클릭 / RAW 노출', 'warn'),
@@ -775,8 +831,8 @@
         currentExplanation = buildExplanation(report, basis);
         $('reportCopy').textContent = currentExplanation;
         const defaultNote = basis.capAdded > 0
-          ? 'GA4 이벤트 기준입니다. 클릭은 광고 링크 클릭입니다. 보정 노출은 초창기 문구별 중복 집계와 1시간 cap 기간을 30분 기준으로 환산한 광고주 보고 기준입니다. RAW 노출과 RAW CTR은 문구별 소재 반응을 보기 위한 참고 지표입니다. 광고 차단, 브라우저 제한, GA 집계 지연으로 일부 수치는 늦게 반영될 수 있습니다.'
-          : 'GA4 이벤트 기준입니다. 클릭은 광고 링크 클릭입니다. 보정 노출은 초창기 문구별 중복 집계를 동일 광고 묶음 기준으로 환산한 광고주 보고 기준입니다. RAW 노출과 RAW CTR은 문구별 소재 반응을 보기 위한 참고 지표입니다. 광고 차단, 브라우저 제한, GA 집계 지연으로 일부 수치는 늦게 반영될 수 있습니다.';
+          ? 'GA4 이벤트 기준입니다. 클릭은 광고 링크 클릭입니다. 도달수는 GA4 totalUsers 기준의 고유 사용자 수입니다. 보정 노출은 초창기 문구별 중복 집계와 1시간 cap 기간을 30분 기준으로 환산한 광고주 보고 기준입니다. RAW 노출과 RAW CTR은 문구별 소재 반응을 보기 위한 참고 지표입니다. 광고 차단, 브라우저 제한, GA 집계 지연으로 일부 수치는 늦게 반영될 수 있습니다.'
+          : 'GA4 이벤트 기준입니다. 클릭은 광고 링크 클릭입니다. 도달수는 GA4 totalUsers 기준의 고유 사용자 수입니다. 보정 노출은 초창기 문구별 중복 집계를 동일 광고 묶음 기준으로 환산한 광고주 보고 기준입니다. RAW 노출과 RAW CTR은 문구별 소재 반응을 보기 위한 참고 지표입니다. 광고 차단, 브라우저 제한, GA 집계 지연으로 일부 수치는 늦게 반영될 수 있습니다.';
         $('reportNotes').textContent = report.notes ? `${report.notes} ${defaultNote}` : defaultNote;
         reportEl.style.display = 'block';
         setupHelp.style.display = 'none';
