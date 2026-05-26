@@ -89,12 +89,14 @@ body.readability-mode #cardsTable .up,
 body.readability-mode .sheet.summary .up{color:#d04444;font-weight:600}
 body.readability-mode .holding-line.up,
 body.readability-mode .holding-meta-line .up,
+body.readability-mode .holding-value-cell.up,
 body.readability-mode .holding-return-cell.up,
 body.readability-mode .holding-summary-return-cell.up{color:#d04444;font-weight:400}
 body.readability-mode #cardsTable .down,
 body.readability-mode .sheet.summary .down{color:#1f6fd6;font-weight:600}
 body.readability-mode .holding-line.down,
 body.readability-mode .holding-meta-line .down,
+body.readability-mode .holding-value-cell.down,
 body.readability-mode .holding-return-cell.down,
 body.readability-mode .holding-summary-return-cell.down{color:#1f6fd6;font-weight:400}
 body.excel-dark-mode.readability-mode{
@@ -107,12 +109,14 @@ body.excel-dark-mode.readability-mode #cardsTable .up,
 body.excel-dark-mode.readability-mode .sheet.summary .up,
 body.excel-dark-mode.readability-mode .holding-line.up,
 body.excel-dark-mode.readability-mode .holding-meta-line .up,
+body.excel-dark-mode.readability-mode .holding-value-cell.up,
 body.excel-dark-mode.readability-mode .holding-return-cell.up,
 body.excel-dark-mode.readability-mode .holding-summary-return-cell.up{color:#ffb0b0}
 body.excel-dark-mode.readability-mode #cardsTable .down,
 body.excel-dark-mode.readability-mode .sheet.summary .down,
 body.excel-dark-mode.readability-mode .holding-line.down,
 body.excel-dark-mode.readability-mode .holding-meta-line .down,
+body.excel-dark-mode.readability-mode .holding-value-cell.down,
 body.excel-dark-mode.readability-mode .holding-return-cell.down,
 body.excel-dark-mode.readability-mode .holding-summary-return-cell.down{color:#bad6ff}
 .app{min-height:100vh;padding-bottom:calc(64px + env(safe-area-inset-bottom));overflow-x:clip}
@@ -2054,14 +2058,14 @@ tr:hover .row-holding{opacity:.65}
 #cardsTable tr.holding-lot-row:hover td{background-color:#ecf4ef}
 tr.holding-row td{background-color:#fff;color:#5f6368;font-size:11.5px;height:24px}
 tr.holding-row .holding-cell{position:relative;padding-right:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-tr.holding-row .holding-meta-cell{padding-left:8px;padding-right:50px}
+tr.holding-row .holding-meta-cell{padding-left:5px;padding-right:50px}
 tr.holding-edit-row .holding-cell{padding-right:22px}
 tr.holding-row .holding-row-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);opacity:0}
 tr.holding-row:hover .holding-row-x{opacity:.65}
-.holding-line,.holding-meta-line{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+.holding-line,.holding-meta-line{display:inline-flex;align-items:center;gap:3px;white-space:nowrap;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:400}
 .holding-line > span,.holding-meta-line > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .holding-line .muted,.holding-meta-line .muted{color:#7a828a}
-.holding-branch{flex:0 0 auto;color:#8a978f;font-size:10.5px;font-weight:650;margin-right:-1px;line-height:1}
+.holding-branch{flex:0 0 auto;color:#8a978f;font-size:10.5px;font-weight:650;width:11px;margin-right:0;line-height:1}
 .holding-lot-label{font-size:10.5px}
 .holding-row-add{position:absolute;z-index:2;top:50%;transform:translateY(-50%);height:18px;border:1px solid transparent;border-radius:3px;background:transparent;color:#60756a;padding:0 5px;font:inherit;font-size:10.5px;font-weight:600;line-height:16px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity 120ms,background 120ms,color 120ms,border-color 120ms}
 .holding-row-add{right:26px}
@@ -2073,14 +2077,16 @@ tr.holding-row:hover .holding-row-add,.holding-row-add:focus-visible{opacity:.78
 .holding-value-cell.quote-price-cell{padding-left:18px}
 .holding-value-cell .quote-price-currency{color:#9aa6a1}
 .holding-return-cell,.holding-summary-return-cell{font-size:11px;font-weight:500}
-.holding-line.up,.holding-meta-line .up,.holding-return-cell.up,.holding-summary-return-cell.up{color:#6f8a56}
-.holding-line.down,.holding-meta-line .down,.holding-return-cell.down,.holding-summary-return-cell.down{color:#7b7474}
+.holding-line.up,.holding-meta-line .up,.holding-value-cell.up,.holding-return-cell.up,.holding-summary-return-cell.up{color:#6f8a56}
+.holding-line.down,.holding-meta-line .down,.holding-value-cell.down,.holding-return-cell.down,.holding-summary-return-cell.down{color:#7b7474}
 body.excel-dark-mode:not(.theme-outlook) .holding-line.up,
 body.excel-dark-mode:not(.theme-outlook) .holding-meta-line .up,
+body.excel-dark-mode:not(.theme-outlook) .holding-value-cell.up,
 body.excel-dark-mode:not(.theme-outlook) .holding-return-cell.up,
 body.excel-dark-mode:not(.theme-outlook) .holding-summary-return-cell.up{color:var(--up)}
 body.excel-dark-mode:not(.theme-outlook) .holding-line.down,
 body.excel-dark-mode:not(.theme-outlook) .holding-meta-line .down,
+body.excel-dark-mode:not(.theme-outlook) .holding-value-cell.down,
 body.excel-dark-mode:not(.theme-outlook) .holding-return-cell.down,
 body.excel-dark-mode:not(.theme-outlook) .holding-summary-return-cell.down{color:var(--down)}
 /* 보유 합계 row — border-color 를 임의로 지정하면 border-collapse 가 인접 행의 더
@@ -2152,9 +2158,11 @@ body.excel-dark-mode.readability-mode #cardsTable .holding-meta-line .muted,
 body.excel-dark-mode.readability-mode #cardsTable .holding-summary-meta,
 body.excel-dark-mode.readability-mode #cardsTable .holding-summary-value-label{color:#8ea197}
 body.excel-dark-mode.readability-mode #cardsTable .holding-meta-line .up,
+body.excel-dark-mode.readability-mode #cardsTable .holding-value-cell.up,
 body.excel-dark-mode.readability-mode #cardsTable .holding-return-cell.up,
 body.excel-dark-mode.readability-mode #cardsTable .holding-summary-return-cell.up{color:#ffb0b0}
 body.excel-dark-mode.readability-mode #cardsTable .holding-meta-line .down,
+body.excel-dark-mode.readability-mode #cardsTable .holding-value-cell.down,
 body.excel-dark-mode.readability-mode #cardsTable .holding-return-cell.down,
 body.excel-dark-mode.readability-mode #cardsTable .holding-summary-return-cell.down{color:#bad6ff}
 .holding-inline{display:grid;grid-template-columns:minmax(70px,1fr) minmax(58px,.8fr) 42px;gap:5px;align-items:center;padding-right:18px;max-width:100%}
@@ -2842,17 +2850,23 @@ body.excel-dark-mode:not(.theme-outlook) .holding-summary-value-cell{color:#b8ca
 body.excel-dark-mode:not(.theme-outlook) .holding-summary-pct.up{color:var(--up)}
 body.excel-dark-mode:not(.theme-outlook) .holding-summary-pct.down{color:var(--down)}
 body.excel-dark-mode:not(.theme-outlook) #cardsTable .holding-meta-line .up,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable .holding-value-cell.up,
 body.excel-dark-mode:not(.theme-outlook) #cardsTable .holding-return-cell.up,
 body.excel-dark-mode:not(.theme-outlook) #cardsTable .holding-summary-return-cell.up{color:var(--up)}
 body.excel-dark-mode:not(.theme-outlook) #cardsTable .holding-meta-line .down,
+body.excel-dark-mode:not(.theme-outlook) #cardsTable .holding-value-cell.down,
 body.excel-dark-mode:not(.theme-outlook) #cardsTable .holding-return-cell.down,
 body.excel-dark-mode:not(.theme-outlook) #cardsTable .holding-summary-return-cell.down{color:var(--down)}
+body.readability-mode #cardsTable tr.holding-row td.holding-value-cell.up,
 body.readability-mode #cardsTable tr.holding-row td.holding-return-cell.up,
 body.readability-mode #cardsTable tr.holding-row td.holding-summary-return-cell.up{color:#d04444}
+body.readability-mode #cardsTable tr.holding-row td.holding-value-cell.down,
 body.readability-mode #cardsTable tr.holding-row td.holding-return-cell.down,
 body.readability-mode #cardsTable tr.holding-row td.holding-summary-return-cell.down{color:#1f6fd6}
+body.excel-dark-mode.readability-mode:not(.theme-outlook) #cardsTable tr.holding-row td.holding-value-cell.up,
 body.excel-dark-mode.readability-mode:not(.theme-outlook) #cardsTable tr.holding-row td.holding-return-cell.up,
 body.excel-dark-mode.readability-mode:not(.theme-outlook) #cardsTable tr.holding-row td.holding-summary-return-cell.up{color:#ffb0b0}
+body.excel-dark-mode.readability-mode:not(.theme-outlook) #cardsTable tr.holding-row td.holding-value-cell.down,
 body.excel-dark-mode.readability-mode:not(.theme-outlook) #cardsTable tr.holding-row td.holding-return-cell.down,
 body.excel-dark-mode.readability-mode:not(.theme-outlook) #cardsTable tr.holding-row td.holding-summary-return-cell.down{color:#bad6ff}
 body.excel-dark-mode:not(.theme-outlook) .community-compose-box,

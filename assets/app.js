@@ -2000,17 +2000,11 @@ function signedHoldingSummaryMoneyText(value, currency='KRW'){
 }
 function holdingLotMetaHtml(calc, index=0, total=1){
   const label = total > 1 ? `<span class="muted holding-lot-label">#${index + 1}</span>` : '';
-  const metric = holdingModeMetric(calc);
-  const metricClass = cls(metric.pct);
-  const metricText = metric.unavailable
-    ? `${metric.label} 손익 -`
-    : `${metric.mode === 'daily' ? '일일 손익' : '손익'} ${signedHoldingAmountText(metric.pnl, calc.currency)}`;
   return `
     <span class="holding-meta-line">
-      <span class="holding-branch" aria-hidden="true">ㄴ</span>
+      <span class="holding-branch" aria-hidden="true">↳</span>
       ${label}
       <span>수량 ${esc(num(calc.qty))}</span>
-      <span class="${metricClass}">${esc(metricText)}</span>
       <span class="muted">평단 ${esc(holdingSummaryMoneyText(calc.avg, calc.currency))}</span>
     </span>`;
 }
