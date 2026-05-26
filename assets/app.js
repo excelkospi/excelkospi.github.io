@@ -2596,7 +2596,7 @@ function canRetryFetch(url, init){
   if(init?.body != null) return false;
   let pathname=String(url || '');
   try{ pathname=new URL(apiUrl(pathname), location.href).pathname; }catch{}
-  return /^\/api\/(?:snapshot|community|chat-messages|chat-config|timeline|quote|chart|presence|resolve-mentions)\b/.test(pathname);
+  return /^\/api\/(?:snapshot|community|chat-messages|chat-config|chat-recommend|timeline|quote|chart|presence|resolve-mentions)\b/.test(pathname);
 }
 function isRetryableFetchError(error){
   const msg=String(error?.message || error || '');
@@ -5581,6 +5581,7 @@ let chatRecommendedSet=null;
 let chatAwardNotices=[];
 let chatKnownAwardIds=new Set();
 let chatAwardNoticePrimed=false;
+let chatOwnRecommendBadgeCheckAt=0;
 let chatIsOpen=false;
 let chatConnectionStatus='연결 준비 중';
 let chatIdleTimer=null;
@@ -5596,6 +5597,7 @@ let chatSendInFlight=false;
 let chatLastActivityAt=Date.now();
 let chatPanelLarge=readStringSetting(CHAT_SIZE_KEY, 'normal', new Set(['normal','large'])) === 'large';
 let chatExcelMode=readBoolSetting(CHAT_EXCEL_MODE_KEY, false);
+const CHAT_OWN_RECOMMEND_STATUS_MS = 60 * 1000;
 function chatImagePreviewEnabled(){
   return readBoolSetting(CHAT_IMAGE_PREVIEW_KEY, false);
 }
@@ -6291,6 +6293,54 @@ function storedOwnChatRecommendBadge(){
   catch{ return null; }
 }
 
+function applyOwnChatRecommendBadgePayload(badge, options={}){
+  const own=chatUserId();
+  const before=storedOwnChatRecommendBadge();
+  const normalized=saveOwnChatRecommendBadge(badge);
+  const beforeId=chatAwardNoticeId(own, before);
+  const nextId=chatAwardNoticeId(own, normalized);
+  let changed=false;
+  chatMessages=chatMessages.map((message)=>{
+    if(String(message?.user_id || '') !== own) return message;
+    const existing=chatRecommendBadge(message);
+    const existingId=chatAwardNoticeId(own, existing);
+    if(normalized){
+      if(existingId === nextId) return message;
+      changed=true;
+      return { ...message, recommend_badge: normalized };
+    }
+    if(message?.recommend_badge){
+      changed=true;
+      const { recommend_badge: _recommendBadge, ...rest } = message;
+      return rest;
+    }
+    return message;
+  });
+  let noticed=false;
+  if(options.announce && normalized && beforeId !== nextId && chatAwardNoticePrimed && !chatKnownAwardIds.has(nextId)){
+    const nickname=chatMessages.find((message)=>String(message?.user_id || '') === own)?.nickname || chatNickname();
+    noticed=queueChatAwardNotice(own, nickname, normalized);
+    if(nextId) chatKnownAwardIds.add(nextId);
+  }
+  if(changed) writeChatMessagesCache(chatMessages);
+  if((changed || noticed) && options.render !== false) renderChatMessages();
+  return normalized;
+}
+
+function shouldCheckOwnChatRecommendBadge(force=false){
+  if(force) return true;
+  if(!chatIsOpen || document.hidden) return false;
+  return Date.now() - Number(chatOwnRecommendBadgeCheckAt || 0) >= CHAT_OWN_RECOMMEND_STATUS_MS;
+}
+
+async function checkOwnChatRecommendBadge(options={}){
+  if(!shouldCheckOwnChatRecommendBadge(!!options.force)) return storedOwnChatRecommendBadge();
+  chatOwnRecommendBadgeCheckAt=Date.now();
+  const data=await fetchJsonClient(`/api/chat-recommend?user_id=${encodeURIComponent(chatUserId())}`, 4000);
+  if(data?.ok) return applyOwnChatRecommendBadgePayload(data.badge || null, {announce:true});
+  return storedOwnChatRecommendBadge();
+}
+
 function readChatMessagesCache(){
   try{
     const parsed=JSON.parse(localStorage.getItem(CHAT_MESSAGES_CACHE_KEY) || 'null');
@@ -6777,6 +6827,7 @@ async function loadChatMessages(options={}){
     });
   }
   if(chatIsOpen && !document.hidden && options.markSeen !== false && chatIsNearBottom()) markChatSeen();
+  checkOwnChatRecommendBadge().catch(()=>{});
 }
 
 function clearClosedChatPoll(){
@@ -6890,7 +6941,8 @@ function chatRecommendCount(message){
 }
 
 function chatRecommendBadge(message){
-  return normalizeChatRecommendBadge(message?.recommend_badge);
+  return normalizeChatRecommendBadge(message?.recommend_badge)
+    || (String(message?.user_id || '') === chatUserId() ? storedOwnChatRecommendBadge() : null);
 }
 
 function chatAwardNoticeId(userId, badge){
@@ -6938,10 +6990,12 @@ function syncChatRecommendBadgesFromMessages(options={}){
   const own=chatUserId();
   let ownBadge=null;
   let noticed=false;
+  let sawOwnMessage=false;
   for(const message of chatMessages){
     const badge=chatRecommendBadge(message);
-    if(!badge) continue;
     const userId=String(message?.user_id || '');
+    if(userId === own) sawOwnMessage=true;
+    if(!badge) continue;
     if(userId === own) ownBadge=badge;
     const id=chatAwardNoticeId(userId, badge);
     if(announce && id && !chatKnownAwardIds.has(id)){
@@ -6949,7 +7003,8 @@ function syncChatRecommendBadgesFromMessages(options={}){
     }
     if(id) chatKnownAwardIds.add(id);
   }
-  saveOwnChatRecommendBadge(ownBadge);
+  if(ownBadge) saveOwnChatRecommendBadge(ownBadge);
+  else if(!sawOwnMessage || !storedOwnChatRecommendBadge()) saveOwnChatRecommendBadge(null);
   chatAwardNoticePrimed=true;
   return noticed;
 }
@@ -7123,6 +7178,21 @@ function applyChatModeration(data){
   if(changed) renderChatMessages();
 }
 
+function clearChatRecommendBadgeForUser(userId){
+  const target=String(userId || '');
+  if(!target) return false;
+  let changed=false;
+  chatMessages=chatMessages.map((message)=>{
+    if(String(message?.user_id || '') !== target || !message?.recommend_badge) return message;
+    changed=true;
+    const { recommend_badge: _recommendBadge, ...rest } = message;
+    return rest;
+  });
+  if(target === chatUserId()) saveOwnChatRecommendBadge(null);
+  if(changed) writeChatMessagesCache(chatMessages);
+  return changed;
+}
+
 async function checkChatBan(){
   if(isInlineAdmin()) return null;
   try{
@@ -7233,6 +7303,7 @@ async function reportChatMessage(id){
         reporter_id:chatUserId(),
       }),
     });
+    if(data?.recommendBadgeRevoked) clearChatRecommendBadgeForUser(data.reportedUserId);
     if(data?.ignored){
       renderChatMessages();
       showToast('관리자 메시지는 신고 대상에서 제외됩니다', 'info');
