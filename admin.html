@@ -1572,7 +1572,7 @@
         const tokenStatus=report.tokenHash ? '<span class="pill">토큰 발급됨</span>' : '<span class="pill bad">토큰 없음</span>';
         const statsStatus=report.active===false
           ? '<span class="pill">링크 비활성</span>'
-          : (stats.hasStats ? '<span class="pill ok">링크 활성</span>' : '<span class="pill warn">집계 대기</span>');
+          : (stats.staleStats ? '<span class="pill warn">재집계 필요</span>' : (stats.hasStats ? '<span class="pill ok">링크 활성</span>' : '<span class="pill warn">집계 대기</span>'));
         const syncStatus=stats.hasStats && stats.tokenSynced===false ? '<span class="pill warn">토큰 동기화 확인</span>' : '';
         const statsText=stats.hasStats
           ? `확인 노출 ${formatNumber(stats.impressions)} · 도달 ${formatNumber(stats.reach)} · 클릭 ${formatNumber(stats.clicks)}`
@@ -1583,9 +1583,11 @@
         const noteClass=report.active===false ? '' : (stats.hasStats ? 'ok' : 'warn');
         const noteText=report.active===false
           ? '비활성 리포트입니다. 기존 광고주 링크는 열리지 않습니다.'
-          : (stats.hasStats
+          : (stats.staleStats
+            ? '리포트 설정이 바뀌었습니다. 다음 자동 집계 후 광고주 페이지 수치가 새 범위로 반영됩니다.'
+            : (stats.hasStats
             ? '광고주 페이지에서 통계를 볼 수 있습니다. 기존 링크 원문은 저장하지 않아 카드에서 다시 표시할 수 없습니다.'
-            : '토큰은 발급됐지만 아직 집계 결과가 없습니다. 링크는 토큰 검증 후 열리고, 다음 자동 집계가 돌면 수치가 채워집니다.');
+            : '토큰은 발급됐지만 아직 집계 결과가 없습니다. 링크는 토큰 검증 후 열리고, 다음 자동 집계가 돌면 수치가 채워집니다.'));
         const generatedLink=generatedReportLinkState?.id===report.id ? generatedReportLinkState.url : '';
         const generatedLinkHtml=generatedLink ? `
           <div class="token-result report-card-token">
