@@ -1348,43 +1348,43 @@ body.quote-sort-auto #cardsTable .quote-row-handle{cursor:default}
 .col-timeline.timeline-swipe-animating,
 .col-timeline.timeline-swipe-staged{overflow:hidden}
 .col-timeline.timeline-swipe-staged > .sheet.timeline{visibility:hidden}
-.timeline-swipe-stage{position:absolute;left:0;right:0;bottom:0;z-index:18;overflow:hidden;background:var(--bg);pointer-events:none;contain:layout paint}
+.timeline-swipe-stage{position:absolute;left:0;right:0;z-index:18;overflow:hidden;background:var(--bg);pointer-events:none;contain:layout paint}
 .timeline-swipe-layer{position:absolute;inset:0;overflow:hidden;will-change:transform;backface-visibility:hidden;transform:translate3d(0,0,0)}
-.timeline-swipe-layer .sheet.timeline{height:100%;min-height:0;margin-top:0!important;overflow:hidden;border-top:0;box-shadow:none}
+.timeline-swipe-layer .sheet.timeline{width:100%;height:100%;min-height:0;margin-top:0!important;overflow:hidden;border-top:0;box-shadow:none;box-sizing:border-box}
 .timeline-swipe-layer table{min-width:0;width:100%}
 .timeline-swipe-layer.is-animating{transition:transform 150ms cubic-bezier(.16,1,.3,1)}
 .timeline-swipe-fallback.sheet.timeline{will-change:transform;backface-visibility:hidden}
 .timeline-swipe-fallback.sheet.timeline.is-animating{transition:transform 150ms cubic-bezier(.16,1,.3,1)}
 .timeline-swipe-layer .community-preview-muted{color:#6a737d}
-#timelineTable.community-table{min-width:0!important;width:100%;table-layout:fixed}
-#timelineTable.community-table th,#timelineTable.community-table td{overflow:hidden;border-width:1px;border-style:solid;border-color:var(--grid);background-clip:padding-box}
-#timelineTable.community-table .rownum,#timelineTable.community-table .colhead{background:var(--head)!important;color:#555}
-#timelineTable.community-table .rownum{color:#666}
-#timelineTable.community-table .community-colhead-row th{top:0;z-index:9}
-#timelineTable.community-table .community-subhead-row th{top:var(--sheet-colhead-h);z-index:8}
+:is(#timelineTable,.timeline-swipe-table).community-table{min-width:0!important;width:100%;table-layout:fixed}
+:is(#timelineTable,.timeline-swipe-table).community-table th,:is(#timelineTable,.timeline-swipe-table).community-table td{overflow:hidden;border-width:1px;border-style:solid;border-color:var(--grid);background-clip:padding-box}
+:is(#timelineTable,.timeline-swipe-table).community-table .rownum,:is(#timelineTable,.timeline-swipe-table).community-table .colhead{background:var(--head)!important;color:#555}
+:is(#timelineTable,.timeline-swipe-table).community-table .rownum{color:#666}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-colhead-row th{top:0;z-index:9}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-subhead-row th{top:var(--sheet-colhead-h);z-index:8}
 /* sticky 행은 border-collapse 환경에서 보더가 안 그려지는 문제가 있어,
  * border 는 투명으로 두고 inset box-shadow 로 4 면을 그린다. background-clip
  * padding-box 로 sticky 셀의 배경이 그어진 보더를 안 가린다. */
-#timelineTable.community-table .community-colhead-row th,
-#timelineTable.community-table .community-subhead-row th{
+:is(#timelineTable,.timeline-swipe-table).community-table .community-colhead-row th,
+:is(#timelineTable,.timeline-swipe-table).community-table .community-subhead-row th{
   border:0;
   background-clip:padding-box;
   box-shadow:inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid);
 }
-#timelineTable.community-table .community-colhead-row th{box-shadow:inset 0 1px 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-#timelineTable.community-table .community-colhead-row th:first-child{box-shadow:inset 1px 0 0 var(--grid),inset 0 1px 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-#timelineTable.community-table .community-subhead-row th:first-child{box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-#timelineTable col.community-rownum-col{width:34px}
-#timelineTable col.community-author-col{width:88px}
-#timelineTable col.community-time-col{width:78px}
-#timelineTable col.community-report-col{width:116px}
-body.inline-admin-mode #timelineTable col.community-report-col{width:168px}
-#timelineTable col.community-body-col{width:auto}
-body.readability-mode #timelineTable.community-table{min-width:0!important;width:100%;table-layout:fixed}
-body.readability-mode #timelineTable col.community-rownum-col{width:34px}
-body.readability-mode #timelineTable col.community-author-col{width:78px}
-body.readability-mode #timelineTable col.community-time-col{width:82px}
-body.readability-mode #timelineTable col.community-body-col{width:auto}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-colhead-row th{box-shadow:inset 0 1px 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-colhead-row th:first-child{box-shadow:inset 1px 0 0 var(--grid),inset 0 1px 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-subhead-row th:first-child{box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
+:is(#timelineTable,.timeline-swipe-table) col.community-rownum-col{width:34px}
+:is(#timelineTable,.timeline-swipe-table) col.community-author-col{width:88px}
+:is(#timelineTable,.timeline-swipe-table) col.community-time-col{width:78px}
+:is(#timelineTable,.timeline-swipe-table) col.community-report-col{width:116px}
+body.inline-admin-mode :is(#timelineTable,.timeline-swipe-table) col.community-report-col{width:168px}
+:is(#timelineTable,.timeline-swipe-table) col.community-body-col{width:auto}
+body.readability-mode :is(#timelineTable,.timeline-swipe-table).community-table{min-width:0!important;width:100%;table-layout:fixed}
+body.readability-mode :is(#timelineTable,.timeline-swipe-table) col.community-rownum-col{width:34px}
+body.readability-mode :is(#timelineTable,.timeline-swipe-table) col.community-author-col{width:78px}
+body.readability-mode :is(#timelineTable,.timeline-swipe-table) col.community-time-col{width:82px}
+body.readability-mode :is(#timelineTable,.timeline-swipe-table) col.community-body-col{width:auto}
 .personal-feed-row td:not(.rownum){height:24px;background:#fbfcfb;color:#4d5b54;font-size:11.2px;font-weight:500}
 .personal-feed-row.is-actionable td:not(.rownum){cursor:pointer}
 .personal-feed-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
@@ -1405,73 +1405,73 @@ tr.news-row.personal-news-pulse > td{animation:personal-news-pulse 1.7s ease-out
 .community-read-marker-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;letter-spacing:-.01em}
 .community-read-marker-cell span{color:#66736b;font-weight:600}
 .community-read-marker-cell em{font-style:normal;color:#9aa49d;margin-left:6px;font-weight:400}
-#timelineTable.community-table .community-post-row.is-unread-community td:not(.rownum),
-#timelineTable.community-table .community-comment-row.is-unread-community-comment td:not(.rownum){background:#fffef7}
-#timelineTable.community-table .community-post-row.is-unread-community .community-body-with-actions,
-#timelineTable.community-table .community-comment-row.is-unread-community-comment .community-body-with-actions{box-shadow:inset 2px 0 0 rgba(16,124,65,.32)}
-#timelineTable.etf-table{min-width:0!important;width:100%;table-layout:fixed}
-#timelineTable.etf-table th,#timelineTable.etf-table td{overflow:hidden;border-width:1px;border-style:solid;border-color:var(--grid);background-clip:padding-box}
-#timelineTable.etf-table .rownum,#timelineTable.etf-table .colhead{background:var(--head)!important;color:#555}
-#timelineTable.etf-table .etf-colhead-row th{top:0;z-index:9}
-#timelineTable.etf-table{--etf-filter-row-h:72px}
-#timelineTable.etf-table .etf-filter-row td{position:sticky;top:var(--sheet-colhead-h);z-index:8;box-shadow:inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-#timelineTable.etf-table .etf-filter-row td:first-child{box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-#timelineTable.etf-table .etf-subhead-row th{top:calc(var(--sheet-colhead-h) + var(--etf-filter-row-h));z-index:7}
-#timelineTable.etf-table .etf-colhead-row th,
-#timelineTable.etf-table .etf-filter-row td,
-#timelineTable.etf-table .etf-subhead-row th,
-#timelineTable.etf-table .etf-data-row td,
-#timelineTable.etf-table .etf-detail-row td,
-#timelineTable.etf-table .etf-page-row td{
+:is(#timelineTable,.timeline-swipe-table).community-table .community-post-row.is-unread-community td:not(.rownum),
+:is(#timelineTable,.timeline-swipe-table).community-table .community-comment-row.is-unread-community-comment td:not(.rownum){background:#fffef7}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-post-row.is-unread-community .community-body-with-actions,
+:is(#timelineTable,.timeline-swipe-table).community-table .community-comment-row.is-unread-community-comment .community-body-with-actions{box-shadow:inset 2px 0 0 rgba(16,124,65,.32)}
+:is(#timelineTable,.timeline-swipe-table).etf-table{min-width:0!important;width:100%;table-layout:fixed}
+:is(#timelineTable,.timeline-swipe-table).etf-table th,:is(#timelineTable,.timeline-swipe-table).etf-table td{overflow:hidden;border-width:1px;border-style:solid;border-color:var(--grid);background-clip:padding-box}
+:is(#timelineTable,.timeline-swipe-table).etf-table .rownum,:is(#timelineTable,.timeline-swipe-table).etf-table .colhead{background:var(--head)!important;color:#555}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-colhead-row th{top:0;z-index:9}
+:is(#timelineTable,.timeline-swipe-table).etf-table{--etf-filter-row-h:72px}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-filter-row td{position:sticky;top:var(--sheet-colhead-h);z-index:8;box-shadow:inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-filter-row td:first-child{box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-subhead-row th{top:calc(var(--sheet-colhead-h) + var(--etf-filter-row-h));z-index:7}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-colhead-row th,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-filter-row td,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-subhead-row th,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-data-row td,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-detail-row td,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-page-row td{
   border:0;
   background-clip:padding-box;
 }
-#timelineTable.etf-table .etf-colhead-row .rownum,
-#timelineTable.etf-table .etf-filter-row .rownum,
-#timelineTable.etf-table .etf-subhead-row .rownum,
-#timelineTable.etf-table .etf-data-row .rownum,
-#timelineTable.etf-table .etf-detail-row .rownum,
-#timelineTable.etf-table .etf-page-row .rownum{
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-colhead-row .rownum,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-filter-row .rownum,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-subhead-row .rownum,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-data-row .rownum,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-detail-row .rownum,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-page-row .rownum{
   padding:0 5px 0 3px!important;
   text-align:right!important;
   vertical-align:middle!important;
   line-height:1!important;
 }
-#timelineTable.etf-table .etf-filter-row .rownum{height:var(--etf-filter-row-h)}
-#timelineTable.etf-table .etf-subhead-row .rownum{height:var(--sheet-colhead-h)}
-#timelineTable.etf-table .etf-colhead-row th{box-shadow:inset 0 1px 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-#timelineTable.etf-table .etf-colhead-row th:first-child{box-shadow:inset 1px 0 0 var(--grid),inset 0 1px 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-#timelineTable.etf-table .etf-subhead-row th{box-shadow:inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-#timelineTable.etf-table .etf-subhead-row th:first-child{box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-#timelineTable.etf-table .etf-data-row td,
-#timelineTable.etf-table .etf-detail-row td,
-#timelineTable.etf-table .etf-page-row td{box-shadow:inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-#timelineTable.etf-table .etf-data-row td:first-child,
-#timelineTable.etf-table .etf-detail-row td:first-child,
-#timelineTable.etf-table .etf-page-row td:first-child{box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-#timelineTable th,
-#timelineTable td{
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-filter-row .rownum{height:var(--etf-filter-row-h)}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-subhead-row .rownum{height:var(--sheet-colhead-h)}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-colhead-row th{box-shadow:inset 0 1px 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-colhead-row th:first-child{box-shadow:inset 1px 0 0 var(--grid),inset 0 1px 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-subhead-row th{box-shadow:inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-subhead-row th:first-child{box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-data-row td,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-detail-row td,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-page-row td{box-shadow:inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-data-row td:first-child,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-detail-row td:first-child,
+:is(#timelineTable,.timeline-swipe-table).etf-table .etf-page-row td:first-child{box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
+:is(#timelineTable,.timeline-swipe-table) th,
+:is(#timelineTable,.timeline-swipe-table) td{
   border:0!important;
   box-shadow:inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)!important;
   background-clip:padding-box;
 }
-#timelineTable tr > :first-child{
+:is(#timelineTable,.timeline-swipe-table) tr > :first-child{
   box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)!important;
 }
-#timelineTable tr:first-child > *{
+:is(#timelineTable,.timeline-swipe-table) tr:first-child > *{
   box-shadow:inset -1px 0 0 var(--grid),inset 0 1px 0 var(--grid),inset 0 -1px 0 var(--grid)!important;
 }
-#timelineTable tr:first-child > :first-child{
+:is(#timelineTable,.timeline-swipe-table) tr:first-child > :first-child{
   box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 1px 0 var(--grid),inset 0 -1px 0 var(--grid)!important;
 }
-#timelineTable col.etf-rownum-col{width:34px}
-#timelineTable col.etf-name-col{width:210px}
-#timelineTable col.etf-price-col{width:74px}
-#timelineTable col.etf-return-col{width:90px}
-#timelineTable col.etf-facts-col{width:124px}
-#timelineTable col.etf-fee-col{width:112px}
-#timelineTable col.etf-div-col{width:46px}
-#timelineTable col.etf-holdings-col{width:116px}
+:is(#timelineTable,.timeline-swipe-table) col.etf-rownum-col{width:34px}
+:is(#timelineTable,.timeline-swipe-table) col.etf-name-col{width:210px}
+:is(#timelineTable,.timeline-swipe-table) col.etf-price-col{width:74px}
+:is(#timelineTable,.timeline-swipe-table) col.etf-return-col{width:90px}
+:is(#timelineTable,.timeline-swipe-table) col.etf-facts-col{width:124px}
+:is(#timelineTable,.timeline-swipe-table) col.etf-fee-col{width:112px}
+:is(#timelineTable,.timeline-swipe-table) col.etf-div-col{width:46px}
+:is(#timelineTable,.timeline-swipe-table) col.etf-holdings-col{width:116px}
 .etf-filter-cell{height:auto;padding:4px 6px!important;background:#f8fbf9!important;vertical-align:middle}
 .etf-controls{
   display:grid;
@@ -1614,11 +1614,11 @@ tr.news-row.personal-news-pulse > td{animation:personal-news-pulse 1.7s ease-out
 .community-main-compose .community-attach{height:100%;min-height:54px;width:100%;border:0;border-right:1px solid #e3edea;border-radius:0;background:#f7faf8;color:#586069;align-self:stretch;display:flex;align-items:center;justify-content:center}
 .community-main-compose .community-attach:hover{background:#eaf4ef;color:#107c41}
 .community-main-compose .community-compose-submit{position:static;width:100%;height:100%;min-height:54px;border-radius:0;border:0;align-self:stretch;padding:0;background:var(--excel);display:flex;align-items:center;justify-content:center}
-#timelineTable.community-table .community-post-input{display:block;width:100%;height:42px;min-height:42px;border:0;background:transparent;resize:none;outline:none;overflow:hidden;scrollbar-width:none;-ms-overflow-style:none;padding:2px 0;font:400 12.5px/1.35 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#252423;box-sizing:border-box;-webkit-appearance:none;appearance:none}
-#timelineTable.community-table .community-post-input::-webkit-scrollbar{display:none}
-#timelineTable.community-table .community-main-compose .community-post-input{height:100%;min-height:54px;padding:8px 10px}
-#timelineTable.community-table .community-post-input:disabled,.community-nick-input:disabled{opacity:1;color:#52606c;-webkit-text-fill-color:#52606c;cursor:progress}
-#timelineTable.community-table .community-post-input::placeholder{color:#7e8792;white-space:pre-line;opacity:1;font:400 12.5px/1.35 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-post-input{display:block;width:100%;height:42px;min-height:42px;border:0;background:transparent;resize:none;outline:none;overflow:hidden;scrollbar-width:none;-ms-overflow-style:none;padding:2px 0;font:400 12.5px/1.35 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#252423;box-sizing:border-box;-webkit-appearance:none;appearance:none}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-post-input::-webkit-scrollbar{display:none}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-main-compose .community-post-input{height:100%;min-height:54px;padding:8px 10px}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-post-input:disabled,.community-nick-input:disabled{opacity:1;color:#52606c;-webkit-text-fill-color:#52606c;cursor:progress}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-post-input::placeholder{color:#7e8792;white-space:pre-line;opacity:1;font:400 12.5px/1.35 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .community-compose-box:focus-within{border-color:var(--excel);box-shadow:0 0 0 1px rgba(16,124,65,.18)}
 .community-compose-submit{position:absolute;right:6px;bottom:6px}
 .community-post-body{white-space:pre-wrap;line-height:1.35;color:#4f5f6c;word-break:break-word;position:relative}
@@ -1688,10 +1688,10 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
 .community-image-preview-slot[hidden]{display:none}
 .community-post-row.is-just-posted > td:not(.rownum){animation:community-post-inserted 5s ease-out forwards}
 /* 투표 행 하단을 살짝 두꺼운 선으로 구분해 게시물 영역과 분리감을 준다.
- * #timelineTable td 기본 box-shadow 가 셀 우측·하단 1px 선을 그리고 있어
+ * :is(#timelineTable,.timeline-swipe-table) td 기본 box-shadow 가 셀 우측·하단 1px 선을 그리고 있어
  * 같은 specificity 이상으로 한 번에 4 면을 덮어쓴다. */
-#timelineTable.community-table .community-poll-row > td:not(.rownum){height:40px;background:#fbfdfb;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #97aea3}
-#timelineTable.community-table .community-poll-row.is-voted > td:not(.rownum){background:#f7fbf8;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #97aea3}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-poll-row > td:not(.rownum){height:40px;background:#fbfdfb;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #97aea3}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-poll-row.is-voted > td:not(.rownum){background:#f7fbf8;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #97aea3}
 .community-poll-author span{display:inline-flex;align-items:center;justify-content:center;height:18px;padding:0 7px;border:1px solid #b8d7c0;border-radius:999px;background:#edf8f1;color:#107c41;font-size:10.5px;font-weight:750}
 .community-poll-body{padding-right:6px!important;white-space:normal}
 .community-poll-inner{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:3px 7px;min-width:0;line-height:1.2}
@@ -1710,14 +1710,14 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
 .community-comment-row.is-just-commented > td:nth-child(2){box-shadow:inset 3px 0 0 var(--excel)}
 .community-mobile-actions{display:none}
 .community-comment-row td:not(.rownum){background:#f4f7fa;color:#6a7480}
-#timelineTable.community-table .community-comment-body{white-space:pre-wrap;line-height:1.35;color:#596877;padding-left:26px;position:relative;word-break:break-word;vertical-align:top}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-comment-body{white-space:pre-wrap;line-height:1.35;color:#596877;padding-left:26px;position:relative;word-break:break-word;vertical-align:top}
 .community-comment-body::before{content:"↳";position:absolute;left:7px;top:5px;display:block;width:14px;text-align:center;color:#9aa0a6;font-family:Arial,"Segoe UI Symbol",sans-serif;line-height:1.35;pointer-events:none}
 .community-comment-text{display:block;min-width:0}
-#timelineTable.community-table .community-comment-depth-1 .community-comment-body{padding-left:36px}
-#timelineTable.community-table .community-comment-depth-1 .community-comment-body::before{left:17px}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-comment-depth-1 .community-comment-body{padding-left:36px}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-comment-depth-1 .community-comment-body::before{left:17px}
 .community-comment-depth-1 .community-comment-body::before{color:#a7adb4}
-#timelineTable.community-table .community-comment-depth-2 .community-comment-body{padding-left:46px}
-#timelineTable.community-table .community-comment-depth-2 .community-comment-body::before{left:27px}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-comment-depth-2 .community-comment-body{padding-left:46px}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-comment-depth-2 .community-comment-body::before{left:27px}
 .community-comment-depth-2 .community-comment-body::before{color:#b0b6bd}
 .community-comment-row td,
 .community-reply-more-row td,
@@ -1736,7 +1736,7 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
 .community-reply-box{border-color:#aad4b6;display:grid;grid-template-columns:64px minmax(0,1fr) 30px 44px 44px;align-items:stretch;gap:6px;min-height:60px;padding:6px}
 .community-reply-box .community-attach{height:48px;width:30px;align-self:stretch}
 .community-reply-box .community-reply-nick-input{height:48px}
-#timelineTable.community-table .community-reply-box .community-post-input{height:48px;min-height:48px;padding:2px 0}
+:is(#timelineTable,.timeline-swipe-table).community-table .community-reply-box .community-post-input{height:48px;min-height:48px;padding:2px 0}
 .community-reply-cancel{height:48px;border:1px solid #d8dde3;background:#fff;color:#7b8490;border-radius:var(--ui-control-radius);padding:0 6px;font:inherit;font-size:11px;cursor:pointer}
 .community-reply-box .community-reply-cancel,.community-reply-box .community-compose-submit{position:static;width:44px;height:48px;align-self:stretch;padding:0}
 .community-hidden-row td:not(.rownum){background:#f8f8f8;color:#7b8490}
@@ -1806,27 +1806,27 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
     .timeline-tab-label-full{display:none}
     .timeline-tab-label-tight{display:inline}
   }
-  #timelineTable col.etf-rownum-col{width:28px}
-  #timelineTable col.etf-name-col{width:calc(100% - 178px)}
-  #timelineTable col.etf-return-col{width:52px}
-  #timelineTable col.etf-div-col{width:46px}
-  #timelineTable.etf-table .etf-colhead-row > :nth-child(1),
-  #timelineTable.etf-table .etf-subhead-row > :nth-child(1),
-  #timelineTable.etf-table .etf-data-row > :nth-child(1){width:28px;min-width:28px;max-width:28px}
-  #timelineTable.etf-table .etf-colhead-row > :nth-child(2),
-  #timelineTable.etf-table .etf-subhead-row > :nth-child(2),
-  #timelineTable.etf-table .etf-data-row > :nth-child(2){width:calc(100% - 178px);min-width:0}
-  #timelineTable.etf-table .etf-colhead-row > :nth-child(3),
-  #timelineTable.etf-table .etf-subhead-row > :nth-child(3),
-  #timelineTable.etf-table .etf-data-row > :nth-child(3),
-  #timelineTable.etf-table .etf-colhead-row > :nth-child(4),
-  #timelineTable.etf-table .etf-subhead-row > :nth-child(4),
-  #timelineTable.etf-table .etf-data-row > :nth-child(4){width:52px;min-width:52px;max-width:52px}
-  #timelineTable.etf-table .etf-colhead-row > :nth-child(5),
-  #timelineTable.etf-table .etf-subhead-row > :nth-child(5),
-  #timelineTable.etf-table .etf-data-row > :nth-child(5){width:46px;min-width:46px;max-width:46px}
-  #timelineTable.etf-table th,#timelineTable.etf-table td{font-size:10.8px;padding-left:3px;padding-right:3px}
-  #timelineTable.etf-table{--etf-filter-row-h:86px}
+  :is(#timelineTable,.timeline-swipe-table) col.etf-rownum-col{width:28px}
+  :is(#timelineTable,.timeline-swipe-table) col.etf-name-col{width:calc(100% - 178px)}
+  :is(#timelineTable,.timeline-swipe-table) col.etf-return-col{width:52px}
+  :is(#timelineTable,.timeline-swipe-table) col.etf-div-col{width:46px}
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-colhead-row > :nth-child(1),
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-subhead-row > :nth-child(1),
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-data-row > :nth-child(1){width:28px;min-width:28px;max-width:28px}
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-colhead-row > :nth-child(2),
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-subhead-row > :nth-child(2),
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-data-row > :nth-child(2){width:calc(100% - 178px);min-width:0}
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-colhead-row > :nth-child(3),
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-subhead-row > :nth-child(3),
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-data-row > :nth-child(3),
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-colhead-row > :nth-child(4),
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-subhead-row > :nth-child(4),
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-data-row > :nth-child(4){width:52px;min-width:52px;max-width:52px}
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-colhead-row > :nth-child(5),
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-subhead-row > :nth-child(5),
+  :is(#timelineTable,.timeline-swipe-table).etf-table .etf-data-row > :nth-child(5){width:46px;min-width:46px;max-width:46px}
+  :is(#timelineTable,.timeline-swipe-table).etf-table th,:is(#timelineTable,.timeline-swipe-table).etf-table td{font-size:10.8px;padding-left:3px;padding-right:3px}
+  :is(#timelineTable,.timeline-swipe-table).etf-table{--etf-filter-row-h:86px}
   .etf-filter-cell{padding:4px!important}
   .etf-beta-note{display:none}
   .etf-controls{
@@ -1872,13 +1872,13 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
   .etf-detail-return strong{font-size:10.7px}
   .etf-detail-holdings-list{grid-template-columns:1fr;padding:6px}
   .etf-page-cell{font-size:10px}
-  #timelineTable col.community-rownum-col{width:28px}
-  #timelineTable col.community-author-col{width:50px}
-  #timelineTable col.community-time-col{width:42px}
-  #timelineTable col.community-body-col{width:auto}
-  #timelineTable.community-table th,#timelineTable.community-table td{font-size:10.8px;padding-left:3px;padding-right:3px}
-  #timelineTable.community-table .time{font-size:10px;line-height:1.15;white-space:nowrap}
-  #timelineTable.community-table .community-author{max-width:54px;font-size:8.8px;line-height:1.12}
+  :is(#timelineTable,.timeline-swipe-table) col.community-rownum-col{width:28px}
+  :is(#timelineTable,.timeline-swipe-table) col.community-author-col{width:50px}
+  :is(#timelineTable,.timeline-swipe-table) col.community-time-col{width:42px}
+  :is(#timelineTable,.timeline-swipe-table) col.community-body-col{width:auto}
+  :is(#timelineTable,.timeline-swipe-table).community-table th,:is(#timelineTable,.timeline-swipe-table).community-table td{font-size:10.8px;padding-left:3px;padding-right:3px}
+  :is(#timelineTable,.timeline-swipe-table).community-table .time{font-size:10px;line-height:1.15;white-space:nowrap}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-author{max-width:54px;font-size:8.8px;line-height:1.12}
   .community-poll-row > td:not(.rownum){height:40px}
   .community-poll-author span{height:17px;padding:0 5px;font-size:9.5px}
   .community-poll-body{padding-right:3px!important}
@@ -1889,7 +1889,7 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
   .community-poll-choice{height:20px;min-width:0;flex:1 1 0;padding:0 5px;font-size:10.2px;line-height:18px}
   .community-poll-count{display:inline-flex;grid-column:3;grid-row:1;justify-self:end;font-size:9.6px}
   /* base pill 사이즈를 그대로 유지 — 별도 override 없음. */
-  #timelineTable.community-table .stock-mention-market{display:none}
+  :is(#timelineTable,.timeline-swipe-table).community-table .stock-mention-market{display:none}
   .community-post-body,.community-comment-body{font-size:11.7px;line-height:1.3}
   .community-image-toggle{height:20px;max-width:100%;padding:0 5px;font-size:10px}
   .community-image-preview-slot .message-image-preview img{max-height:118px}
@@ -1899,12 +1899,12 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
   .community-actions-open .community-comment-body{padding-right:152px;min-height:28px}
   body.inline-admin-mode .community-actions-open .community-post-body{padding-right:176px}
   body.inline-admin-mode .community-actions-open .community-comment-body{padding-right:220px}
-  #timelineTable.community-table .community-comment-body{padding-left:21px}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-comment-body{padding-left:21px}
   .community-comment-body::before{left:4px;width:13px;top:4px}
-  #timelineTable.community-table .community-comment-depth-1 .community-comment-body{padding-left:30px}
-  #timelineTable.community-table .community-comment-depth-1 .community-comment-body::before{left:13px}
-  #timelineTable.community-table .community-comment-depth-2 .community-comment-body{padding-left:37px}
-  #timelineTable.community-table .community-comment-depth-2 .community-comment-body::before{left:20px}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-comment-depth-1 .community-comment-body{padding-left:30px}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-comment-depth-1 .community-comment-body::before{left:13px}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-comment-depth-2 .community-comment-body{padding-left:37px}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-comment-depth-2 .community-comment-body::before{left:20px}
   .community-mobile-actions.active{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-top:0;background:linear-gradient(90deg,rgba(255,255,255,0),#fff 14px);padding-left:16px}
   .community-mobile-actions .community-reply-btn,
   .community-mobile-actions .community-recommend,
@@ -1918,13 +1918,13 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
   .community-main-compose .community-attach{width:100%;height:100%;min-height:58px}
   .community-reply-box .community-attach{width:26px;height:48px}
   .community-main-compose .community-nick-input{width:100%;height:100%;min-height:58px;padding:0 7px}
-  #timelineTable.community-table .community-main-compose .community-post-input{height:100%;min-height:58px;padding:7px 8px}
-  #timelineTable.community-table .community-main-compose .community-post-input::placeholder{font-size:11.3px!important;line-height:1.28!important}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-main-compose .community-post-input{height:100%;min-height:58px;padding:7px 8px}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-main-compose .community-post-input::placeholder{font-size:11.3px!important;line-height:1.28!important}
   .community-main-compose .community-compose-submit{width:100%;height:100%;min-height:58px}
   .community-nick-input{width:58px;height:48px;padding:0 5px}
   .community-reply-box{grid-template-columns:54px minmax(0,1fr) 26px 38px 38px;gap:5px;padding:5px;min-height:58px}
   .community-reply-box .community-reply-nick-input{height:48px;width:54px;padding:0 4px}
-  #timelineTable.community-table .community-reply-box .community-post-input{padding:2px 0}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-reply-box .community-post-input{padding:2px 0}
   .community-reply-box .community-reply-cancel,.community-reply-box .community-compose-submit{width:38px;height:48px}
   .community-action-cell{padding-left:2px;padding-right:2px}
   .community-cell-button,.community-report,.community-recommend,.community-reply-btn,.community-reply-cancel{padding:0 5px;font-size:10.5px}
@@ -1941,11 +1941,11 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
   /* 모바일에서도 base pill 사이즈 유지 (height 18 / font 10.5 / padding 0 7) */
   .community-note-merged-inner .notice-badge{padding:0 6px}
   .community-note-merged-inner .community-text-note{gap:4px;font-size:10.7px;font-style:normal}
-  body.readability-mode #timelineTable col.community-rownum-col{width:28px}
-  body.readability-mode #timelineTable col.community-author-col{width:50px}
-  body.readability-mode #timelineTable col.community-time-col{width:42px}
-  body.readability-mode #timelineTable col.community-body-col{width:auto}
-  body.readability-mode #timelineTable.community-table .community-author{max-width:50px;font-size:8.8px;line-height:1.12}
+  body.readability-mode :is(#timelineTable,.timeline-swipe-table) col.community-rownum-col{width:28px}
+  body.readability-mode :is(#timelineTable,.timeline-swipe-table) col.community-author-col{width:50px}
+  body.readability-mode :is(#timelineTable,.timeline-swipe-table) col.community-time-col{width:42px}
+  body.readability-mode :is(#timelineTable,.timeline-swipe-table) col.community-body-col{width:auto}
+  body.readability-mode :is(#timelineTable,.timeline-swipe-table).community-table .community-author{max-width:50px;font-size:8.8px;line-height:1.12}
 }
 
 /* === Watchlist (inline, inside 실시간 시세창) === */
@@ -2830,11 +2830,11 @@ body.excel-dark-mode:not(.theme-outlook) td{border-color:var(--grid);color:var(-
 body.excel-dark-mode:not(.theme-outlook) th,
 body.excel-dark-mode:not(.theme-outlook) .colhead,
 body.excel-dark-mode:not(.theme-outlook) .rownum,
-body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .rownum,
-body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .colhead{background:var(--head)!important;color:#b6c0c8}
+body.excel-dark-mode:not(.theme-outlook) :is(#timelineTable,.timeline-swipe-table).community-table .rownum,
+body.excel-dark-mode:not(.theme-outlook) :is(#timelineTable,.timeline-swipe-table).community-table .colhead{background:var(--head)!important;color:#b6c0c8}
 body.excel-dark-mode:not(.theme-outlook) th.rownum,
 body.excel-dark-mode:not(.theme-outlook) td.rownum,
-body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .rownum,
+body.excel-dark-mode:not(.theme-outlook) :is(#timelineTable,.timeline-swipe-table).community-table .rownum,
 body.excel-dark-mode:not(.theme-outlook) .community-note-row .rownum{color:#b6c0c8!important}
 body.excel-dark-mode:not(.theme-outlook) td,
 body.excel-dark-mode:not(.theme-outlook) .subhead{background:var(--bg);color:var(--txt)}
@@ -2952,7 +2952,7 @@ body.excel-dark-mode.readability-mode:not(.theme-outlook) #cardsTable tr.holding
 body.excel-dark-mode:not(.theme-outlook) .community-compose-box,
 body.excel-dark-mode:not(.theme-outlook) .community-reply-box{background:#11181d;border-color:#2d6d46;box-shadow:inset 0 0 0 1px rgba(33,163,102,.08)}
 body.excel-dark-mode:not(.theme-outlook) .community-post-body,
-body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .community-comment-body,
+body.excel-dark-mode:not(.theme-outlook) :is(#timelineTable,.timeline-swipe-table).community-table .community-comment-body,
 body.excel-dark-mode:not(.theme-outlook) .news-title-link{color:#eef2f4}
 body.excel-dark-mode:not(.theme-outlook) .community-reply-more-row td:not(.rownum){background:#182027;color:#aeb8c2}
 body.excel-dark-mode:not(.theme-outlook) .community-reply-more-btn{background:transparent;border-color:transparent;color:#9ee2b5}
@@ -2971,8 +2971,8 @@ body.excel-dark-mode:not(.theme-outlook) tr.news-row.personal-news-pulse > td{an
 body.excel-dark-mode:not(.theme-outlook) .community-read-marker-row td:not(.rownum){background:#151a17;color:#98a69d}
 body.excel-dark-mode:not(.theme-outlook) .community-read-marker-cell span{color:#a9b8af}
 body.excel-dark-mode:not(.theme-outlook) .community-read-marker-cell em{color:#77877f}
-body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .community-poll-row > td:not(.rownum){background:#111a15;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #50725d}
-body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .community-poll-row.is-voted > td:not(.rownum){background:#152019;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #50725d}
+body.excel-dark-mode:not(.theme-outlook) :is(#timelineTable,.timeline-swipe-table).community-table .community-poll-row > td:not(.rownum){background:#111a15;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #50725d}
+body.excel-dark-mode:not(.theme-outlook) :is(#timelineTable,.timeline-swipe-table).community-table .community-poll-row.is-voted > td:not(.rownum){background:#152019;box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 #50725d}
 body.excel-dark-mode:not(.theme-outlook) .community-poll-author span{background:#193321;border-color:#4a7a5d;color:#b8f2c9}
 body.excel-dark-mode:not(.theme-outlook) .community-author-admin{color:#b8cabf}
 body.excel-dark-mode:not(.theme-outlook) .community-poll-kicker{color:#b8f2c9}
@@ -2983,8 +2983,8 @@ body.excel-dark-mode:not(.theme-outlook) .community-poll-choice.selected{backgro
 body.excel-dark-mode:not(.theme-outlook) .community-poll-count,
 body.excel-dark-mode:not(.theme-outlook) .community-poll-tail,
 body.excel-dark-mode:not(.theme-outlook) .community-poll-time{color:#8ea197}
-body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .community-post-row.is-unread-community td:not(.rownum),
-body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .community-comment-row.is-unread-community-comment td:not(.rownum){background:#181b16}
+body.excel-dark-mode:not(.theme-outlook) :is(#timelineTable,.timeline-swipe-table).community-table .community-post-row.is-unread-community td:not(.rownum),
+body.excel-dark-mode:not(.theme-outlook) :is(#timelineTable,.timeline-swipe-table).community-table .community-comment-row.is-unread-community-comment td:not(.rownum){background:#181b16}
 body.excel-dark-mode:not(.theme-outlook) .news-desc,
 body.excel-dark-mode:not(.theme-outlook) .source-pill,
 body.excel-dark-mode:not(.theme-outlook) .flow-cell,
@@ -3460,14 +3460,14 @@ body.excel-dark-mode:not(.theme-outlook) .chat-new-inline:hover{background:#38bd
   [data-xk-reply-text],
   [data-xk-reply-name],
   .holding-inline input,
-  #timelineTable.community-table .community-nick-input,
-  #timelineTable.community-table .community-post-input{font-size:var(--mobile-form-font-size)!important}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-nick-input,
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-post-input{font-size:var(--mobile-form-font-size)!important}
   .watchlist-add input::placeholder,
   .chat-nickname::placeholder,
   .chat-input::placeholder,
   [data-xk-reply-name]::placeholder,
   [data-xk-reply-text]::placeholder,
-  #timelineTable.community-table .community-post-input::placeholder{font-size:var(--mobile-form-placeholder-size)!important;line-height:normal;color:#8a8f98;opacity:1}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-post-input::placeholder{font-size:var(--mobile-form-placeholder-size)!important;line-height:normal;color:#8a8f98;opacity:1}
 }
 /* 좁은 모바일에서 닉네임 칸이 "월급루팡_0420" 길이를 잘라 보여주는 문제 완화.
  * 닉네임 폭과 패딩을 조정해 8~10자가 화면에 들어오게 한다.
@@ -3749,9 +3749,9 @@ body.excel-dark-mode:not(.theme-outlook) .sheet .excel-col-selected.colhead{
   body.readability-mode .sheet.summary td:nth-child(4){width:92px}
 }
 @media(max-width:760px){
-  #timelineTable.community-table .community-nick-input{font-size:var(--mobile-form-font-size)!important;line-height:1.25}
-  #timelineTable.community-table .community-post-input,
-  #timelineTable.community-table .community-post-input::placeholder{font-size:var(--mobile-form-font-size)!important;line-height:1.35!important}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-nick-input{font-size:var(--mobile-form-font-size)!important;line-height:1.25}
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-post-input,
+  :is(#timelineTable,.timeline-swipe-table).community-table .community-post-input::placeholder{font-size:var(--mobile-form-font-size)!important;line-height:1.35!important}
   #watchlistMarket,#quoteSortMode{font-size:11px!important;line-height:1!important;font-weight:var(--ui-control-font-weight)!important}
   #chatNickname.chat-nickname{font-size:var(--mobile-form-font-size)!important}
   button{touch-action:manipulation}

@@ -5624,6 +5624,11 @@ updateTimelineTabs();
         : renderLoadingTable('news'),
     };
   };
+  const markSwipeSheet = (sheet)=>{
+    const table = sheet?.querySelector?.('table');
+    if(table) table.classList.add('timeline-swipe-table');
+    return sheet;
+  };
   const previewSheetForKey = (key)=>{
     const { tableClass, html } = previewTableForKey(key);
     const sheet = document.createElement('div');
@@ -5633,12 +5638,12 @@ updateTimelineTabs();
     if(tableClass) table.className = tableClass;
     table.innerHTML = html;
     sheet.appendChild(table);
-    return sheet;
+    return markSwipeSheet(sheet);
   };
   const cloneCurrentSheet = ()=>{
     const sheet = sheetEl();
     if(!sheet) return null;
-    const clone = stripIds(sheet.cloneNode(true));
+    const clone = markSwipeSheet(stripIds(sheet.cloneNode(true)));
     clone.scrollTop = sheet.scrollTop;
     clone.scrollLeft = sheet.scrollLeft;
     return clone;
@@ -5728,7 +5733,10 @@ updateTimelineTabs();
     ensureSwipeTabsVisible();
     stage = document.createElement('div');
     stage.className = 'timeline-swipe-stage';
+    const sheetRect = sheet.getBoundingClientRect();
+    const stageHeight = Math.max(1, Math.ceil(sheetRect.height || sheet.offsetHeight || pane.getBoundingClientRect().height || 0));
     stage.style.top = `${Math.max(0, sheet.offsetTop)}px`;
+    stage.style.height = `${stageHeight}px`;
     currentLayer = document.createElement('div');
     currentLayer.className = 'timeline-swipe-layer timeline-swipe-current';
     nextLayer = document.createElement('div');
