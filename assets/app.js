@@ -43,6 +43,10 @@ let holdingInputState = null;
 let nextNewsAt = null;
 let lastNewsHintState = { live: 0, fresh: 0, fallback: '데이터 헤드라인' };
 let communityPosts = [];
+const communityPostsByChannel = {};
+const communityPostsPreloadInFlight = {};
+let timelineNeighborPreloadTimer = null;
+const COMMUNITY_POSTS_PRELOAD_TTL_MS = 90 * 1000;
 let communityLoadInFlight = false;
 let communityReplyPostId = '';
 let communityReplyParentCommentId = '';
@@ -86,7 +90,7 @@ let timelineTab = (()=>{
     return v==='community' || v==='etf' ? v : 'news';
   }catch{ return 'news'; }
 })();
-const ETF_SCRIPT_VERSION = '20260527-588';
+const ETF_SCRIPT_VERSION = '20260527-589';
 const TIMELINE_TAB_ORDER = ['news', 'community-kr', 'community-us', 'community-coin', 'community-ops', 'etf'];
 let etfModulePromise = null;
 
@@ -641,6 +645,32 @@ function setAdjacentTimelineTab(direction){
   return true;
 }
 
+function shouldPreloadTimelineNeighbors(){
+  return !!(window.matchMedia?.('(max-width:700px)')?.matches) && !document.hidden;
+}
+
+function preloadTimelineTabData(key){
+  const parts = timelineTabParts(key);
+  if(parts.tab === 'community') preloadCommunityPosts(parts.channel);
+  else if(parts.tab === 'news' && !hasVisibleRealNews()) loadNews({ allowHidden:false });
+}
+
+function scheduleTimelineNeighborPreload(delay=700){
+  if(timelineNeighborPreloadTimer){
+    clearTimeout(timelineNeighborPreloadTimer);
+    timelineNeighborPreloadTimer = null;
+  }
+  if(!shouldPreloadTimelineNeighbors()) return;
+  timelineNeighborPreloadTimer = setTimeout(()=>{
+    timelineNeighborPreloadTimer = null;
+    if(!shouldPreloadTimelineNeighbors()) return;
+    [-1, 1].forEach((direction)=>{
+      const key = timelineAdjacentTabKey(direction);
+      if(key) preloadTimelineTabData(key);
+    });
+  }, delay);
+}
+
 function communityChannelMeta(id=communityChannel){
   const key=validCommunityChannel(id);
   return (Array.isArray(COMMUNITY_CHANNELS) ? COMMUNITY_CHANNELS : []).find((channel)=>channel.id===key) || { id:'kr', label:'국내주식토론', placeholder:'국내 주식 이야기를 나누는 공간입니다.' };
@@ -652,6 +682,44 @@ function communityActiveChannel(){
 
 function communityChannelLabel(id=communityChannel){
   return communityChannelMeta(id).label || '국내주식토론';
+}
+
+function writeCommunityPostsCache(channel, posts){
+  const key = validCommunityChannel(channel);
+  communityPostsByChannel[key] = {
+    at: Date.now(),
+    posts: Array.isArray(posts) ? posts.slice(0, COMMUNITY_POST_LIMIT) : [],
+  };
+}
+
+function readCommunityPostsCache(channel, options={}){
+  const key = validCommunityChannel(channel);
+  const entry = communityPostsByChannel[key];
+  if(!entry || !Array.isArray(entry.posts)) return null;
+  if(!options.allowStale && Date.now() - Number(entry.at || 0) > COMMUNITY_POSTS_PRELOAD_TTL_MS) return null;
+  return entry.posts.slice();
+}
+
+async function preloadCommunityPosts(channel){
+  const key = validCommunityChannel(channel);
+  if(readCommunityPostsCache(key)) return;
+  if(communityPostsPreloadInFlight[key]) return communityPostsPreloadInFlight[key];
+  if(shouldPauseDataRefreshForHidden() || !featureEnabled('community')) return;
+  const params = new URLSearchParams({ channel:key, include_summary:'1' });
+  communityPostsPreloadInFlight[key] = fetchJsonClient(`/api/community?${params.toString()}`, 9000, { cache:'default' })
+    .then((data)=>{
+      const posts = Array.isArray(data?.posts) ? data.posts : [];
+      writeCommunityPostsCache(key, posts);
+      if(typeof syncCommunityPollFromPayload === 'function') syncCommunityPollFromPayload(data?.poll, key);
+      if(typeof syncCommunitySummariesFromPayload === 'function' && syncCommunitySummariesFromPayload(data?.summaries)) updateTimelineTabs();
+      if(timelineIsCommunity() && communityActiveChannel() === key && !communityPosts.length){
+        communityPosts = posts.slice();
+        renderCommunityTable();
+      }
+    })
+    .catch((err)=>debugWarn('community preload failed', err))
+    .finally(()=>{ communityPostsPreloadInFlight[key] = null; });
+  return communityPostsPreloadInFlight[key];
 }
 
 function communityShowsMentionPlaceholder(){
@@ -2887,8 +2955,8 @@ function makeNewsLoadingEmptyRows(startIdx, count, cols){
   return out;
 }
 
-function renderNewsFeedTable(rows){
-  document.getElementById('timelineTable')?.classList.remove('community-table','etf-table');
+function renderNewsFeedTable(rows, options={}){
+  if(options.applyTableClass !== false) document.getElementById('timelineTable')?.classList.remove('community-table','etf-table');
   // 호환용: rows 가 timeline 형식이면 변환, 아니면 items 로 간주
   const items=Array.isArray(rows) && rows[0] && rows[0].news !== undefined
     ? newsRowsFromTimeline(rows)
@@ -5193,8 +5261,17 @@ async function loadNews(options={}){
       : 12 * 3600 * 1000;
     for(const item of items){
       const k=newsKey(item);
-      if(newsSeenKeys.has(k) || hasDuplicateNews(item)){
-        if(isLiveDataNews(item)){
+      const exactDuplicate = k && newsSeenKeys.has(k);
+      const similarDuplicate = !exactDuplicate && hasDuplicateNews(item);
+      if(exactDuplicate || similarDuplicate){
+        const idx = k ? newsAccumulated.findIndex(n => newsKey(n) === k) : -1;
+        if(idx >= 0 && isLiveDataNews(item)){
+          newsAccumulated[idx] = { ...newsAccumulated[idx], ...item, _isNew:false };
+          changedExisting = true;
+        }else if(idx < 0 && exactDuplicate && isReadableFreshNews(item, STALE_PREPEND_MS)){
+          newsAccumulated.push({ ...item, _isNew:false, _addedAt:0 });
+          changedExisting = true;
+        }else if(isLiveDataNews(item)){
           const idx = newsAccumulated.findIndex(n => newsKey(n) === k);
           if(idx >= 0){
             newsAccumulated[idx] = { ...newsAccumulated[idx], ...item, _isNew:false };
@@ -5285,6 +5362,7 @@ function syncActiveTab(){
 syncActiveTab();
 function setTimelineTab(tab){
   const previousKey = timelineActiveTabKey();
+  const wasCommunity = timelineIsCommunity();
   const next = timelineTabParts(tab);
   const nextKey = next.tab === 'community' ? `community-${next.channel}` : next.tab;
   trackTimelineGaEvent('timeline_tab_click', timelineAnalyticsPayload(nextKey, {
@@ -5295,14 +5373,15 @@ function setTimelineTab(tab){
   const channelChanged = next.tab === 'community' && next.channel !== communityActiveChannel();
   timelineTab = next.tab;
   if(next.tab === 'community') communityChannel = next.channel;
-  if(channelChanged){
+  const shouldPrimeCommunity = next.tab === 'community' && (!wasCommunity || channelChanged);
+  if(shouldPrimeCommunity){
     communityPage=1;
     communityReplyPostId='';
     communityReplyParentCommentId='';
     communityMobileActionPostId='';
     communityMobileActionCommentId='';
     communityDraftReplyBody='';
-    communityPosts=[];
+    communityPosts=readCommunityPostsCache(next.channel) || [];
   }
   try{
     localStorage.setItem(TIMELINE_TAB_KEY, timelineTab);
@@ -5318,7 +5397,7 @@ function setTimelineTab(tab){
   }
   if(timelineIsCommunity()){
     clearCommunitySummaryRefresh();
-    if(channelChanged) renderCommunityTable('loading');
+    if(shouldPrimeCommunity) renderCommunityTable(communityPosts.length ? 'ready' : 'loading');
     loadCommunityPosts({ force:channelChanged });
     scheduleCommunityRefresh();
   }
@@ -5336,6 +5415,7 @@ function setTimelineTab(tab){
     renderAccumulatedNews();
     if(newsFetchDeferredByCommunity || !hasVisibleRealNews()) loadNews();
   }
+  scheduleTimelineNeighborPreload();
 }
 document.querySelectorAll('[data-timeline-tab]').forEach((btn)=>{
   btn.addEventListener('click',()=>setTimelineTab(btn.dataset.timelineTab));
@@ -5386,8 +5466,11 @@ updateTimelineTabs();
   let tracking = false;
   let swipeMode = '';
   let animating = false;
-  const OUT_MS = 170;
-  const IN_MS = 170;
+  let stage = null;
+  let currentLayer = null;
+  let nextLayer = null;
+  let stageDirection = 0;
+  const SWIPE_MS = 150;
   const interactiveSelector = [
     'a', 'button', 'input', 'select', 'textarea',
     '[role="button"]', '.timeline-tabs', '.community-compose-row',
@@ -5395,32 +5478,164 @@ updateTimelineTabs();
     '.etf-detail-cell'
   ].join(',');
   const isMobile = ()=> mobileQuery ? mobileQuery.matches : window.innerWidth <= 700;
-  const sheetEl = ()=> pane.querySelector('.sheet.timeline');
+  const sheetEl = ()=> pane.querySelector(':scope > .sheet.timeline');
   const paneWidth = ()=> Math.max(240, pane.getBoundingClientRect().width || window.innerWidth || 320);
+  const stripIds = (root)=>{
+    root.querySelectorAll?.('[id]').forEach((el)=>el.removeAttribute('id'));
+    return root;
+  };
+  const communityPreviewTable = (key)=>{
+    const parts = timelineTabParts(key);
+    const channel = parts.channel;
+    const compact = typeof communityCompactLayout === 'function' ? communityCompactLayout() : newsCompactLayout();
+    const dataCols = compact ? 3 : 4;
+    const posts = (
+      timelineIsCommunity() && communityActiveChannel() === channel && communityPosts.length
+        ? communityPosts.slice()
+        : (readCommunityPostsCache(channel, { allowStale:true }) || [])
+    );
+    const header = typeof communityTableHeader === 'function'
+      ? communityTableHeader(compact)
+      : newsTableHeader();
+    let rowNo = 2;
+    const rows = [];
+    if(posts.length){
+      posts.slice(0, compact ? 22 : 28).forEach((post)=>{
+        const comments = Array.isArray(post.comments) ? post.comments.length : 0;
+        const tail = comments ? ` <span class="community-preview-muted">댓글 ${comments}</span>` : '';
+        const body = typeof renderCommunityRichText === 'function'
+          ? renderCommunityRichText(String(post.body || '').slice(0, 220), { stockMentionSnapshots:post.mentions })
+          : esc(String(post.body || '').slice(0, 220));
+        const time = typeof fmtCommunityDateTime === 'function'
+          ? fmtCommunityDateTime(post.created_at, compact)
+          : fmtTime(post.created_at);
+        const actionCell = compact ? '' : '<td class="center community-action-cell flat"></td>';
+        rows.push(`<tr class="community-post-row">
+          <td class="rownum">${rowNo++}</td>
+          <td class="center community-author">${typeof communityAuthorHtml === 'function' ? communityAuthorHtml(post.nickname) : esc(post.nickname || '익명')}</td>
+          <td class="left community-post-body">${body}${tail}</td>
+          <td class="center time">${time}</td>
+          ${actionCell}
+        </tr>`);
+      });
+    }else{
+      rows.push(`<tr><td class="rownum">${rowNo++}</td><td colspan="${dataCols}" class="community-ready-cell">${esc(communityChannelLabel(channel))} 불러오는 중...</td></tr>`);
+    }
+    return {
+      tableClass:'community-table',
+      html: header + rows.join('') + makeEmptyRows(rowNo, Math.max(0, newsPadTarget() - (rowNo - 1)), dataCols),
+    };
+  };
+  const etfPreviewTable = ()=>{
+    const dataCols = 4;
+    return {
+      tableClass:'etf-table',
+      html:`<tr class="etf-colhead-row"><th class="rownum"></th><th class="colhead">A</th><th class="colhead">B</th><th class="colhead">C</th><th class="colhead">D</th></tr>
+        <tr class="etf-filter-row"><td class="rownum">1</td><td colspan="${dataCols}" class="etf-filter-cell"><span class="news-loading-spin"></span> ETF 탐색기 준비 중...</td></tr>
+        <tr class="etf-subhead-row"><th class="rownum">2</th><th class="subhead">ETF</th><th class="subhead">1개월</th><th class="subhead">1년</th><th class="subhead">분배</th></tr>
+        ${makeEmptyRows(3, 18, dataCols)}`,
+    };
+  };
+  const previewTableForKey = (key)=>{
+    const parts = timelineTabParts(key);
+    if(parts.tab === 'community') return communityPreviewTable(key);
+    if(parts.tab === 'etf') return etfPreviewTable();
+    const viewed = currentViewedNewsItems();
+    return {
+      tableClass:'',
+      html: viewed.length
+        ? renderNewsFeedTable(viewed, { applyTableClass:false })
+        : renderLoadingTable('news'),
+    };
+  };
+  const previewSheetForKey = (key)=>{
+    const { tableClass, html } = previewTableForKey(key);
+    const sheet = document.createElement('div');
+    sheet.className = 'sheet timeline news-feed';
+    sheet.style.marginTop = '0';
+    const table = document.createElement('table');
+    if(tableClass) table.className = tableClass;
+    table.innerHTML = html;
+    sheet.appendChild(table);
+    return sheet;
+  };
+  const cloneCurrentSheet = ()=>{
+    const sheet = sheetEl();
+    if(!sheet) return null;
+    const clone = stripIds(sheet.cloneNode(true));
+    clone.scrollTop = sheet.scrollTop;
+    clone.scrollLeft = sheet.scrollLeft;
+    return clone;
+  };
+  const removeStage = ()=>{
+    if(stage) stage.remove();
+    stage = null;
+    currentLayer = null;
+    nextLayer = null;
+    stageDirection = 0;
+    pane.classList.remove('timeline-swipe-staged');
+  };
   const clearSwipeStyles = ()=>{
     const sheet = sheetEl();
-    pane.classList.remove('timeline-swipe-dragging', 'timeline-swipe-animating');
+    pane.classList.remove('timeline-swipe-dragging', 'timeline-swipe-animating', 'timeline-swipe-staged');
+    removeStage();
     if(sheet){
-      sheet.style.transition = '';
+      sheet.classList.remove('timeline-swipe-fallback', 'is-animating');
       sheet.style.transform = '';
-      sheet.style.opacity = '';
     }
     animating = false;
   };
-  const setSwipeOffset = (x)=>{
+  const setFallbackOffset = (x)=>{
     const sheet = sheetEl();
     if(!sheet) return;
-    const ratio = Math.min(1, Math.abs(x) / paneWidth());
+    sheet.classList.add('timeline-swipe-fallback');
     sheet.style.transform = `translate3d(${Math.round(x)}px,0,0)`;
-    sheet.style.opacity = String(Math.max(0.78, 1 - ratio * 0.2));
+  };
+  const setStageOffset = (x)=>{
+    if(!stage || !currentLayer || !nextLayer) return;
+    const travel = stageDirection > 0 ? paneWidth() : -paneWidth();
+    currentLayer.style.transform = `translate3d(${Math.round(x)}px,0,0)`;
+    nextLayer.style.transform = `translate3d(${Math.round(x + travel)}px,0,0)`;
+  };
+  const prepareStage = (direction)=>{
+    const next = timelineAdjacentTabKey(direction);
+    const sheet = sheetEl();
+    if(!next || !sheet) return false;
+    if(stage && stageDirection === direction) return true;
+    removeStage();
+    preloadTimelineTabData(next);
+    stageDirection = direction;
+    stage = document.createElement('div');
+    stage.className = 'timeline-swipe-stage';
+    stage.style.top = `${Math.max(0, sheet.offsetTop)}px`;
+    currentLayer = document.createElement('div');
+    currentLayer.className = 'timeline-swipe-layer timeline-swipe-current';
+    nextLayer = document.createElement('div');
+    nextLayer.className = 'timeline-swipe-layer timeline-swipe-next';
+    const currentSheet = cloneCurrentSheet();
+    if(!currentSheet) return false;
+    currentLayer.appendChild(currentSheet);
+    nextLayer.appendChild(previewSheetForKey(next));
+    stage.append(currentLayer, nextLayer);
+    pane.appendChild(stage);
+    pane.classList.add('timeline-swipe-staged');
+    setStageOffset(0);
+    return true;
   };
   const animateReset = ()=>{
     pane.classList.remove('timeline-swipe-dragging');
     pane.classList.add('timeline-swipe-animating');
+    if(stage){
+      currentLayer?.classList.add('is-animating');
+      nextLayer?.classList.add('is-animating');
+      requestAnimationFrame(()=>setStageOffset(0));
+      window.setTimeout(clearSwipeStyles, SWIPE_MS + 40);
+      return;
+    }
     const sheet = sheetEl();
-    if(sheet) sheet.style.transition = '';
-    requestAnimationFrame(()=>setSwipeOffset(0));
-    window.setTimeout(clearSwipeStyles, IN_MS + 40);
+    if(sheet) sheet.classList.add('timeline-swipe-fallback', 'is-animating');
+    requestAnimationFrame(()=>setFallbackOffset(0));
+    window.setTimeout(clearSwipeStyles, SWIPE_MS + 40);
   };
   const finishSwipe = (direction)=>{
     const next = timelineAdjacentTabKey(direction);
@@ -5429,32 +5644,22 @@ updateTimelineTabs();
       return false;
     }
     animating = true;
-    const width = paneWidth();
-    const outX = direction > 0 ? -width : width;
-    const inX = direction > 0 ? width : -width;
+    prepareStage(direction);
+    if(!stage){
+      setTimelineTab(next);
+      clearSwipeStyles();
+      return true;
+    }
     pane.classList.remove('timeline-swipe-dragging');
     pane.classList.add('timeline-swipe-animating');
-    const currentSheet = sheetEl();
-    if(currentSheet) currentSheet.style.transition = '';
-    requestAnimationFrame(()=>setSwipeOffset(outX));
+    currentLayer?.classList.add('is-animating');
+    nextLayer?.classList.add('is-animating');
+    const outX = direction > 0 ? -paneWidth() : paneWidth();
+    requestAnimationFrame(()=>setStageOffset(outX));
     window.setTimeout(()=>{
       setTimelineTab(next);
-      const nextSheet = sheetEl();
-      if(!nextSheet){
-        clearSwipeStyles();
-        return;
-      }
-      pane.classList.add('timeline-swipe-animating');
-      nextSheet.style.transition = 'none';
-      nextSheet.style.transform = `translate3d(${Math.round(inX)}px,0,0)`;
-      nextSheet.style.opacity = '0.82';
-      void nextSheet.offsetWidth;
-      requestAnimationFrame(()=>{
-        nextSheet.style.transition = '';
-        setSwipeOffset(0);
-        window.setTimeout(clearSwipeStyles, IN_MS + 40);
-      });
-    }, OUT_MS);
+      requestAnimationFrame(clearSwipeStyles);
+    }, SWIPE_MS + 20);
     return true;
   };
   const stopTracking = ()=>{
@@ -5470,6 +5675,10 @@ updateTimelineTabs();
     startAt = Date.now();
     tracking = true;
     swipeMode = '';
+    [-1, 1].forEach((direction)=>{
+      const key = timelineAdjacentTabKey(direction);
+      if(key) preloadTimelineTabData(key);
+    });
   }, { passive:true });
   pane.addEventListener('touchmove', (ev)=>{
     if(!tracking || ev.touches.length !== 1) return;
@@ -5487,18 +5696,20 @@ updateTimelineTabs();
       if(absX > 14 && absX > absY * 1.15){
         swipeMode = 'horizontal';
         pane.classList.add('timeline-swipe-dragging');
-        const sheet = sheetEl();
-        if(sheet) sheet.style.transition = 'none';
       }
     }
     if(swipeMode !== 'horizontal') return;
     if(ev.cancelable) ev.preventDefault();
     const direction = dx < 0 ? 1 : -1;
     const hasNext = !!timelineAdjacentTabKey(direction);
-    const limit = paneWidth() * 0.72;
+    const limit = paneWidth() * 0.86;
     let dragX = Math.max(-limit, Math.min(limit, dx));
-    if(!hasNext) dragX *= 0.32;
-    setSwipeOffset(dragX);
+    if(hasNext && prepareStage(direction)) setStageOffset(dragX);
+    else{
+      removeStage();
+      dragX *= 0.32;
+      setFallbackOffset(dragX);
+    }
   }, { passive:false });
   pane.addEventListener('touchend', (ev)=>{
     if(!tracking) return;
@@ -5595,6 +5806,7 @@ else{
   scheduleCommunitySummaryRefresh(0);
   document.getElementById('timelineTable').innerHTML=renderLoadingTable('news');
 }
+scheduleTimelineNeighborPreload(1200);
 
 const initialSheetBootAt=Date.now();
 let initialSheetRecoveryCount=0;

@@ -2071,6 +2071,7 @@ async function loadCommunityPosts(options={}){
       ...(adminMode ? { headers:adminAuthHeaders() } : {}),
     });
     communityPosts=Array.isArray(data?.posts) ? data.posts : [];
+    if(typeof writeCommunityPostsCache === 'function') writeCommunityPostsCache(channel, communityPosts);
     if(typeof syncCommunityPollFromPayload === 'function'){
       syncCommunityPollFromPayload(data?.poll, channel);
     }
