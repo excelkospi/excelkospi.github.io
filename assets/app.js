@@ -3952,6 +3952,10 @@ function communityRefreshIntervalMs(){
   return hintedMs('community', scaleMs(COMMUNITY_REFRESH_MS));
 }
 
+function communitySummaryRefreshIntervalMs(){
+  return Math.max(communityRefreshIntervalMs(), scaleMs(COMMUNITY_SUMMARY_REFRESH_MS));
+}
+
 function chatMessagesIntervalMs(){
   const online=Number(presenceState.online);
   const base = Number.isFinite(online) && online >= CHAT_BUSY_POLL_ONLINE_THRESHOLD
@@ -5581,7 +5585,6 @@ let chatRecommendedSet=null;
 let chatAwardNotices=[];
 let chatKnownAwardIds=new Set();
 let chatAwardNoticePrimed=false;
-let chatOwnRecommendBadgeCheckAt=0;
 let chatIsOpen=false;
 let chatConnectionStatus='연결 준비 중';
 let chatIdleTimer=null;
@@ -5597,7 +5600,6 @@ let chatSendInFlight=false;
 let chatLastActivityAt=Date.now();
 let chatPanelLarge=readStringSetting(CHAT_SIZE_KEY, 'normal', new Set(['normal','large'])) === 'large';
 let chatExcelMode=readBoolSetting(CHAT_EXCEL_MODE_KEY, false);
-const CHAT_OWN_RECOMMEND_STATUS_MS = 60 * 1000;
 function chatImagePreviewEnabled(){
   return readBoolSetting(CHAT_IMAGE_PREVIEW_KEY, false);
 }
@@ -6327,20 +6329,6 @@ function applyOwnChatRecommendBadgePayload(badge, options={}){
   return normalized;
 }
 
-function shouldCheckOwnChatRecommendBadge(force=false){
-  if(force) return true;
-  if(!chatIsOpen || document.hidden) return false;
-  return Date.now() - Number(chatOwnRecommendBadgeCheckAt || 0) >= CHAT_OWN_RECOMMEND_STATUS_MS;
-}
-
-async function checkOwnChatRecommendBadge(options={}){
-  if(!shouldCheckOwnChatRecommendBadge(!!options.force)) return storedOwnChatRecommendBadge();
-  chatOwnRecommendBadgeCheckAt=Date.now();
-  const data=await fetchJsonClient(`/api/chat-recommend?user_id=${encodeURIComponent(chatUserId())}`, 4000);
-  if(data?.ok) return applyOwnChatRecommendBadgePayload(data.badge || null, {announce:true});
-  return storedOwnChatRecommendBadge();
-}
-
 function readChatMessagesCache(){
   try{
     const parsed=JSON.parse(localStorage.getItem(CHAT_MESSAGES_CACHE_KEY) || 'null');
@@ -6827,7 +6815,6 @@ async function loadChatMessages(options={}){
     });
   }
   if(chatIsOpen && !document.hidden && options.markSeen !== false && chatIsNearBottom()) markChatSeen();
-  checkOwnChatRecommendBadge().catch(()=>{});
 }
 
 function clearClosedChatPoll(){

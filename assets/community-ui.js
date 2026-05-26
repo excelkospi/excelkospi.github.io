@@ -2024,7 +2024,7 @@ function scheduleCommunitySummaryRefresh(delay=null){
     if(shouldSleepCommunityRefresh()) return;
     await loadCommunitySummaries({ silent:true });
     scheduleCommunitySummaryRefresh();
-  }, delay == null ? communityRefreshIntervalMs() : Math.round(Number(delay) * pollScale()));
+  }, delay == null ? communitySummaryRefreshIntervalMs() : Math.round(Number(delay) * pollScale()));
 }
 
 function scheduleCommunityRefresh(delay=null){
