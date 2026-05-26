@@ -86,7 +86,8 @@ let timelineTab = (()=>{
     return v==='community' || v==='etf' ? v : 'news';
   }catch{ return 'news'; }
 })();
-const ETF_SCRIPT_VERSION = '20260527-586';
+const ETF_SCRIPT_VERSION = '20260527-587';
+const TIMELINE_TAB_ORDER = ['news', 'community-kr', 'community-us', 'community-coin', 'community-ops', 'etf'];
 let etfModulePromise = null;
 
 function etfModule(){
@@ -622,6 +623,17 @@ function timelineActiveTabKey(){
   if(timelineIsCommunity()) return `community-${communityActiveChannel()}`;
   if(timelineIsEtf()) return 'etf';
   return 'news';
+}
+
+function setAdjacentTimelineTab(direction){
+  const delta = direction < 0 ? -1 : 1;
+  const current = timelineActiveTabKey();
+  const index = TIMELINE_TAB_ORDER.indexOf(current);
+  if(index < 0) return false;
+  const next = TIMELINE_TAB_ORDER[Math.min(TIMELINE_TAB_ORDER.length - 1, Math.max(0, index + delta))];
+  if(!next || next === current) return false;
+  setTimelineTab(next);
+  return true;
 }
 
 function communityChannelMeta(id=communityChannel){
@@ -5358,6 +5370,50 @@ updateTimelineTabs();
   sync();
   // 첫 진입 시 활성 탭이 화면 밖에 있으면 한 번 자연스럽게 스크롤
   setTimeout(scrollActiveIntoView, 200);
+})();
+(function bindMobileTimelineSwipe(){
+  const pane = document.querySelector('.col-timeline');
+  if(!pane) return;
+  const mobileQuery = window.matchMedia ? window.matchMedia('(max-width: 700px)') : null;
+  let startX = 0;
+  let startY = 0;
+  let startAt = 0;
+  let tracking = false;
+  const interactiveSelector = [
+    'a', 'button', 'input', 'select', 'textarea',
+    '[role="button"]', '.timeline-tabs', '.community-compose-row',
+    '.community-action-cell', '.community-pagination', '.etf-filter-cell',
+    '.etf-detail-cell'
+  ].join(',');
+  const isMobile = ()=> mobileQuery ? mobileQuery.matches : window.innerWidth <= 700;
+  pane.addEventListener('touchstart', (ev)=>{
+    if(!isMobile() || ev.touches.length !== 1) return;
+    if(ev.target?.closest?.(interactiveSelector)) return;
+    const touch = ev.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    startAt = Date.now();
+    tracking = true;
+  }, { passive:true });
+  pane.addEventListener('touchmove', (ev)=>{
+    if(!tracking || ev.touches.length !== 1) return;
+    const touch = ev.touches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    if(Math.abs(dy) > 28 && Math.abs(dy) > Math.abs(dx) * 0.8) tracking = false;
+  }, { passive:true });
+  pane.addEventListener('touchend', (ev)=>{
+    if(!tracking) return;
+    tracking = false;
+    const touch = ev.changedTouches?.[0];
+    if(!touch) return;
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    const elapsed = Date.now() - startAt;
+    if(elapsed > 900) return;
+    if(Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
+    if(setAdjacentTimelineTab(dx < 0 ? 1 : -1)) ev.preventDefault();
+  }, { passive:false });
 })();
 startTimelineTabEngagement(timelineActiveTabKey(), 'initial');
 document.addEventListener('visibilitychange', ()=>{

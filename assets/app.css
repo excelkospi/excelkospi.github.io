@@ -1310,17 +1310,17 @@ body.readability-mode .news-feed table:not(.community-table) td:nth-child(2){wid
 }
 .quote-sort-select:focus{outline:none;border-color:var(--excel);box-shadow:0 0 0 1px rgba(16,124,65,.14)}
 body.quote-sort-auto #cardsTable .quote-row-handle{cursor:default}
-.timeline-title{height:34px;padding-top:4px;padding-bottom:0;gap:6px;min-width:0;align-items:flex-end}
+.timeline-title{height:33px;padding-top:4px;padding-bottom:0;gap:6px;min-width:0;align-items:flex-end}
 .col-timeline > .timeline-title{border-bottom:0}
 .col-timeline > .sheet.timeline{border-top:0}
-/* 시트 위 타임라인 탭 — Excel 시트탭 + 모던 underline tab 톤을 섞었다.
+/* 시트 위 타임라인 탭 — Excel 시트탭 + 조용한 underline tab 톤을 섞었다.
  * 좌우 가로 스크롤이 가능하다는 사실을 edge fade(mask-image)로 자연스럽게 알린다.
- * 그룹 사이 간격은 12px 로 늘려 뉴스/ETF 그룹과 토론 그룹의 시각 구분이 살아난다. */
-.timeline-tabs-wrap{position:relative;flex:0 1 auto;min-width:0;max-width:100%;display:flex;align-items:flex-end;height:28px}
-.timeline-tabs{display:inline-flex;align-items:stretch;gap:12px;width:max-content;height:28px;border:0;background:transparent;border-radius:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;flex:0 1 auto;min-width:0;max-width:100%;scroll-behavior:smooth;scroll-snap-type:x proximity;padding:0 2px}
+ * 모든 탭 간격은 동일하게 유지해 특정 그룹이 과하게 부각되지 않게 한다. */
+.timeline-tabs-wrap{position:relative;flex:0 1 auto;min-width:0;max-width:100%;display:flex;align-items:flex-end;height:27px}
+.timeline-tabs{display:inline-flex;align-items:stretch;gap:6px;width:max-content;height:27px;border:0;background:transparent;border-radius:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;flex:0 1 auto;min-width:0;max-width:100%;scroll-behavior:smooth;scroll-snap-type:x proximity;padding:0 2px}
 .timeline-tabs::-webkit-scrollbar{display:none}
-.timeline-tab-group{display:inline-flex;align-items:stretch;height:28px;gap:2px;background:transparent;border:0;border-radius:0;overflow:visible;flex:0 0 auto}
-.timeline-tabs button{position:relative;height:28px;border:0;background:transparent;color:#5b6770;padding:0 11px;font:inherit;font-size:12.5px;font-weight:650;line-height:28px;cursor:pointer;white-space:nowrap;flex:0 0 auto;border-radius:6px 6px 0 0;scroll-snap-align:start;transition:color 100ms ease, background 100ms ease}
+.timeline-tab-group{display:inline-flex;align-items:stretch;height:27px;gap:6px;background:transparent;border:0;border-radius:0;overflow:visible;flex:0 0 auto}
+.timeline-tabs button{position:relative;height:27px;border:0;background:transparent;color:#5b6770;padding:0 10px;font:inherit;font-size:11.5px;font-weight:650;line-height:27px;cursor:pointer;white-space:nowrap;flex:0 0 auto;border-radius:5px 5px 0 0;scroll-snap-align:start;transition:color 100ms ease, background 100ms ease}
 .timeline-tab-label-tight{display:none}
 .timeline-tabs button.active,.timeline-tabs button[aria-selected="true"]{background:var(--panel-bg);color:var(--excel-dark);font-weight:750;box-shadow:inset 0 -2px 0 var(--excel)}
 .timeline-tabs button:hover:not([aria-selected="true"]){background:#eef3f0;color:var(--excel-dark)}
@@ -1764,14 +1764,14 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
   .news-feed table:not(.community-table) .news-title-link{display:block;font-size:11.4px;line-height:1.32}
   .news-mobile-market{display:inline-flex;align-items:center;height:15px;margin-right:4px;padding:0 3px;border-radius:2px;background:#eef4f1;color:#107c41;font-size:9px;font-weight:750;vertical-align:1px}
   .timeline-title .hint{display:none}
-  /* 모바일에서 탭 톤은 유지하되 탭 자체를 더 크고 누르기 좋게.
+  /* 모바일에서 탭 톤은 유지하되 지나치게 앱 탭처럼 커 보이지 않게 정리.
    * 가로 스크롤이 가능하다는 점은 edge fade 가 알려준다 (.timeline-tabs-wrap). */
-  .timeline-title{height:38px}
+  .timeline-title{height:36px}
   .timeline-tabs-wrap,
-  .timeline-tabs{height:34px}
-  .timeline-tabs{gap:10px}
-  .timeline-tab-group{height:34px;gap:2px}
-  .timeline-tabs button{height:34px;line-height:34px;padding:0 11px;font-size:12px;border-radius:7px 7px 0 0}
+  .timeline-tabs{height:32px}
+  .timeline-tabs{gap:6px}
+  .timeline-tab-group{height:32px;gap:6px}
+  .timeline-tabs button{height:32px;line-height:32px;padding:0 10px;font-size:11.2px;border-radius:6px 6px 0 0}
   .timeline-tabs button.active,
   .timeline-tabs button[aria-selected="true"]{box-shadow:inset 0 -2.5px 0 var(--excel)}
   .timeline-tabs button.has-unread::after{right:5px;top:6px;width:6px;height:6px}
@@ -1781,8 +1781,7 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
   .personal-feed-muted{display:none}
   .community-read-marker-row td:not(.rownum){height:20px;font-size:10.2px}
   @media(max-width:360px){
-    .timeline-tabs{gap:8px}
-    .timeline-tabs button{padding:0 9px;font-size:11.5px}
+    .timeline-tabs button{padding:0 9px;font-size:11px}
     .timeline-tab-label-full{display:none}
     .timeline-tab-label-tight{display:inline}
   }
@@ -2759,7 +2758,7 @@ body.excel-dark-mode:not(.theme-outlook) .etf-detail-holding-rank{background:#19
 body.excel-dark-mode:not(.theme-outlook) .etf-detail-holding-bar{background:#27323a}
 body.excel-dark-mode:not(.theme-outlook) .etf-detail-holding-bar i{background:#5fb57a}
 body.excel-dark-mode:not(.theme-outlook) .timeline-tabs{background:transparent;border-color:transparent}
-body.excel-dark-mode:not(.theme-outlook) .timeline-tab-group{background:var(--control-bg);border-color:var(--control-border)}
+body.excel-dark-mode:not(.theme-outlook) .timeline-tab-group{background:transparent;border-color:transparent}
 body.excel-dark-mode:not(.theme-outlook) .watchlist-more-menu button{color:var(--txt)}
 body.excel-dark-mode:not(.theme-outlook) .watchlist-more-menu button:hover{background:#17231c;color:#9ee2b5}
 body.excel-dark-mode:not(.theme-outlook) .watchlist-add > button:hover{background:#17231c;color:#9ee2b5;border-color:#5a8d6b}
