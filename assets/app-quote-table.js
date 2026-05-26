@@ -108,7 +108,8 @@ function cardRenderedCells(c){
     changeClass = cls(c._momentum);
     previewChangeValue = c._momentum;
   } else if(c.sign && c.priceUnit){
-    priceCell = c.price == null ? '<span class="flat">-</span>' : `${num(c.price)}${esc(c.priceUnit)}`;
+    const unit = displayPriceUnit(c);
+    priceCell = c.price == null ? '<span class="flat">-</span>' : `${quotePriceNumberText(c.price, '', unit, c.priceUnit)}${esc(unit)}`;
     changeCell = '<span class="flat">-</span>';
     changeClass = 'flat';
   } else {

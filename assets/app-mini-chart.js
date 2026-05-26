@@ -141,7 +141,7 @@ function miniChartFootPriceText(card, data){
     }
   }
   const currency = card ? priceCellCurrencyMark(card) : '';
-  return `${currency || ''}${num(last)}`;
+  return `${currency || ''}${quotePriceNumberText(last, currency, displayPriceUnit(card), card?.priceUnit)}`;
 }
 
 function renderMiniChartSvg(data, baseline=null, displayChange=null){

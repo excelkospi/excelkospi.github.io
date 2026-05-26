@@ -674,6 +674,9 @@ function outlookFormatPrice(card){
   // 자체적으로 단위 표시 (예: "1,505원") 이라 prefix 생략.
   const currency = (typeof priceCellCurrencyMark === 'function') ? priceCellCurrencyMark(card) : '';
   const prefix = currency ? `${currency} ` : '';
+  if(typeof quotePriceNumberText === 'function'){
+    return prefix + quotePriceNumberText(v, currency, suffix, card?.priceUnit) + suffix;
+  }
   if(card.market === 'COIN' || /BTC|ETH|USD/.test(String(card.key||''))){
     if(v >= 1000) return prefix + v.toLocaleString('en-US', {maximumFractionDigits:0}) + suffix;
     if(v >= 1) return prefix + v.toLocaleString('en-US', {maximumFractionDigits:2}) + suffix;

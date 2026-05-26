@@ -2402,6 +2402,12 @@ function numUsd(value){
   if(!Number.isFinite(n)) return '-';
   return n.toLocaleString('ko-KR', {maximumFractionDigits:2});
 }
+function quotePriceNumberText(value, currency='', suffix='', rawUnit=''){
+  const unit = String(rawUnit || suffix || '');
+  if(currency === '$' || unit === '$') return numUsd(value);
+  if(currency === '₩' || unit === '원') return numKrw(value);
+  return num(value);
+}
 function displayPriceUnit(card){
   const unit = String(card?.priceUnit || '');
   if(String(card?.market || '').toUpperCase() === 'COIN' && unit === '원') return '';
@@ -2423,7 +2429,7 @@ function cardPriceDisplayText(card){
   }
   const suffix = displayPriceUnit(card) || (isRateOnlyCard(card.key) ? '%' : '');
   const currency = priceCellCurrencyMark(card);
-  const valueText = currency === '$' ? numUsd(card.price) : num(card.price);
+  const valueText = quotePriceNumberText(card.price, currency, suffix, card?.priceUnit);
   return `${valueText}${suffix}`;
 }
 // 현재가 셀 좌측에 고정되는 통화 표시 ($ / ₩). priceUnit suffix 가 있는 카드 (수급·환율·%
@@ -2463,12 +2469,12 @@ function cardPriceDisplayHtml(card){
   if(shouldRenderUsPriceInKrw(card)){
     const usd=Number(card.price);
     const fx=Number(usdKrwRate());
-    return `<span class="quote-price-currency" aria-hidden="true">₩</span><span title="$${esc(numUsd(usd))} · 환율 ${esc(num(fx))}원">${esc(numKrw(usd * fx))}</span>`;
+    return `<span class="quote-price-currency" aria-hidden="true">₩</span><span title="$${esc(numUsd(usd))} · 환율 ${esc(numKrw(fx))}원">${esc(numKrw(usd * fx))}</span>`;
   }
   const suffix = displayPriceUnit(card);
   const currency = priceCellCurrencyMark(card);
   const currencyHtml = currency ? `<span class="quote-price-currency" aria-hidden="true">${currency}</span>` : '';
-  const valueText = currency === '$' ? numUsd(card.price) : num(card.price);
+  const valueText = quotePriceNumberText(card.price, currency, suffix, card?.priceUnit);
   return `${currencyHtml}${esc(valueText)}${suffix ? esc(suffix) : ''}`;
 }
 
@@ -2499,9 +2505,7 @@ function changeAmountDisplayText(card, changePctValue=card?.changePct){
     suffix = '';
   }
   const absDelta = Math.abs(delta);
-  const amount = prefix === '$'
-    ? numUsd(absDelta)
-    : (absDelta >= 1000 ? num(absDelta) : absDelta.toLocaleString('ko-KR', { maximumFractionDigits: 2 }));
+  const amount = quotePriceNumberText(absDelta, prefix, suffix);
   return `${delta >= 0 ? '+' : '-'}${prefix}${amount}${suffix || ''}`;
 }
 
