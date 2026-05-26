@@ -2685,7 +2685,7 @@ function renderPresenceToggled(){
   if(Number.isFinite(presenceState.online)) items.push(`현재 접속 ${presenceState.online}명`);
   if(Number.isFinite(presenceState.today) && presenceState.today > 0){
     const count = presenceState.today.toLocaleString('ko-KR');
-    items.push(presenceState.todayMode === 'visits_30m' ? `오늘 방문 ${count}회` : `오늘 ${count}명`);
+    items.push(presenceState.todayMode === 'visits_30m' ? `오늘 사용자 ${count}명` : `오늘 ${count}명`);
   }
   if(items.length === 0){ el.textContent = '현재 접속 -'; return; }
   el.textContent = items[presenceToggleIdx % items.length];
