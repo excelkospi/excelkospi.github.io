@@ -84,6 +84,22 @@ function renderHoldingsEmptyRow(rowNo){
     </tr>`;
 }
 
+function shouldRenderUsDayQuoteNotice(cards, session){
+  if(!sessionHas(session, 'US_DAY')) return false;
+  const renderedMarket = String(typeof currentRenderedMarket === 'string' ? currentRenderedMarket : '').toUpperCase();
+  const selectedMarket = String(typeof selected === 'string' ? selected : '').toUpperCase();
+  if(renderedMarket === 'US' || selectedMarket === 'US') return true;
+  return Array.isArray(cards) && cards.some((card)=>String(card?.market || '').toUpperCase() === 'US');
+}
+
+function renderUsDayQuoteNoticeRow(rowNo){
+  return `
+    <tr class="us-day-quote-notice-row">
+      <td class="rownum">${rowNo}</td>
+      <td class="left us-day-quote-notice-cell" colspan="3">미장 데이장은 실시간 시세 미지원. 차트를 열었을 때만 현재가가 보입니다.</td>
+    </tr>`;
+}
+
 function cardRenderedCells(c){
   let priceCell, changeCell, changeClass, previewChangeValue = null;
   if(c._momentum !== undefined && c._momentum !== null){
@@ -138,10 +154,13 @@ function renderCardsTable(cards, session){
   lastRenderedQuoteOrderIds = cards.map(quoteRowOrderId);
   let rowNo = 2;
   let rows = '';
+  if(shouldRenderUsDayQuoteNotice(cards, session)){
+    rows += renderUsDayQuoteNoticeRow(rowNo++);
+  }
   if(selected === 'HOLDINGS' && !cards.length){
     rows = renderHoldingsEmptyRow(rowNo++);
   }else{
-    rows = cards.map((c,i)=>{
+    rows += cards.map((c,i)=>{
       const currentRowNo = rowNo++;
       if(c._noteRow){
         const noteId = String(c.noteId || '');

@@ -1109,6 +1109,9 @@ html:not(.platform-windows) .sheet.summary .quote-change-cell{font-variant-numer
 .sheet.summary tr.mood-row td{background:#f7f7f5}
 .sheet.summary tr.mood-row:hover td{background:#f0eff0}
 .sheet.summary tr.flow-row td{background:#f7f7f5}
+.sheet.summary tr.us-day-quote-notice-row td{height:22px;background:#fbfcfb;color:#68736e;font-size:10.8px;font-weight:500}
+.sheet.summary tr.us-day-quote-notice-row:hover td{background:#f7faf8}
+.us-day-quote-notice-cell{padding:0 7px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .flow-cell{font-variant-numeric:tabular-nums;white-space:nowrap;color:#5f6368;font-weight:400}
 .flow-line{display:inline-flex;align-items:center;gap:5px;flex-wrap:nowrap;white-space:nowrap;font-size:11.5px;font-weight:400}
 .flow-pill{display:inline-flex;align-items:center;gap:2px;font-weight:400;white-space:nowrap;color:#5f6368}
@@ -2770,6 +2773,8 @@ body.excel-dark-mode:not(.theme-outlook) .subhead{background:var(--bg);color:var
 body.excel-dark-mode:not(.theme-outlook) .sheet.summary tr.mood-row td,
 body.excel-dark-mode:not(.theme-outlook) .sheet.summary tr.flow-row td,
 body.excel-dark-mode:not(.theme-outlook) .community-pagination-row td:not(.rownum){background:#1a2025}
+body.excel-dark-mode:not(.theme-outlook) .sheet.summary tr.us-day-quote-notice-row td{background:#171f1b;color:#8ea197}
+body.excel-dark-mode:not(.theme-outlook) .sheet.summary tr.us-day-quote-notice-row:hover td{background:#19241e}
 body.excel-dark-mode:not(.theme-outlook) .community-compose-row td:not(.rownum),
 body.excel-dark-mode:not(.theme-outlook) .community-reply-row td:not(.rownum){background:#16251d}
 body.excel-dark-mode:not(.theme-outlook) .community-comment-row td:not(.rownum),
