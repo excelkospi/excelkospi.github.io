@@ -1956,7 +1956,7 @@ function holdingModeMetric(calc){
   if(holdingPnlDisplayMode() === 'daily'){
     return {
       mode:'daily',
-      label:'일일',
+      label:'일간',
       pnl:calc.dayPnl,
       pct:calc.dayPct,
       unavailable:calc.dayPnl === null || calc.dayPnl === undefined || !Number.isFinite(Number(calc.dayPnl)),
@@ -2021,7 +2021,7 @@ function holdingLotMetaHtml(calc, index=0, total=1){
     </span>`;
 }
 function holdingModeToggleLabel(){
-  return holdingPnlDisplayMode() === 'daily' ? '일일' : '누적';
+  return holdingPnlDisplayMode() === 'daily' ? '일간' : '누적';
 }
 function renderHoldingSummaryModeToggle(){
   const mode = holdingPnlDisplayMode();
@@ -2039,7 +2039,7 @@ function holdingLineHtml(calc){
     return `<span>-</span><span>${metric.label} 손익 -</span><span class="muted">평가액 ${holdingAmountText(calc.value, calc.currency)}</span><span class="muted">누적 ${signedHoldingAmountText(calc.pnl, calc.currency)}</span>`;
   }
   if(metric.mode === 'daily'){
-    return `<span>${pct(metric.pct)}</span><span>일일 ${signedHoldingAmountText(metric.pnl, calc.currency)}</span><span class="muted">평가액 ${holdingAmountText(calc.value, calc.currency)}</span><span class="muted">누적 ${signedHoldingAmountText(calc.pnl, calc.currency)}</span>`;
+    return `<span>${pct(metric.pct)}</span><span>일간 ${signedHoldingAmountText(metric.pnl, calc.currency)}</span><span class="muted">평가액 ${holdingAmountText(calc.value, calc.currency)}</span><span class="muted">누적 ${signedHoldingAmountText(calc.pnl, calc.currency)}</span>`;
   }
   return `<span>${pct(metric.pct)}</span><span>누적 ${signedHoldingAmountText(metric.pnl, calc.currency)}</span><span class="muted">평가액 ${holdingAmountText(calc.value, calc.currency)}</span><span class="muted">평단 ${holdingAmountText(calc.avg, calc.currency)} · 수량 ${num(calc.qty)}</span>`;
 }
@@ -7533,6 +7533,15 @@ function updateQuoteSortUi(){
   document.body?.classList?.toggle('quote-sort-auto', quoteSortMode !== 'manual');
 }
 
+function syncHoldingPnlMenuUi(){
+  const mode = holdingPnlDisplayMode();
+  document.querySelectorAll('[data-holding-pnl-menu]').forEach((btn)=>{
+    const active = btn.dataset.holdingPnlMenu === mode;
+    btn.setAttribute('aria-checked', active ? 'true' : 'false');
+    btn.textContent = `${active ? '✓' : '　'} 보유손익 ${btn.dataset.holdingPnlMenu === 'daily' ? '일간' : '누적'} 보기`;
+  });
+}
+
 function setQuoteSortMode(value){
   if(!['manual','change-desc','value-desc','pnl-desc','name-asc'].includes(value)) return;
   quoteSortMode = value;
@@ -7558,8 +7567,9 @@ function setHoldingPnlMode(mode){
     localStorage.setItem(HOLDING_PNL_MODE_KEY, holdingPnlMode);
     persistSet(HOLDING_PNL_MODE_KEY, holdingPnlMode);
   }catch{}
+  syncHoldingPnlMenuUi();
   if(lastRenderedCards.length) rerenderCardsTableFromCurrentState();
-  showToast(holdingPnlMode === 'daily' ? '보유 손익: 일일 손익 표시' : '보유 손익: 누적 손익 표시', 'info');
+  showToast(holdingPnlMode === 'daily' ? '보유 손익: 일간 손익 표시' : '보유 손익: 누적 손익 표시', 'info');
 }
 function toggleHoldingPnlMode(){
   setHoldingPnlMode(holdingPnlDisplayMode() === 'daily' ? 'total' : 'daily');
@@ -7945,6 +7955,7 @@ function toggleWatchlistMoreMenu(){
   const btn=document.getElementById('watchlistMore');
   if(!menu || !btn) return;
   const open=menu.hidden;
+  if(open) syncHoldingPnlMenuUi();
   menu.hidden=!open;
   btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
@@ -7959,6 +7970,9 @@ document.getElementById('watchlistMoreMenu')?.addEventListener('click', (ev)=>{
   if(action === 'note'){
     closeWatchlistMoreMenu();
     addQuoteNoteRow();
+  }else if(action === 'holding-pnl-total' || action === 'holding-pnl-daily'){
+    setHoldingPnlMode(action === 'holding-pnl-daily' ? 'daily' : 'total');
+    closeWatchlistMoreMenu();
   }else if(action === 'phone'){
     openWatchlistPhoneShareModal();
   }

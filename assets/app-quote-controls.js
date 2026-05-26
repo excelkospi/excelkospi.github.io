@@ -72,6 +72,26 @@ function bindCardsTableControls(){
       setHoldingPnlMode(btn.dataset.holdingPnlMode);
     });
   });
+  document.querySelectorAll('.holding-summary-row').forEach(row=>{
+    row.addEventListener('click', (ev)=>{
+      if(!window.matchMedia?.('(hover:none)')?.matches) return;
+      if(ev.target?.closest?.('.holding-summary-toggle')) return;
+      ev.stopPropagation();
+      document.querySelectorAll('.holding-summary-row.holding-summary-actions-open').forEach((openRow)=>{
+        if(openRow !== row) openRow.classList.remove('holding-summary-actions-open');
+      });
+      row.classList.toggle('holding-summary-actions-open');
+    });
+  });
+  if(!window.__holdingSummaryCloseBound){
+    window.__holdingSummaryCloseBound = true;
+    document.addEventListener('click', (ev)=>{
+      if(ev.target?.closest?.('.holding-summary-row')) return;
+      document.querySelectorAll('.holding-summary-row.holding-summary-actions-open').forEach((row)=>{
+        row.classList.remove('holding-summary-actions-open');
+      });
+    });
+  }
   document.querySelectorAll('button[data-action=clear-holding]').forEach(btn=>{
     btn.addEventListener('click', (ev)=>{
       ev.preventDefault(); ev.stopPropagation();

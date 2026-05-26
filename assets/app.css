@@ -1351,21 +1351,21 @@ body.readability-mode #timelineTable col.community-rownum-col{width:34px}
 body.readability-mode #timelineTable col.community-author-col{width:78px}
 body.readability-mode #timelineTable col.community-time-col{width:82px}
 body.readability-mode #timelineTable col.community-body-col{width:auto}
-.personal-feed-row td:not(.rownum){height:24px;background:#fbfdf9;color:#44544b;font-size:11.2px;font-weight:500}
+.personal-feed-row td:not(.rownum){height:24px;background:#fbfcfb;color:#4d5b54;font-size:11.2px;font-weight:500}
 .personal-feed-row.is-actionable td:not(.rownum){cursor:pointer}
 .personal-feed-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 .personal-feed-author{white-space:nowrap;text-align:center}
-.personal-feed-title{display:inline-flex;align-items:center;justify-content:center;height:18px;margin-right:6px;padding:0 7px;border:1px solid #b8d7c0;border-radius:var(--ui-pill-radius);background:#edf8f1;color:#107c41;font-size:10.5px;font-weight:750;line-height:16px;vertical-align:0;white-space:nowrap}
+.personal-feed-title{display:inline-flex;align-items:center;justify-content:center;height:18px;margin-right:6px;padding:0 7px;border:1px solid #d9e4de;border-radius:var(--ui-pill-radius);background:#f8faf8;color:#64736b;font-size:10.5px;font-weight:750;line-height:16px;vertical-align:0;white-space:nowrap}
 .personal-feed-author .personal-feed-title{margin-right:0;padding:0 5px;font-size:9.8px}
-.personal-feed-main{min-width:0;color:#34463c;vertical-align:middle}
+.personal-feed-main{min-width:0;color:#405249;vertical-align:middle}
 .personal-feed-row.is-actionable .personal-feed-main{text-decoration:underline;text-decoration-thickness:.6px;text-underline-offset:2px}
 .personal-feed-muted{margin-left:7px;color:#78837d;font-weight:450}
-tr.news-row.is-personal-match > td{background:#fffdf0}
+tr.news-row.is-personal-match > td{background:#fffef8}
 tr.news-row.personal-news-pulse > td{animation:personal-news-pulse 1.7s ease-out}
 @keyframes personal-news-pulse{
-  0%{background:#fff4b8}
-  55%{background:#fff8d6}
-  100%{background:#fffdf0}
+  0%{background:#fff8d2}
+  55%{background:#fffbea}
+  100%{background:#fffef8}
 }
 .community-read-marker-row td:not(.rownum){height:21px;background:#fbfcfb;color:#7a877f;font-size:10.6px;font-weight:500}
 .community-read-marker-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;letter-spacing:-.01em}
@@ -1567,7 +1567,7 @@ tr.news-row.personal-news-pulse > td{animation:personal-news-pulse 1.7s ease-out
 .community-action-group .community-report{min-width:38px}
 .community-author{max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#52606c;font-size:11px}
 .community-author-name{display:inline-flex;align-items:center;justify-content:center;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
-.community-author-admin{height:18px;padding:0 6px;border:1px solid #cfe1d5;border-radius:var(--ui-pill-radius);background:#f8fbf9;color:#4f765e;font-weight:650;line-height:16px}
+.community-author-admin{color:#4f765e;font-weight:650}
 .community-compose-cell{padding:5px 6px}
 .community-compose-box{position:relative;border:1px solid #cfdfd5;background:#fff;border-radius:4px;min-height:54px;box-shadow:inset 0 0 0 1px rgba(16,124,65,.035);overflow:hidden}
 .community-compose-box.is-sending{background:#f7faf8;border-color:#a8cdb4}
@@ -2103,7 +2103,9 @@ tr.holding-summary-row:hover td:not(.rownum){background-color:#fafcfa}
 .holding-empty-title{font-weight:650;color:#3f5d4d;margin-right:7px;white-space:nowrap}
 .holding-empty-copy{color:#6f7c74;word-break:keep-all}
 .holding-empty-copy b{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1px solid #b9d7c2;border-radius:999px;background:#eef7f1;color:#107c41;font-size:10px;line-height:1;vertical-align:-2px}
-.holding-summary-merged-cell{position:relative;vertical-align:middle;padding-right:74px}
+.holding-summary-merged-cell{position:relative;vertical-align:middle;padding-right:12px}
+tr.holding-summary-row:focus-within .holding-summary-merged-cell,
+tr.holding-summary-row.holding-summary-actions-open .holding-summary-merged-cell{padding-right:74px}
 .holding-summary-content{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:100%;line-height:1.18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .holding-summary-title{font-weight:500;color:#3f5d4d;white-space:nowrap}
 .holding-summary-meta{color:#7a8780;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2120,16 +2122,17 @@ tr.holding-summary-row:hover td:not(.rownum){background-color:#fafcfa}
   box-shadow:0 1px 3px rgba(15,23,42,.08);
   opacity:0;pointer-events:none;transition:opacity 120ms,background 120ms,border-color 120ms;
 }
-tr.holding-summary-row:hover .holding-summary-toggle,
-tr.holding-summary-row:focus-within .holding-summary-toggle{opacity:1;pointer-events:auto}
+tr.holding-summary-row:focus-within .holding-summary-toggle,
+tr.holding-summary-row.holding-summary-actions-open .holding-summary-toggle{opacity:1;pointer-events:auto}
 .holding-summary-toggle button{
   min-width:26px;height:17px;border:0;border-radius:3px;background:transparent;color:#60746a;
   font:inherit;font-size:10.3px;font-weight:600;line-height:1;padding:0 4px;cursor:pointer;
 }
 .holding-summary-toggle button[aria-pressed="true"]{background:#eaf4ef;color:#107c41}
 .holding-summary-toggle button:hover{background:#f3f7f4;color:#214d35}
-@media (hover:none){
-  .holding-summary-toggle{opacity:1;pointer-events:auto}
+@media (hover:hover){
+  tr.holding-summary-row:hover .holding-summary-merged-cell{padding-right:74px}
+  tr.holding-summary-row:hover .holding-summary-toggle{opacity:1;pointer-events:auto}
 }
 body.readability-mode #cardsTable tr.holding-row td:not(.rownum){
   height:23px;
@@ -2904,11 +2907,11 @@ body.excel-dark-mode:not(.theme-outlook) .news-title-link{color:#eef2f4}
 body.excel-dark-mode:not(.theme-outlook) .community-reply-more-row td:not(.rownum){background:#182027;color:#aeb8c2}
 body.excel-dark-mode:not(.theme-outlook) .community-reply-more-btn{background:transparent;border-color:transparent;color:#9ee2b5}
 body.excel-dark-mode:not(.theme-outlook) .community-reply-more-btn:hover{background:transparent;color:#b8f2c9}
-body.excel-dark-mode:not(.theme-outlook) .personal-feed-row td:not(.rownum){background:#111a15;color:#aebdb4}
-body.excel-dark-mode:not(.theme-outlook) .personal-feed-title{background:#193321;border-color:#4a7a5d;color:#b8f2c9}
-body.excel-dark-mode:not(.theme-outlook) .personal-feed-main{color:#d7dee5}
+body.excel-dark-mode:not(.theme-outlook) .personal-feed-row td:not(.rownum){background:#121a16;color:#a9b7af}
+body.excel-dark-mode:not(.theme-outlook) .personal-feed-title{background:#18211d;border-color:#34443b;color:#aebdb4}
+body.excel-dark-mode:not(.theme-outlook) .personal-feed-main{color:#cbd5cf}
 body.excel-dark-mode:not(.theme-outlook) .personal-feed-muted{color:#8ea197}
-body.excel-dark-mode:not(.theme-outlook) tr.news-row.is-personal-match > td{background:#1d1c12}
+body.excel-dark-mode:not(.theme-outlook) tr.news-row.is-personal-match > td{background:#171914}
 body.excel-dark-mode:not(.theme-outlook) tr.news-row.personal-news-pulse > td{animation:personal-news-pulse-dark 1.7s ease-out}
 @keyframes personal-news-pulse-dark{
   0%{background:#393314}
@@ -2921,7 +2924,7 @@ body.excel-dark-mode:not(.theme-outlook) .community-read-marker-cell em{color:#7
 body.excel-dark-mode:not(.theme-outlook) .community-poll-row > td:not(.rownum){background:#111a15}
 body.excel-dark-mode:not(.theme-outlook) .community-poll-row.is-voted > td:not(.rownum){background:#152019}
 body.excel-dark-mode:not(.theme-outlook) .community-poll-author span{background:#193321;border-color:#4a7a5d;color:#b8f2c9}
-body.excel-dark-mode:not(.theme-outlook) .community-author-admin{background:#182820;border-color:#4a7a5d;color:#b8f2c9}
+body.excel-dark-mode:not(.theme-outlook) .community-author-admin{color:#b8cabf}
 body.excel-dark-mode:not(.theme-outlook) .community-poll-kicker{color:#b8f2c9}
 body.excel-dark-mode:not(.theme-outlook) .community-poll-question{color:#d7dee5}
 body.excel-dark-mode:not(.theme-outlook) .community-poll-choice{background:#11181d;border-color:#35404a;color:#d7dee5}
@@ -3590,6 +3593,13 @@ body.excel-dark-mode:not(.theme-outlook) .sheet .excel-col-selected.colhead{
   .watchlist-add .watchlist-phone,
   .watchlist-add .watchlist-more{width:28px;font-size:16px}
   .watchlist-more-menu{right:8px;min-width:180px}
+  tr.holding-summary-row:focus-within .holding-summary-merged-cell,
+  tr.holding-summary-row.holding-summary-actions-open .holding-summary-merged-cell{padding-right:66px}
+  .holding-summary-toggle{right:4px}
+  .holding-summary-toggle button{min-width:24px;padding:0 3px;font-size:10px}
+  @media (hover:hover){
+    tr.holding-summary-row:hover .holding-summary-merged-cell{padding-right:66px}
+  }
   .watchlist-phone-modal{place-items:start center;padding:calc(env(safe-area-inset-top,0px) + 10px) 9px calc(env(safe-area-inset-bottom,0px) + 10px)}
   .watchlist-phone-card{width:min(420px,calc(100vw - 18px));max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 20px);display:flex;flex-direction:column}
   .watchlist-phone-head{min-height:42px;padding:0 8px 0 12px;gap:7px;flex:0 0 auto}
