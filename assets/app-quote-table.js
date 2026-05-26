@@ -35,7 +35,7 @@ function renderHoldingLotRow(card, rowNo, lot, index, total){
         <button class="row-x holding-row-x" data-action="clear-holding" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" data-key="${esc(card.key)}" title="${esc(card.key)} 보유 정보 삭제" aria-label="보유 정보 삭제">×</button>
       </td>
       <td class="right quote-price-cell holding-value-cell">${holdingMoneyCellHtml(calc.value, calc.currency)}</td>
-      <td class="right holding-return-cell ${returnClass}">${esc(pctOne(calc.pct))}</td>
+      <td class="right holding-return-cell ${returnClass}">${esc(signedPctOne(calc.pct))}</td>
     </tr>`;
 }
 
