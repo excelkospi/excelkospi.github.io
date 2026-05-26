@@ -90,7 +90,7 @@ let timelineTab = (()=>{
     return v==='community' || v==='etf' ? v : 'news';
   }catch{ return 'news'; }
 })();
-const ETF_SCRIPT_VERSION = '20260527-589';
+const ETF_SCRIPT_VERSION = '20260527-590';
 const TIMELINE_TAB_ORDER = ['news', 'community-kr', 'community-us', 'community-coin', 'community-ops', 'etf'];
 let etfModulePromise = null;
 
@@ -5392,6 +5392,11 @@ function setTimelineTab(tab){
     }
   }catch{}
   updateTimelineTabs();
+  try{
+    document.dispatchEvent(new CustomEvent('timeline-tab-updated', {
+      detail:{ key:nextKey, previousKey },
+    }));
+  }catch{}
   if(nextKey !== previousKey || timelineAnalyticsActiveKey !== nextKey){
     startTimelineTabEngagement(nextKey, 'tab_click');
   }
@@ -5451,6 +5456,9 @@ updateTimelineTabs();
   scroller.addEventListener('click', (ev)=>{
     if(ev.target?.closest?.('button[data-timeline-tab]')) setTimeout(scrollActiveIntoView, 60);
   });
+  document.addEventListener('timeline-tab-updated', ()=>{
+    setTimeout(scrollActiveIntoView, 60);
+  });
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) sync(); });
   sync();
   // 첫 진입 시 활성 탭이 화면 밖에 있으면 한 번 자연스럽게 스크롤
@@ -5466,10 +5474,13 @@ updateTimelineTabs();
   let tracking = false;
   let swipeMode = '';
   let animating = false;
+  let gestureScrollX = 0;
+  let gestureScrollY = 0;
   let stage = null;
   let currentLayer = null;
   let nextLayer = null;
   let stageDirection = 0;
+  let releaseScrollReserve = null;
   const SWIPE_MS = 150;
   const interactiveSelector = [
     'a', 'button', 'input', 'select', 'textarea',
@@ -5597,6 +5608,38 @@ updateTimelineTabs();
     currentLayer.style.transform = `translate3d(${Math.round(x)}px,0,0)`;
     nextLayer.style.transform = `translate3d(${Math.round(x + travel)}px,0,0)`;
   };
+  const reservePageScrollSpace = (targetY)=>{
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    if(targetY <= maxScroll + 1) return;
+    const sheet = sheetEl();
+    if(!sheet) return;
+    releaseScrollReserve?.(true);
+    const previousMinHeight = sheet.style.minHeight || '';
+    const extra = targetY - maxScroll + 12;
+    const nextMinHeight = Math.ceil(sheet.getBoundingClientRect().height + extra);
+    sheet.style.minHeight = `${Math.max(nextMinHeight, 0)}px`;
+    const release = (force=false)=>{
+      const forceClear = force === true;
+      if(!forceClear && (window.scrollY || 0) > targetY - 80) return;
+      sheet.style.minHeight = previousMinHeight;
+      window.removeEventListener('scroll', release);
+      window.removeEventListener('resize', release);
+      if(releaseScrollReserve === release) releaseScrollReserve = null;
+    };
+    releaseScrollReserve = release;
+    window.addEventListener('scroll', release, { passive:true });
+    window.addEventListener('resize', release);
+  };
+  const capturePageScroll = (baseX = window.scrollX || 0, baseY = window.scrollY || 0)=>{
+    const x = baseX || 0;
+    const y = baseY || 0;
+    return ()=>{
+      reservePageScrollSpace(y);
+      if(Math.abs((window.scrollX || 0) - x) > 1 || Math.abs((window.scrollY || 0) - y) > 1){
+        window.scrollTo(x, y);
+      }
+    };
+  };
   const prepareStage = (direction)=>{
     const next = timelineAdjacentTabKey(direction);
     const sheet = sheetEl();
@@ -5644,10 +5687,13 @@ updateTimelineTabs();
       return false;
     }
     animating = true;
+    const restoreScroll = capturePageScroll(gestureScrollX, gestureScrollY);
     prepareStage(direction);
     if(!stage){
       setTimelineTab(next);
+      restoreScroll();
       clearSwipeStyles();
+      requestAnimationFrame(restoreScroll);
       return true;
     }
     pane.classList.remove('timeline-swipe-dragging');
@@ -5658,7 +5704,11 @@ updateTimelineTabs();
     requestAnimationFrame(()=>setStageOffset(outX));
     window.setTimeout(()=>{
       setTimelineTab(next);
-      requestAnimationFrame(clearSwipeStyles);
+      requestAnimationFrame(()=>{
+        restoreScroll();
+        clearSwipeStyles();
+        requestAnimationFrame(restoreScroll);
+      });
     }, SWIPE_MS + 20);
     return true;
   };
@@ -5673,6 +5723,8 @@ updateTimelineTabs();
     startX = touch.clientX;
     startY = touch.clientY;
     startAt = Date.now();
+    gestureScrollX = window.scrollX || 0;
+    gestureScrollY = window.scrollY || 0;
     tracking = true;
     swipeMode = '';
     [-1, 1].forEach((direction)=>{
@@ -8800,55 +8852,91 @@ function hasSavedHoldingInfo(){
   try{ return Object.keys(holdingsLoad()).length > 0; }catch{ return false; }
 }
 
+let firstVisitTooltipActive = false;
+const firstVisitTooltipQueue = [];
+function advanceFirstVisitTooltipQueue(){
+  if(firstVisitTooltipActive && !document.querySelector('.fv-tooltip')){
+    firstVisitTooltipActive = false;
+  }
+  if(firstVisitTooltipActive) return;
+  const next = firstVisitTooltipQueue.shift();
+  if(next) window.setTimeout(next, 260);
+}
+
 function showAnchoredTooltip({target, pulseTarget=target, html, storageKey, timeoutMs=14000, forceClass='', tooltipClass='', placement='below', onDismiss}){
   if(!target) return null;
-  const tip=document.createElement('div');
-  tip.className=`fv-tooltip${tooltipClass ? ` ${tooltipClass}` : ''}`;
-  tip.innerHTML=`<span class="fv-text">${html}</span><button class="fv-close" aria-label="닫기">×</button>`;
-  document.body.appendChild(tip);
-  pulseTarget?.classList?.add('first-visit-pulse');
-  if(forceClass) pulseTarget?.classList?.add(forceClass);
-
-  const placeTip=()=>{
-    const r=target.getBoundingClientRect();
-    const margin=12;
-    // 타겟 중심을 기준으로 툴팁을 정렬한 뒤 화면 경계로 클램프. 좁은 ₩ 버튼처럼
-    // 작은 타겟에서도 화살표가 정확히 타겟 위로 떨어지게 한다.
-    const targetCenter = r.left + r.width / 2;
-    const tipWidth = tip.offsetWidth || 240;
-    const idealLeft = targetCenter - tipWidth / 2;
-    const left = Math.min(Math.max(idealLeft, margin), window.innerWidth - tipWidth - margin);
-    tip.style.left = `${left}px`;
-    const tipHeight = tip.offsetHeight || 54;
-    const shouldPlaceAbove = placement === 'above' || (r.bottom + 10 + tipHeight > window.innerHeight - margin);
-    tip.classList.toggle('is-above', shouldPlaceAbove);
-    const top = shouldPlaceAbove
-      ? Math.max(margin, r.top - tipHeight - 10)
-      : Math.min(r.bottom + 10, window.innerHeight - tipHeight - margin);
-    tip.style.top = `${top}px`;
-    // 화살표는 타겟 중심에 정확히 일치 — 단 양 끝으로 너무 치우치지 않게 18px 안에서 클램프.
-    const arrowLeft = Math.min(Math.max(targetCenter - left - 5, 18), tipWidth - 18);
-    tip.style.setProperty('--fv-arrow-left', `${arrowLeft}px`);
+  let cancelled = false;
+  let dismissImpl = null;
+  const dismissProxy = ()=>{
+    cancelled = true;
+    dismissImpl?.();
   };
-  requestAnimationFrame(placeTip);
-  window.addEventListener('resize', placeTip);
-  window.addEventListener('scroll', placeTip, {passive:true});
+  const mount = ()=>{
+    if(cancelled || (storageKey && oneTimeTipSeen(storageKey))){
+      advanceFirstVisitTooltipQueue();
+      return;
+    }
+    if(firstVisitTooltipActive && !document.querySelector('.fv-tooltip')){
+      firstVisitTooltipActive = false;
+    }
+    if(firstVisitTooltipActive || document.querySelector('.fv-tooltip')){
+      firstVisitTooltipQueue.push(mount);
+      return;
+    }
+    firstVisitTooltipActive = true;
+    const tip=document.createElement('div');
+    tip.className=`fv-tooltip${tooltipClass ? ` ${tooltipClass}` : ''}`;
+    tip.innerHTML=`<span class="fv-text">${html}</span><button class="fv-close" aria-label="닫기">×</button>`;
+    document.body.appendChild(tip);
+    pulseTarget?.classList?.add('first-visit-pulse');
+    if(forceClass) pulseTarget?.classList?.add(forceClass);
 
-  let dismissed=false;
-  const dismiss=()=>{
-    if(dismissed) return;
-    dismissed=true;
-    pulseTarget?.classList?.remove('first-visit-pulse');
-    if(forceClass) pulseTarget?.classList?.remove(forceClass);
-    tip.remove();
-    window.removeEventListener('resize', placeTip);
-    window.removeEventListener('scroll', placeTip);
-    markOneTimeTipSeen(storageKey);
-    onDismiss?.();
+    const placeTip=()=>{
+      const r=target.getBoundingClientRect();
+      const margin=12;
+      // 타겟 중심을 기준으로 툴팁을 정렬한 뒤 화면 경계로 클램프. 좁은 ₩ 버튼처럼
+      // 작은 타겟에서도 화살표가 정확히 타겟 위로 떨어지게 한다.
+      const targetCenter = r.left + r.width / 2;
+      const tipWidth = tip.offsetWidth || 240;
+      const idealLeft = targetCenter - tipWidth / 2;
+      const left = Math.min(Math.max(idealLeft, margin), window.innerWidth - tipWidth - margin);
+      tip.style.left = `${left}px`;
+      const tipHeight = tip.offsetHeight || 54;
+      const shouldPlaceAbove = placement === 'above' || (r.bottom + 10 + tipHeight > window.innerHeight - margin);
+      tip.classList.toggle('is-above', shouldPlaceAbove);
+      const top = shouldPlaceAbove
+        ? Math.max(margin, r.top - tipHeight - 10)
+        : Math.min(r.bottom + 10, window.innerHeight - tipHeight - margin);
+      tip.style.top = `${top}px`;
+      // 화살표는 타겟 중심에 정확히 일치 — 단 양 끝으로 너무 치우치지 않게 18px 안에서 클램프.
+      const arrowLeft = Math.min(Math.max(targetCenter - left - 5, 18), tipWidth - 18);
+      tip.style.setProperty('--fv-arrow-left', `${arrowLeft}px`);
+    };
+    requestAnimationFrame(placeTip);
+    window.addEventListener('resize', placeTip);
+    window.addEventListener('scroll', placeTip, {passive:true});
+
+    let dismissed=false;
+    const dismiss=()=>{
+      if(dismissed) return;
+      dismissed=true;
+      cancelled=true;
+      pulseTarget?.classList?.remove('first-visit-pulse');
+      if(forceClass) pulseTarget?.classList?.remove(forceClass);
+      tip.remove();
+      window.removeEventListener('resize', placeTip);
+      window.removeEventListener('scroll', placeTip);
+      if(storageKey) markOneTimeTipSeen(storageKey);
+      firstVisitTooltipActive = false;
+      onDismiss?.();
+      advanceFirstVisitTooltipQueue();
+    };
+    dismissImpl = dismiss;
+    tip.querySelector('.fv-close')?.addEventListener('click', dismiss);
+    setTimeout(dismiss, timeoutMs);
   };
-  tip.querySelector('.fv-close')?.addEventListener('click', dismiss);
-  setTimeout(dismiss, timeoutMs);
-  return dismiss;
+  mount();
+  return dismissProxy;
 }
 
 function waitForElement(selector, callback, timeoutMs=10000){
