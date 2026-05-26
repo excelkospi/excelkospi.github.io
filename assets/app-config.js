@@ -91,6 +91,8 @@ const CHAT_IMAGE_PREVIEW_KEY = 'kg_chat_image_preview_v1';
 const CHAT_DOCK_KEY = 'kg_chat_dock_v1';
 const CHAT_EXCEL_MODE_KEY = 'kg_chat_excel_mode_v1';
 const CHAT_REPORTED_KEY = 'kg_chat_reported_v1';
+const CHAT_RECOMMENDED_KEY = 'kg_chat_recommended_v1';
+const CHAT_RECOMMEND_BADGE_KEY = 'kg_chat_recommend_badge_v1';
 const CHAT_LAST_SEEN_KEY = 'kg_chat_last_seen_v1';
 // Chat idle sleep — 동접자 수에 따라 부드럽게 단계별 변경. 트래픽이 적을 때는
 // 오래 켜두고, 폭증 시점에 짧게 줄여 비용을 보호한다.
@@ -102,6 +104,7 @@ const CHAT_IDLE_SLEEP_PEAK_MS = 10 * 60 * 1000;  // 3000명+ 폭증 구간
 const CHAT_CLOSED_POLL_MS = 60 * 1000;
 const CHAT_OPEN_POLL_MS = 5 * 1000;
 const CHAT_SEND_GAP_MS = 4 * 1000;
+const CHAT_RECOMMENDED_SEND_GAP_MS = 2 * 1000;
 const CHAT_BUSY_POLL_ONLINE_THRESHOLD = 350;
 const CHAT_BUSY_OPEN_POLL_MS = 5 * 1000;
 const CHAT_PRESENCE_POLL_MS = 45 * 1000;

@@ -57,6 +57,9 @@ let communityJustCommentedId = '';
 let communityJustCommentedTimer = null;
 let communityRefreshTimer = null;
 let communityRefreshSleeping = false;
+let communitySummaryTimer = null;
+let communitySummaryLoadInFlight = false;
+const communityChannelSummaries = {};
 let communityPostInFlight = false;
 let communityCommentInFlight = false;
 let communityPage = 1;
@@ -76,6 +79,7 @@ let communityChannel = (()=>{
 let inlineAdminToken = '';
 try{ inlineAdminToken = sessionStorage.getItem(ADMIN_SESSION_KEY) || ''; }catch{}
 let deferredPwaInstallPrompt = null;
+let pwaInstallFallbackTimer = null;
 let timelineTab = (()=>{
   try{
     const v=localStorage.getItem(TIMELINE_TAB_KEY);
@@ -889,13 +893,18 @@ function updateTimelineTabs(){
   document.querySelectorAll('[data-timeline-tab]').forEach((btn)=>{
     const active=btn.dataset.timelineTab===activeKey;
     const parts = timelineTabParts(btn.dataset.timelineTab);
-    const unread = parts.tab === 'community' ? communityUnreadBadgeForChannel(parts.channel) : 0;
+    const unreadMeta = parts.tab === 'community' && typeof communityUnreadBadgeMetaForChannel === 'function'
+      ? communityUnreadBadgeMetaForChannel(parts.channel)
+      : { count:0, approximate:false };
+    const unread = Number(unreadMeta.count || 0);
     btn.classList.toggle('active', active);
     btn.classList.toggle('has-unread', unread > 0);
     btn.setAttribute('aria-selected', active ? 'true' : 'false');
     if(unread > 0){
       btn.dataset.unreadCount = String(Math.min(99, unread));
-      btn.title = `${communityChannelLabel(parts.channel)} · 새 글 ${unread}개`;
+      btn.title = unreadMeta.approximate
+        ? `${communityChannelLabel(parts.channel)} · 새 글 있음`
+        : `${communityChannelLabel(parts.channel)} · 새 글 ${unread}개`;
     }else{
       delete btn.dataset.unreadCount;
       btn.removeAttribute('title');
@@ -5269,17 +5278,22 @@ function setTimelineTab(tab){
     startTimelineTabEngagement(nextKey, 'tab_click');
   }
   if(timelineIsCommunity()){
+    clearCommunitySummaryRefresh();
     if(channelChanged) renderCommunityTable('loading');
     loadCommunityPosts({ force:channelChanged });
     scheduleCommunityRefresh();
   }
   else if(timelineIsEtf()){
     clearCommunityRefresh();
+    loadCommunitySummaries({ silent:true });
+    scheduleCommunitySummaryRefresh(0);
     renderEtfBrowser();
     loadEtfData();
   }
   else{
     clearCommunityRefresh();
+    loadCommunitySummaries({ silent:true });
+    scheduleCommunitySummaryRefresh(0);
     renderAccumulatedNews();
     if(newsFetchDeferredByCommunity || !hasVisibleRealNews()) loadNews();
   }
@@ -5318,8 +5332,14 @@ document.getElementById('timelineTable')?.addEventListener('change', (ev)=>{
 });
 function manualRefresh(){
   loadSnapshot({force:true});
-  if(timelineIsEtf()) loadEtfData({force:true});
-  else loadNews({force:true});
+  if(timelineIsCommunity()) loadCommunityPosts({ force:true });
+  else if(timelineIsEtf()){
+    loadEtfData({force:true});
+    loadCommunitySummaries({ force:true });
+  }else{
+    loadNews({force:true});
+    loadCommunitySummaries({ force:true });
+  }
 }
 document.getElementById('refreshRibbon').addEventListener('click', manualRefresh);
 const jt=document.getElementById('jumpTimeline');
@@ -5338,14 +5358,21 @@ document.getElementById('cardsTable').innerHTML=renderLoadingTable('summary');
   }catch{}
 })();
 if(timelineIsCommunity()){
+  clearCommunitySummaryRefresh();
   loadCommunityPosts();
   scheduleCommunityRefresh();
 }
 else if(timelineIsEtf()){
+  loadCommunitySummaries({ silent:true });
+  scheduleCommunitySummaryRefresh(0);
   renderEtfBrowser();
   loadEtfData();
 }
-else document.getElementById('timelineTable').innerHTML=renderLoadingTable('news');
+else{
+  loadCommunitySummaries({ silent:true });
+  scheduleCommunitySummaryRefresh(0);
+  document.getElementById('timelineTable').innerHTML=renderLoadingTable('news');
+}
 
 const initialSheetBootAt=Date.now();
 let initialSheetRecoveryCount=0;
@@ -5499,6 +5526,7 @@ function startPolling(){
   scheduleSessionBoundaryRefresh();
   scheduleFastQuoteRefresh();
   scheduleCommunityRefresh();
+  scheduleCommunitySummaryRefresh();
 }
 function reschedulePollingForCurrentSession(){
   if(shouldPauseDataRefreshForHidden()) return;
@@ -5508,6 +5536,7 @@ function reschedulePollingForCurrentSession(){
   if(snapTimer){ clearTimeout(snapTimer); snapTimer=null; scheduleSnapshot(); }
   if(newsTimer){ clearTimeout(newsTimer); newsTimer=null; scheduleNews(); }
   if(communityRefreshTimer){ clearTimeout(communityRefreshTimer); communityRefreshTimer=null; scheduleCommunityRefresh(); }
+  if(communitySummaryTimer){ clearTimeout(communitySummaryTimer); communitySummaryTimer=null; scheduleCommunitySummaryRefresh(); }
   clearFastQuoteTimer();
   scheduleFastQuoteRefresh();
 }
@@ -5530,6 +5559,7 @@ function stopPolling(){
   nextNewsAt = null;
   newsLoadQueued = false;
   clearCommunityRefresh();
+  clearCommunitySummaryRefresh();
   stopFastQuoteRefresh();
   updateNewsHint();
 }
@@ -5546,6 +5576,10 @@ let chatMessages=[];
 let chatLastSendAt=0;
 let chatMobileSendPointerHandledUntil=0;
 let chatReportedSet=null;
+let chatRecommendedSet=null;
+let chatAwardNotices=[];
+let chatKnownAwardIds=new Set();
+let chatAwardNoticePrimed=false;
 let chatIsOpen=false;
 let chatConnectionStatus='연결 준비 중';
 let chatIdleTimer=null;
@@ -5667,7 +5701,10 @@ function resumeVisibleDataRefresh(inactiveMs=0){
       : timelineIsEtf()
         ? withResumeTimeout(loadEtfData(force ? { force:true } : {}), 12000, 'etf')
         : withResumeTimeout(loadNews(force ? { force:true } : {}), 18000, 'news');
-    const results=await Promise.allSettled([snapshotTask, timelineTask]);
+    const summaryTask=timelineIsCommunity()
+      ? Promise.resolve()
+      : withResumeTimeout(loadCommunitySummaries(force ? { force:true } : {}), 9000, 'community-summary');
+    const results=await Promise.allSettled([snapshotTask, timelineTask, summaryTask]);
     const failures=results.filter((item)=>item.status==='rejected');
     if(failures.length) debugWarn('resume refresh partial failure', failures.map((item)=>item.reason?.message || item.reason));
     startPolling();
@@ -6078,11 +6115,21 @@ function setPwaInstallDismissed(){
   }catch{}
 }
 
+function isChromePwaInstallSurface(){
+  const ua=String(navigator.userAgent || '');
+  const vendor=String(navigator.vendor || '');
+  if(/iPhone|iPad|iPod/i.test(ua)) return false;
+  return /\b(Chrome|Chromium|CriOS|Edg)\//i.test(ua) || /Google/i.test(vendor);
+}
+
 function setupPwaInstallPrompt(){
   const btn=document.getElementById('pwaInstall');
   if(!btn || IS_STANDALONE) return;
-  const showInstallButton=()=>{
-    if(!deferredPwaInstallPrompt || pwaInstallDismissedRecently()) return;
+  const showInstallButton=(options={})=>{
+    const fallback=!!options.fallback;
+    if(!deferredPwaInstallPrompt && !(fallback && isChromePwaInstallSurface())) return;
+    if(deferredPwaInstallPrompt && pwaInstallDismissedRecently()) return;
+    btn.dataset.installFallback=deferredPwaInstallPrompt ? '0' : '1';
     btn.hidden=false;
   };
   window.addEventListener('beforeinstallprompt', (ev)=>{
@@ -6090,11 +6137,16 @@ function setupPwaInstallPrompt(){
     deferredPwaInstallPrompt=ev;
     showInstallButton();
   });
+  const scheduleFallback=()=>{
+    if(pwaInstallFallbackTimer) clearTimeout(pwaInstallFallbackTimer);
+    pwaInstallFallbackTimer=setTimeout(()=>showInstallButton({fallback:true}), 3500);
+  };
+  scheduleFallback();
+  window.addEventListener('focus', scheduleFallback);
   btn.addEventListener('click', async ()=>{
     if(!deferredPwaInstallPrompt){
-      showToast('브라우저 메뉴에서 홈 화면에 추가하면 앱처럼 열 수 있어요', 'info');
-      btn.hidden=true;
-      setPwaInstallDismissed();
+      showToast('Chrome 주소창의 설치 아이콘이나 메뉴 > 앱 설치로 앱처럼 열 수 있어요', 'info');
+      showInstallButton({fallback:true});
       return;
     }
     const promptEvent=deferredPwaInstallPrompt;
@@ -6113,6 +6165,10 @@ function setupPwaInstallPrompt(){
   window.addEventListener('appinstalled', ()=>{
     deferredPwaInstallPrompt=null;
     btn.hidden=true;
+    if(pwaInstallFallbackTimer){
+      clearTimeout(pwaInstallFallbackTimer);
+      pwaInstallFallbackTimer=null;
+    }
   });
 }
 
@@ -6196,6 +6252,44 @@ function saveChatReported(){
   try{ localStorage.setItem(CHAT_REPORTED_KEY, JSON.stringify(Array.from(chatReported()).slice(-200))); }catch{}
 }
 
+function chatRecommended(){
+  if(chatRecommendedSet) return chatRecommendedSet;
+  try{ chatRecommendedSet = new Set(JSON.parse(localStorage.getItem(CHAT_RECOMMENDED_KEY)||'[]')); }
+  catch{ chatRecommendedSet = new Set(); }
+  return chatRecommendedSet;
+}
+
+function saveChatRecommended(){
+  try{ localStorage.setItem(CHAT_RECOMMENDED_KEY, JSON.stringify(Array.from(chatRecommended()).slice(-300))); }catch{}
+}
+
+function normalizeChatRecommendBadge(badge){
+  if(!badge?.active) return null;
+  const expiresAt=Date.parse(badge.expires_at || badge.expiresAt || '');
+  if(!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
+  return {
+    active:true,
+    label:String(badge.label || '추천 7+'),
+    mark:String(badge.mark || '✦'),
+    count:Math.max(7, Number(badge.count || 0) || 7),
+    expires_at:new Date(expiresAt).toISOString(),
+  };
+}
+
+function saveOwnChatRecommendBadge(badge){
+  const normalized=normalizeChatRecommendBadge(badge);
+  try{
+    if(normalized) localStorage.setItem(CHAT_RECOMMEND_BADGE_KEY, JSON.stringify(normalized));
+    else localStorage.removeItem(CHAT_RECOMMEND_BADGE_KEY);
+  }catch{}
+  return normalized;
+}
+
+function storedOwnChatRecommendBadge(){
+  try{ return normalizeChatRecommendBadge(JSON.parse(localStorage.getItem(CHAT_RECOMMEND_BADGE_KEY) || 'null')); }
+  catch{ return null; }
+}
+
 function readChatMessagesCache(){
   try{
     const parsed=JSON.parse(localStorage.getItem(CHAT_MESSAGES_CACHE_KEY) || 'null');
@@ -6219,6 +6313,7 @@ function primeChatMessagesFromCache(){
   const cached=readChatMessagesCache();
   if(!cached.length) return false;
   chatMessages=cached;
+  syncChatRecommendBadgesFromMessages();
   renderChatMessages();
   return true;
 }
@@ -6673,6 +6768,7 @@ async function loadChatMessages(options={}){
     changed=true;
   }
   if(changed || options.force || !incremental){
+    syncChatRecommendBadgesFromMessages({announce:true});
     writeChatMessagesCache(chatMessages);
     renderChatMessages({
       preserveScroll: incremental,
@@ -6728,6 +6824,7 @@ function addChatMessage(msg, options={}){
   if(chatMessages.some(m=>m.id===msg.id)) return false;
   chatMessages.push(msg);
   if(chatMessages.length>80) chatMessages=chatMessages.slice(-80);
+  syncChatRecommendBadgesFromMessages({announce:true});
   writeChatMessagesCache(chatMessages);
   if(options.render !== false) renderChatMessages(options.forceBottom === false ? {preserveScroll:true} : {forceBottom:true});
   return true;
@@ -6741,6 +6838,7 @@ function updateChatMessage(msg){
     const idx=chatMessages.findIndex(m=>m.id===msg.id);
     if(idx>=0) chatMessages[idx]={...chatMessages[idx],...msg};
   }
+  syncChatRecommendBadgesFromMessages({announce:true});
   writeChatMessagesCache(chatMessages);
   renderChatMessages();
 }
@@ -6786,10 +6884,99 @@ function chatLinkPolicy(){
   return chatConfig?.linkPolicy || window.__excelkospiChatConfig?.linkPolicy || null;
 }
 
+function chatRecommendCount(message){
+  return Math.max(0, Number(message?.recommend_count || 0) || 0);
+}
+
+function chatRecommendBadge(message){
+  return normalizeChatRecommendBadge(message?.recommend_badge);
+}
+
+function chatAwardNoticeId(userId, badge){
+  const normalized=normalizeChatRecommendBadge(badge);
+  if(!normalized) return '';
+  return `${String(userId || '')}:${normalized.expires_at}`;
+}
+
+function queueChatAwardNotice(userId, nickname, badge){
+  const normalized=normalizeChatRecommendBadge(badge);
+  const id=chatAwardNoticeId(userId, normalized);
+  if(!id || chatAwardNotices.some((notice)=>notice.id===id)) return false;
+  chatAwardNotices.push({
+    id,
+    at:Date.now(),
+    nickname:String(nickname || '월급루팡').slice(0,24),
+    badge:normalized,
+  });
+  chatAwardNotices=chatAwardNotices.slice(-3);
+  return true;
+}
+
+function chatAwardNoticesHtml(){
+  const now=Date.now();
+  chatAwardNotices=chatAwardNotices.filter((notice)=>now-Number(notice.at || 0) < 30000);
+  if(!chatAwardNotices.length) return '';
+  return chatAwardNotices.map((notice)=>`<div class="chat-award-notice" role="status">
+    <span class="chat-award-mark" aria-hidden="true">${esc(notice.badge.mark || '✦')}</span>
+    <span><b>${esc(notice.nickname)}</b>님에게 ${esc(notice.badge.label || '추천 7+')} 별이 붙었습니다</span>
+  </div>`).join('');
+}
+
+function syncChatRecommendBadgesFromMessages(options={}){
+  const announce=!!options.announce && chatAwardNoticePrimed;
+  const own=chatUserId();
+  let ownBadge=null;
+  let noticed=false;
+  for(const message of chatMessages){
+    const badge=chatRecommendBadge(message);
+    if(!badge) continue;
+    const userId=String(message?.user_id || '');
+    if(userId === own) ownBadge=badge;
+    const id=chatAwardNoticeId(userId, badge);
+    if(announce && id && !chatKnownAwardIds.has(id)){
+      noticed = queueChatAwardNotice(userId, message?.nickname, badge) || noticed;
+    }
+    if(id) chatKnownAwardIds.add(id);
+  }
+  saveOwnChatRecommendBadge(ownBadge);
+  chatAwardNoticePrimed=true;
+  return noticed;
+}
+
+function currentChatRecommendBadge(){
+  const stored=storedOwnChatRecommendBadge();
+  if(stored) return stored;
+  syncChatRecommendBadgesFromMessages();
+  return storedOwnChatRecommendBadge();
+}
+
+function chatSendGapMs(){
+  return currentChatRecommendBadge() ? CHAT_RECOMMENDED_SEND_GAP_MS : CHAT_SEND_GAP_MS;
+}
+
+function chatNickMarkup(message, options={}){
+  const nick=message?.nickname || '월급루팡';
+  const isAdminNick=!!options.isAdminNick;
+  const badge=!isAdminNick ? chatRecommendBadge(message) : null;
+  const nickClass=`chat-nick${isAdminNick?' admin-nick':''}${badge?' recommended-nick':''}`;
+  const title=badge ? `${nick} · 최근 추천 ${Math.max(7, Number(badge.count || 0) || 7)}회` : nick;
+  const badgeHtml=badge
+    ? `<span class="chat-recommend-badge" title="최근 추천 7회 이상">${esc(badge.mark || '✦')} ${esc(badge.label || '추천 7+')}</span>`
+    : '';
+  return `<span class="chat-nick-wrap${badge ? ' recommended-wrap' : ''}" title="${esc(title)}"><span class="${nickClass}">${esc(nick)}${badge ? '<span class="chat-recommend-star" aria-hidden="true">✦</span>' : ''}</span>${badgeHtml}</span>`;
+}
+
+function chatRecommendButtonLabel(message){
+  const count=chatRecommendCount(message);
+  if(!count) return '추천';
+  return count > 99 ? '추천 99+' : `추천 ${count}`;
+}
+
 function renderChatMessagesExcel(body){
   // 엑셀 모드: 한 메시지를 메타 행 + 본문 행으로 나눠 본문 폭을 최대한 확보한다.
   const own=chatUserId();
   const reported=chatReported();
+  const recommended=chatRecommended();
   const admin=isInlineAdmin();
   const rows=chatMessages.map((m, idx)=>{
     const rowNum=idx + 1;
@@ -6802,6 +6989,7 @@ function renderChatMessagesExcel(body){
     const isOwn=m.user_id===own;
     const isAdminNick=isReservedAdminNickname(m.nickname);
     const reportDisabled=isOwn || reported.has(String(m.id)) || isAdminNick;
+    const recommendDisabled=(!admin && (isOwn || recommended.has(String(m.id)))) || isAdminNick;
     const adminActions=admin ? `<span class="chat-excel-actions">
       <button class="chat-admin-action admin-action-danger" type="button" data-chat-admin-action="delete" data-message-id="${esc(m.id)}">삭제</button>
       <button class="chat-admin-action" type="button" data-chat-admin-action="ban" data-user-id="${esc(m.user_id)}">1시간</button>
@@ -6810,11 +6998,11 @@ function renderChatMessagesExcel(body){
     const rowClass=`chat-excel-row${isOwn?' own':''}${isAdminNick?' admin':''}`;
     return `<tr class="${rowClass} chat-excel-meta-row" data-chat-id="${esc(m.id)}">
       <td class="rownum" rowspan="2">${rowNum}</td>
-      <td class="left chat-excel-nick${isAdminNick?' admin-nick':''}" colspan="2" title="${esc(m.nickname || '월급루팡')}">${esc(m.nickname || '월급루팡')}${warn}</td>
+      <td class="left chat-excel-nick${isAdminNick?' admin-nick':''}${chatRecommendBadge(m) && !isAdminNick ? ' recommended-nick' : ''}" colspan="2">${chatNickMarkup(m, {isAdminNick})}${warn}</td>
       <td class="center chat-excel-time">${fmtTime(m.created_at)}</td>
     </tr>
     <tr class="${rowClass} chat-excel-body-row" data-chat-id="${esc(m.id)}">
-      <td class="left chat-excel-body" colspan="3">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions(m, {linkUrls:true, linkPolicy:chatLinkPolicy()}))}<span class="chat-excel-row-actions"><button class="chat-report chat-excel-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>${adminActions}</span></td>
+      <td class="left chat-excel-body" colspan="3">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions(m, {linkUrls:true, linkPolicy:chatLinkPolicy()}))}<span class="chat-excel-row-actions"><button class="chat-recommend chat-excel-recommend" type="button" data-recommend-id="${esc(m.id)}" ${recommendDisabled?'disabled':''}>${esc(chatRecommendButtonLabel(m))}</button><button class="chat-report chat-excel-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>${adminActions}</span></td>
     </tr>`;
   }).join('');
   body.innerHTML=`<table class="chat-excel-table">
@@ -6825,7 +7013,7 @@ function renderChatMessagesExcel(body){
       <col class="chat-excel-col-time"/>
     </colgroup>
     <tbody>${rows}</tbody>
-  </table>${chatSleepNoticeHtml()}`;
+  </table>${chatAwardNoticesHtml()}${chatSleepNoticeHtml()}`;
 }
 
 function renderChatMessages(options={}){
@@ -6845,6 +7033,8 @@ function renderChatMessages(options={}){
   }else{
     const own=chatUserId();
     const reported=chatReported();
+    const recommended=chatRecommended();
+    const inlineAdmin=isInlineAdmin();
     body.innerHTML=chatMessages.map((m)=>{
       const isOwn=m.user_id===own;
       if(m.moderated){
@@ -6854,27 +7044,32 @@ function renderChatMessages(options={}){
       }
       const reportDisabled=isOwn || reported.has(String(m.id)) || isReservedAdminNickname(m.nickname);
       const isAdminNick=isReservedAdminNickname(m.nickname);
-      const adminActions=isInlineAdmin() ? `<span class="chat-admin-actions">
+      const recommendDisabled=(!inlineAdmin && (isOwn || recommended.has(String(m.id)))) || isAdminNick;
+      const adminActions=inlineAdmin ? `<span class="chat-admin-actions">
         <button class="chat-admin-action admin-action-danger" type="button" data-chat-admin-action="delete" data-message-id="${esc(m.id)}">삭제</button>
         <button class="chat-admin-action" type="button" data-chat-admin-action="ban" data-user-id="${esc(m.user_id)}">1시간</button>
       </span>` : '';
       return `<div class="chat-msg${isOwn?' own':''}${isAdminNick?' admin':''}" data-chat-id="${esc(m.id)}">
         <div class="chat-meta">
-          <span class="chat-nick${isAdminNick?' admin-nick':''}">${esc(m.nickname || '월급루팡')}</span>
+          ${chatNickMarkup(m, {isAdminNick})}
           ${m.report_count>=4 ? '<span title="신고 누적">⚠</span>' : ''}
           <span class="chat-time">${fmtTime(m.created_at)}</span>
+          <button class="chat-recommend" type="button" data-recommend-id="${esc(m.id)}" ${recommendDisabled?'disabled':''}>${esc(chatRecommendButtonLabel(m))}</button>
           <button class="chat-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>
           ${adminActions}
         </div>
         <div class="chat-text">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions(m, {linkUrls:true, linkPolicy:chatLinkPolicy()}))}</div>
       </div>`;
-    }).join('') + chatSleepNoticeHtml();
+    }).join('') + chatAwardNoticesHtml() + chatSleepNoticeHtml();
   }
   bindCollapsedImageToggles(body);
   flushStockMentionQueue({chat:true});
   if(typeof setupStockMentionMiniChartHover === 'function') setupStockMentionMiniChartHover(body);
   body.querySelectorAll('[data-report-id]').forEach(btn=>{
     btn.addEventListener('click',()=>reportChatMessage(Number(btn.dataset.reportId)));
+  });
+  body.querySelectorAll('[data-recommend-id]').forEach(btn=>{
+    btn.addEventListener('click',()=>recommendChatMessage(Number(btn.dataset.recommendId)));
   });
   body.querySelectorAll('[data-chat-admin-action]').forEach(btn=>{
     btn.addEventListener('click',(ev)=>{
@@ -6977,7 +7172,11 @@ async function sendChatMessage(body){
     }
     if(!(await guardChatMessage(text))) return;
     const now=Date.now();
-    if(now-chatLastSendAt<CHAT_SEND_GAP_MS){ showToast('채팅은 4초에 한 번만 보낼 수 있어요', 'warn'); return; }
+    const gapMs=chatSendGapMs();
+    if(now-chatLastSendAt<gapMs){
+      showToast(`채팅은 ${Math.ceil(gapMs/1000)}초에 한 번만 보낼 수 있어요`, 'warn');
+      return;
+    }
     chatLastSendAt=now;
     const {input}=chatEls();
     const data=await fetchJsonClient('/api/chat-messages', 6000, {
@@ -6995,7 +7194,12 @@ async function sendChatMessage(body){
     if(input && String(input.value || '').trim().replace(/\s+/g,' ') === text) input.value='';
   }catch(e){
     const msg=String(e.message || e);
-    showToast(msg.includes('rate_limited') || msg.includes('row-level') || msg.includes('policy') ? '채팅 제한 중이거나 너무 빠르게 보냈습니다' : `채팅 전송 실패: ${msg}`, 'err');
+    if(msg.includes('rate_limited')){
+      const seconds=Number(e?.payload?.sendGapSeconds || e?.payload?.retryAfter || 0);
+      showToast(seconds ? `채팅은 ${seconds}초에 한 번만 보낼 수 있어요` : '채팅을 너무 빠르게 보냈습니다', 'warn');
+    }else{
+      showToast(msg.includes('row-level') || msg.includes('policy') ? '채팅 제한 중이거나 너무 빠르게 보냈습니다' : `채팅 전송 실패: ${msg}`, 'err');
+    }
   }finally{
     chatSendInFlight=false;
     setChatSending(false);
@@ -7049,6 +7253,60 @@ async function reportChatMessage(id){
   }catch(e){
     if(e?.payload?.error === 'report_rate_limited') showToast(`채팅 신고는 1시간에 ${e.payload.limit || 5}개까지 가능합니다`, 'warn');
     else showToast(`신고 실패: ${e.message || e}`, 'err');
+  }
+}
+
+function applyChatRecommendResult(id, data={}){
+  const messageId=Number(data.messageId || data.message_id || id || 0);
+  const targetUserId=String(data.targetUserId || data.target_user_id || '');
+  const recommendCount=Math.max(0, Number(data.recommendCount || data.recommend_count || 0) || 0);
+  const badge=data.authorBadge || data.author_badge || null;
+  chatMessages=chatMessages.map((m)=>{
+    const isTarget=targetUserId && String(m.user_id || '') === targetUserId;
+    const isMessage=messageId && Number(m.id) === messageId;
+    if(!isTarget && !isMessage) return m;
+    return {
+      ...m,
+      ...(isMessage ? { recommend_count:Math.max(chatRecommendCount(m), recommendCount) } : {}),
+      ...(isTarget && badge?.active ? { recommend_badge:badge } : {}),
+    };
+  });
+  if(data.authorBadgeJustAwarded || data.author_badge_just_awarded){
+    const awarded=chatMessages.find((m)=>targetUserId && String(m.user_id || '') === targetUserId);
+    if(awarded) queueChatAwardNotice(targetUserId, awarded.nickname, badge);
+  }
+  syncChatRecommendBadgesFromMessages({announce:true});
+  writeChatMessagesCache(chatMessages);
+  renderChatMessages();
+}
+
+async function recommendChatMessage(id){
+  await initChat();
+  if(!id) return;
+  try{
+    const data=await fetchJsonClient('/api/chat-recommend', 6000, {
+      method:'POST',
+      headers:isInlineAdmin() ? adminAuthHeaders({'content-type':'application/json'}) : {'content-type':'application/json'},
+      body:JSON.stringify({
+        message_id:id,
+        recommender_id:chatUserId(),
+      }),
+    });
+    if(!isInlineAdmin()){
+      chatRecommended().add(String(id));
+      saveChatRecommended();
+    }
+    applyChatRecommendResult(id, data || {});
+    if(data?.authorBadgeJustAwarded) showToast('추천 7+ 별이 붙었습니다', 'info');
+    else if(data?.authorBadge?.active) showToast('추천 7+ 표시가 유지됩니다', 'info');
+    else showToast(data?.already ? '이미 추천한 채팅입니다' : '추천했습니다', 'info');
+  }catch(e){
+    const error=e?.payload?.error || '';
+    if(error === 'cannot_recommend_self') showToast('내 채팅은 추천할 수 없습니다', 'warn');
+    else if(error === 'cannot_recommend_admin') showToast('관리자 메시지는 추천 대상에서 제외됩니다', 'info');
+    else if(error === 'recommend_rate_limited') showToast(`채팅 추천은 하루에 ${e.payload?.limit || 30}회까지 가능합니다`, 'warn');
+    else if(error === 'recommend_target_limited') showToast(`같은 사람에게는 하루에 ${e.payload?.limit || 5}회까지만 추천할 수 있습니다`, 'warn');
+    else showToast(`추천 실패: ${e.message || e}`, 'err');
   }
 }
 

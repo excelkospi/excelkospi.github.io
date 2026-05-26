@@ -19,6 +19,32 @@ function communityReadStateSave(state){
   }catch{}
 }
 
+function normalizeCommunitySummary(item, channel){
+  const key = validCommunityChannel(channel || item?.channel);
+  const latestMs = Number(item?.latestActivityMs || 0) || Date.parse(item?.latestAt || '');
+  return {
+    channel:key,
+    postCount:Math.max(0, Number(item?.postCount || 0) || 0),
+    latestActivityMs:Number.isFinite(latestMs) ? Math.max(0, latestMs) : 0,
+  };
+}
+
+function syncCommunitySummariesFromPayload(summaries){
+  if(!summaries || typeof summaries !== 'object') return false;
+  let changed = false;
+  Object.entries(summaries).forEach(([channel, summary])=>{
+    const key = validCommunityChannel(channel);
+    communityChannelSummaries[key] = normalizeCommunitySummary(summary, key);
+    changed = true;
+  });
+  return changed;
+}
+
+function communitySummaryEntry(channel=communityActiveChannel()){
+  const key = validCommunityChannel(channel);
+  return communityChannelSummaries[key] || { channel:key, postCount:0, latestActivityMs:0 };
+}
+
 function communityCreatedMs(item){
   const ms = Date.parse(item?.created_at || '');
   return Number.isFinite(ms) ? ms : 0;
@@ -149,9 +175,19 @@ function scheduleCommunityMarkRead(posts=communityPosts){
 }
 
 function communityUnreadBadgeForChannel(channel){
+  return communityUnreadBadgeMetaForChannel(channel).count;
+}
+
+function communityUnreadBadgeMetaForChannel(channel){
   const key = validCommunityChannel(channel);
   if(timelineIsCommunity() && key === communityActiveChannel() && communityPosts.length){
-    return communityUnreadInfo(communityPosts, key).unreadCount;
+    return { count:communityUnreadInfo(communityPosts, key).unreadCount, approximate:false };
   }
-  return communityReadEntry(key).unreadCount;
+  const read = communityReadEntry(key);
+  if(read.unreadCount > 0) return { count:read.unreadCount, approximate:false };
+  const summary = communitySummaryEntry(key);
+  if(read.readAt > 0 && summary.latestActivityMs > read.readAt){
+    return { count:1, approximate:true };
+  }
+  return { count:0, approximate:false };
 }

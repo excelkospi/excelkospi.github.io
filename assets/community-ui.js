@@ -1822,6 +1822,13 @@ function clearCommunityRefresh(){
   }
 }
 
+function clearCommunitySummaryRefresh(){
+  if(communitySummaryTimer){
+    clearTimeout(communitySummaryTimer);
+    communitySummaryTimer = null;
+  }
+}
+
 function communityIdleForMs(){
   return Date.now() - lastVersionActivityAt;
 }
@@ -1840,6 +1847,46 @@ function maybeResumeCommunityRefresh(){
   communityRefreshSleeping = false;
   loadCommunityPosts({ silent:true });
   scheduleCommunityRefresh();
+}
+
+async function loadCommunitySummaries(options={}){
+  if(communitySummaryLoadInFlight) return;
+  if(shouldPauseDataRefreshForHidden() && !options.allowHidden) return;
+  if(!featureEnabled('community')) return;
+  communitySummaryLoadInFlight = true;
+  try{
+    const data = await fetchJsonClient('/api/community?summary=1', 8000, {
+      cache: options.force ? 'reload' : 'default',
+    });
+    if(typeof syncCommunitySummariesFromPayload === 'function' && syncCommunitySummariesFromPayload(data?.summaries)){
+      updateTimelineTabs();
+      updateNewsHint();
+    }
+  }catch(e){
+    debugWarn('community summary load failed', e);
+  }finally{
+    communitySummaryLoadInFlight = false;
+  }
+}
+
+function scheduleCommunitySummaryRefresh(delay=null){
+  if(!featureEnabled('community')){
+    clearCommunitySummaryRefresh();
+    return;
+  }
+  if(timelineIsCommunity()){
+    clearCommunitySummaryRefresh();
+    return;
+  }
+  if(shouldPauseDataRefreshForHidden() || communitySummaryTimer) return;
+  if(shouldSleepCommunityRefresh()) return;
+  communitySummaryTimer = setTimeout(async ()=>{
+    communitySummaryTimer = null;
+    if(shouldPauseDataRefreshForHidden() || timelineIsCommunity()) return;
+    if(shouldSleepCommunityRefresh()) return;
+    await loadCommunitySummaries({ silent:true });
+    scheduleCommunitySummaryRefresh();
+  }, delay == null ? communityRefreshIntervalMs() : Math.round(Number(delay) * pollScale()));
 }
 
 function scheduleCommunityRefresh(delay=null){
@@ -1881,6 +1928,7 @@ async function loadCommunityPosts(options={}){
     const adminMode = isInlineAdmin();
     const channel = typeof communityActiveChannel === 'function' ? communityActiveChannel() : 'kr';
     const params = new URLSearchParams({ channel });
+    params.set('include_summary', '1');
     if(options.force) params.set('fresh', '1');
     const endpoint = adminMode
       ? `/api/community-admin?limit=${COMMUNITY_POST_LIMIT}&channel=${encodeURIComponent(channel)}`
@@ -1892,6 +1940,9 @@ async function loadCommunityPosts(options={}){
     communityPosts=Array.isArray(data?.posts) ? data.posts : [];
     if(typeof syncCommunityPollFromPayload === 'function'){
       syncCommunityPollFromPayload(data?.poll, channel);
+    }
+    if(typeof syncCommunitySummariesFromPayload === 'function'){
+      syncCommunitySummariesFromPayload(data?.summaries);
     }
     clampCommunityPage();
     if(communityReplyPostId && !communityPosts.some((post)=>String(post.id)===communityReplyPostId && !post.hidden)){

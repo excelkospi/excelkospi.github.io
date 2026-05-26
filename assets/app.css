@@ -3179,12 +3179,13 @@ button.notice-card{cursor:pointer}
 .chat-nick.admin-nick{display:inline-flex;align-items:center;justify-content:center;max-width:100%;height:17px;padding:0 6px;border-radius:3px;background:#107c41;color:#fff!important;border:1px solid #0b6a36;font-weight:800;line-height:1;vertical-align:middle;box-shadow:inset 0 -1px 0 rgba(0,0,0,.12)}
 .chat-excel-table td.chat-excel-nick.admin-nick{color:#3f6b52!important;font-weight:700}
 .chat-excel-table td.chat-excel-time{color:#797775;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:10.5px;vertical-align:middle}
-.chat-excel-body{position:relative;white-space:pre-wrap;line-height:1.42;min-width:0;max-width:100%;padding:4px 42px 5px 5px!important;color:#333b44}
+.chat-excel-body{position:relative;white-space:pre-wrap;line-height:1.42;min-width:0;max-width:100%;padding:4px 88px 5px 5px!important;color:#333b44}
 .chat-excel-body .message-image-list{max-width:100%;overflow:hidden}
 .chat-excel-body .message-image-preview{max-width:100%}
-.chat-excel-report{height:18px;padding:0 5px;border:1px solid #e1dfdd;background:rgba(255,255,255,.92);color:#8a6d3b;cursor:pointer;font-size:10.5px;border-radius:2px;vertical-align:middle}
-.chat-excel-report:hover:not(:disabled){background:#fff3d6}
-.chat-excel-report:disabled{opacity:.35;cursor:default}
+.chat-excel-report,.chat-excel-recommend{height:18px;padding:0 5px;border:1px solid #e1dfdd;background:rgba(255,255,255,.92);color:#8a6d3b;cursor:pointer;font-size:10.5px;border-radius:2px;vertical-align:middle}
+.chat-excel-recommend{border-color:#e8d7a3;background:#fffaf0;color:#8a6d2a}
+.chat-excel-report:hover:not(:disabled),.chat-excel-recommend:hover:not(:disabled){background:#fff3d6}
+.chat-excel-report:disabled,.chat-excel-recommend:disabled{opacity:.35;cursor:default}
 .chat-excel-row-actions{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;gap:3px;opacity:0;pointer-events:none;transition:opacity .12s ease;white-space:nowrap}
 .chat-excel-row:hover .chat-excel-row-actions,
 .chat-excel-row:focus-within .chat-excel-row-actions{opacity:1;pointer-events:auto}
@@ -3204,6 +3205,12 @@ body.excel-dark-mode:not(.theme-outlook) .chat-excel-nick.admin-nick,
 body.excel-dark-mode:not(.theme-outlook) .chat-nick.admin-nick{background:#21a366;color:#06180f!important;border-color:#6ee7a2}
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-nick.admin-nick{background:#19201d!important;color:#a6c8b5!important;border-color:var(--grid)!important}
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-body{color:#c8d1d9}
+body.excel-dark-mode:not(.theme-outlook) .chat-nick.recommended-nick{background:#3a2f12;color:#f5d56b;border-color:#8a6d2a}
+body.excel-dark-mode:not(.theme-outlook) .chat-recommend-badge{background:#2c2515;color:#f1d57a;border-color:#8a6d2a}
+body.excel-dark-mode:not(.theme-outlook) .chat-recommend-star{color:#f1c84b}
+body.excel-dark-mode:not(.theme-outlook) .chat-recommend,
+body.excel-dark-mode:not(.theme-outlook) .chat-excel-recommend{color:#e2c86b}
+body.excel-dark-mode:not(.theme-outlook) .chat-excel-recommend{background:#2c2515;border-color:#66511e}
 @media(hover:none){
   .chat-excel-row-actions{opacity:1;pointer-events:auto}
 }
@@ -3254,6 +3261,9 @@ body.excel-dark-mode:not(.theme-outlook) .chat-donor-sep{color:#525860}
 body.excel-dark-mode:not(.theme-outlook) .chat-donor-marquee-inline{background:#1f2328;border-color:#363a40;color:#aeb4bb}
 body.excel-dark-mode:not(.theme-outlook) .chat-donor-marquee-inline .chat-donor-track{background:#1b1f24}
 body.excel-dark-mode:not(.theme-outlook) .chat-donor-marquee-inline .chat-donor-label{background:#1f2328;border-color:#363a40;color:#c4cad0}
+body.excel-dark-mode:not(.theme-outlook) .chat-award-notice{background:#2c2515;color:#f1d57a;border-color:#8a6d2a}
+body.excel-dark-mode:not(.theme-outlook) .chat-award-notice b{color:#ffe08a}
+body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#8a6d2a;color:#fff4bf}
 @media(max-width:760px){
   .chat-donor-marquee{height:23px;min-height:23px;font-size:10.5px}
   .chat-donor-label{font-size:10.5px;padding:0 8px;max-width:50%}
@@ -3275,20 +3285,34 @@ body.excel-dark-mode:not(.theme-outlook) .chat-donor-marquee-inline .chat-donor-
 .chat-sleep-notice{align-self:stretch;box-sizing:border-box;min-width:0;width:auto;max-width:none;margin:4px 0 0;background:#fff8e1;border:1px solid #ead38a;border-radius:8px;padding:8px 10px;color:#6b5a12;font-size:11.5px;line-height:1.45;text-align:left;white-space:normal;overflow:visible;overflow-wrap:anywhere;word-break:normal}
 .chat-new-inline{position:sticky;bottom:8px;z-index:8;align-self:center;display:inline-flex;align-items:center;justify-content:center;margin:2px auto 0;padding:6px 12px;border:1px solid rgba(255,255,255,.56);border-radius:999px;background:#107c41;color:#fff;font:inherit;font-size:11.5px;font-weight:800;line-height:1;box-shadow:0 8px 20px rgba(0,0,0,.2);cursor:pointer}
 .chat-new-inline:hover{background:#0c6a36}
+.chat-award-notice{align-self:center;display:inline-flex;align-items:center;gap:6px;max-width:100%;margin:2px auto;padding:6px 10px;border:1px solid #ead38a;border-radius:999px;background:#fff8dc;color:#6b5a12;font-size:11px;font-weight:650;line-height:1.2;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.chat-award-notice b{font-weight:850;color:#5f4f10}
+.chat-award-mark{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:999px;background:#f3cf58;color:#5f4f10;font-size:10px;font-weight:900;box-shadow:inset 0 -1px 0 rgba(130,95,0,.16)}
 .chat-msg{background:#fff;border:1px solid #e1dfdd;border-radius:8px;padding:6px 7px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .chat-msg.own{background:#eef8f0;border-color:#cfe7d7}
 .chat-msg.admin{background:#f7fbf8;border-color:#b7d9c4}
 .chat-msg.moderated{background:#f3f4f6;border-color:#d8dde3;border-style:dashed;box-shadow:none}
 .chat-moderated-text{color:#7b8490;font-size:11.5px;line-height:1.4;text-align:center}
 .chat-meta{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:10.5px;color:#6b7280}
-.chat-nick{font-weight:800;color:#107c41;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-nick-wrap{display:inline-flex;align-items:center;gap:3px;min-width:0;max-width:178px;overflow:hidden;vertical-align:middle}
+.chat-nick-wrap.recommended-wrap{max-width:168px}
+.chat-nick{display:inline-flex;align-items:center;gap:2px;font-weight:800;color:#107c41;max-width:150px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-nick-wrap.recommended-wrap .chat-nick{max-width:96px}
+.chat-nick.recommended-nick{height:17px;padding:0 5px;border:1px solid #e3ca79;border-radius:4px;background:#fff7d6;color:#6f5a12;box-shadow:inset 0 -1px 0 rgba(130,95,0,.08)}
+.chat-recommend-star{font-size:10px;line-height:1;color:#b8860b}
+.chat-recommend-badge{display:inline-flex;align-items:center;justify-content:center;height:16px;max-width:62px;padding:0 5px;border:1px solid #e3ca79;border-radius:999px;background:#fffaf0;color:#7a6418;font-size:9.6px;font-weight:800;line-height:1;white-space:nowrap;box-shadow:inset 0 -1px 0 rgba(130,95,0,.06)}
 .chat-time{margin-left:auto;font-variant-numeric:tabular-nums}
-.chat-report{border:0;background:transparent;color:#8a6d3b;cursor:pointer;font-size:10.5px;padding:0 2px}
-.chat-report:hover{text-decoration:underline}
-.chat-report[disabled]{opacity:.35;cursor:default;text-decoration:none}
+.chat-report,.chat-recommend{border:0;background:transparent;color:#8a6d3b;cursor:pointer;font-size:10.5px;padding:0 2px;white-space:nowrap}
+.chat-recommend{color:#8a6d2a;font-weight:750}
+.chat-report:hover,.chat-recommend:hover{text-decoration:underline}
+.chat-report[disabled],.chat-recommend[disabled]{opacity:.35;cursor:default;text-decoration:none}
 .chat-admin-actions{display:inline-flex;align-items:center;gap:4px;margin-left:2px}
 .chat-admin-action{border:0;background:transparent;color:#775000;cursor:pointer;font-size:10.5px;font-weight:800;padding:0 2px}
 .chat-admin-action.admin-action-danger{border:0;background:transparent;color:#a4262c}
+@media(max-width:430px){
+  .chat-nick-wrap.recommended-wrap{max-width:154px}
+  .chat-nick-wrap.recommended-wrap .chat-nick{max-width:82px}
+}
 .chat-admin-action:hover{text-decoration:underline}
 .chat-admin-action.admin-action-danger:hover{background:transparent}
 .chat-admin-action:disabled{opacity:.45;cursor:progress;text-decoration:none}
