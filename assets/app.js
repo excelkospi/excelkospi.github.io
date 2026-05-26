@@ -2129,6 +2129,15 @@ function quoteRuntimeKey(token, coinSource='binance'){
   return `${normalized}|coin:${normalizeCoinQuoteSourceClient(coinSource)}`;
 }
 
+function cacheRuntimeQuote(token, coinSource, quote, at=Date.now()){
+  const runtimeKey=quoteRuntimeKey(token, coinSource);
+  if(!runtimeKey || !quote?.ok) return;
+  runtimeShared.quotesByToken.set(runtimeKey, {
+    at:Number(at) || Date.now(),
+    quote,
+  });
+}
+
 function quoteTokenForCard(card){
   if(!card || card._flows || card._momentum !== undefined || (card.sign && card.priceUnit)) return '';
   if(isRateOnlyCard(card.key)) return '';
@@ -2154,6 +2163,7 @@ function quoteFromSnapshotCard(card){
     _min30:card._min30 ?? null,
     asOf:card.asOf,
     source:card.source,
+    priceUnit:card.priceUnit || '',
     marketState:card.marketState,
     sessionTag:card.sessionTag || '',
   };
@@ -2167,6 +2177,52 @@ function snapshotQuoteByToken(snapshot=lastSnapshot){
     if(token && quote) map.set(quoteRuntimeKey(token, coinSourceForFastQuoteCard(card)), quote);
   });
   return map;
+}
+
+function watchlistQuoteToken(item){
+  return normalizeQuoteToken(`${item?.code || ''}:${item?.market || 'AUTO'}`);
+}
+
+function cachedWatchlistQuote(item, maxAgeMs=5 * 60 * 1000){
+  const token=watchlistQuoteToken(item);
+  if(!token) return null;
+  const source=coinSourceForMarket(item?.market);
+  const cached=runtimeShared.quotesByToken.get(quoteRuntimeKey(token, source));
+  if(!cached?.quote?.ok) return null;
+  if(Date.now() - Number(cached.at || 0) > maxAgeMs) return null;
+  return cached.quote;
+}
+
+function watchlistCardFromQuote(item, quote){
+  if(!quote || !quote.ok){
+    return {
+      market: item?.market,
+      key: item?.name || item?.code,
+      price: null,
+      changePct: null,
+      asOf: null,
+      source: '?',
+      userAdded: true,
+      code: item?.code,
+      error: true,
+    };
+  }
+  return {
+    market: quote.market || item?.market,
+    key: quote.name || item?.name || quote.code || item?.code,
+    price: quote.price,
+    changePct: quote.changePct,
+    _min15: quote._min15 ?? null,
+    _min30: quote._min30 ?? null,
+    asOf: quote.asOf,
+    source: quote.source,
+    priceUnit: quote.priceUnit || '',
+    marketState: quote.marketState,
+    sessionTag: quote.sessionTag || '',
+    userAdded: true,
+    code: quote.code || item?.code,
+    error: false,
+  };
 }
 
 function mergeFastQuoteCard(card, quote){
@@ -2859,11 +2915,15 @@ async function fetchUserWatchlistCards(market='ALL', maxItems=Infinity){
   const quotes=new Array(list.length).fill(null);
   const missing=[];
   list.forEach((it, index)=>{
-    const token=normalizeQuoteToken(`${it.code}:${it.market||'AUTO'}`);
+    const token=watchlistQuoteToken(it);
     const source=coinSourceForMarket(it.market);
     const quote=snapshotQuotes.get(quoteRuntimeKey(token, source));
     if(quote) quotes[index]=quote;
-    else missing.push({ it, index, coinSource:source });
+    else {
+      const cached=cachedWatchlistQuote(it);
+      if(cached) quotes[index]=cached;
+      else missing.push({ it, index, coinSource:source });
+    }
   });
   const missingBySource=new Map();
   missing.forEach((item)=>{
@@ -2884,8 +2944,10 @@ async function fetchUserWatchlistCards(market='ALL', maxItems=Infinity){
       if(!chunkQuotes){
         chunkQuotes = await Promise.all(chunk.map(({it})=>fetchQuote(it.code, it.market).catch(()=>null)));
       }
-      chunk.forEach(({index}, offset)=>{
-        quotes[index]=chunkQuotes?.[offset] || null;
+      chunk.forEach(({it, index}, offset)=>{
+        const quote=chunkQuotes?.[offset] || null;
+        quotes[index]=quote;
+        if(quote?.ok) cacheRuntimeQuote(watchlistQuoteToken(it), coinSource, quote);
       });
     }
   }
@@ -2894,20 +2956,10 @@ async function fetchUserWatchlistCards(market='ALL', maxItems=Infinity){
   quotes.forEach((q,i)=>{
     const it=list[i];
     if(!q || !q.ok){
-      cards.push({
-        market: it.market, key: it.name||it.code,
-        price: null, changePct: null, asOf: null, source: '?',
-        userAdded: true, code: it.code, error: true,
-      });
+      cards.push(watchlistCardFromQuote(it, null));
       return;
     }
-    cards.push({
-      market: q.market, key: q.name||q.code,
-      price: q.price, changePct: q.changePct,
-      _min15: q._min15 ?? null, _min30: q._min30 ?? null,
-      asOf: q.asOf, source: q.source, priceUnit: q.priceUnit || '', marketState: q.marketState,
-      userAdded: true, code: q.code,
-    });
+    cards.push(watchlistCardFromQuote(it, q));
     // 종목명이 더 정확해졌으면 localStorage 동기화
     if(q.name && q.name!==it.name){
       it.name=q.name; mutated=true;
@@ -2926,6 +2978,36 @@ let loadQueuedOptions=null;
 let sheetSwitchLoading=false;
 let renderSnapshotSeq=0;
 const USER_WATCHLIST_BACKGROUND_TIMEOUT_MS=12000;
+
+function warmUserWatchlistCardsForMarket(market='ALL', maxItems=Infinity){
+  const list=limitedUserWatchlistItemsForMarket(wlLoad(), market, maxItems);
+  if(!list.length) return [];
+  const previousById=new Map();
+  lastRenderedCards.forEach((card)=>{
+    if(!card?.userAdded || card._noteRow) return;
+    const id=quoteRowOrderId(card);
+    if(id) previousById.set(id, card);
+  });
+  const maxAge=Math.max(60 * 1000, Math.min(5 * 60 * 1000, Math.floor(fastQuoteIntervalMs(lastSnapshot) * 8)));
+  const cards=[];
+  list.forEach((item)=>{
+    const orderId=watchlistItemOrderId(item);
+    const previous=previousById.get(orderId);
+    if(previous){
+      cards.push({
+        ...previous,
+        userAdded:true,
+        code:item.code || previous.code,
+        market:item.market || previous.market,
+        key:item.name || previous.key || item.code,
+      });
+      return;
+    }
+    const cached=cachedWatchlistQuote(item, maxAge);
+    if(cached?.ok) cards.push(watchlistCardFromQuote(item, cached));
+  });
+  return cards;
+}
 
 function fetchSnapshotMeta(forceNetwork, headers, options={}){
   const request = () => fetchJsonClient(snapshotApiUrl(), 14000, {
@@ -4560,7 +4642,8 @@ async function renderSnapshot(s){
   const baseCards=visibleCards(s.cards, market).slice(0, quoteTableRowLimit());
   const userSlotLimit=userWatchlistSlotsForMarket(market, baseCards.length);
   const hasUserWatchlistRows = userSlotLimit > 0 && limitedUserWatchlistItemsForMarket(wlLoad(), market, userSlotLimit).length > 0;
-  renderSnapshotView(s, market, baseCards, []);
+  const warmUserCards = hasUserWatchlistRows ? warmUserWatchlistCardsForMarket(market, userSlotLimit) : [];
+  renderSnapshotView(s, market, baseCards, warmUserCards);
   if(!hasUserWatchlistRows) return;
   Promise.race([
     fetchUserWatchlistCards(market, userSlotLimit),
@@ -7577,6 +7660,14 @@ async function addWatchlistItem(rawCode, market){
     showToast('이미 추가된 종목입니다', 'warn'); return false;
   }
   const item={ code:q.code, market:q.market, name:q.name||q.code, addedAt:Date.now() };
+  cacheRuntimeQuote(watchlistQuoteToken(item), coinSourceForMarket(item.market), q);
+  postRuntimeMessage('quotes', {
+    items:[{
+      token:watchlistQuoteToken(item),
+      coinSource:coinSourceForMarket(item.market),
+      quote:q,
+    }],
+  });
   const limitHit=watchlistLimitHitForItem(list, item);
   if(limitHit){
     const marketName=marketDisplayName(limitHit.market);
