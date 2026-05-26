@@ -7712,7 +7712,7 @@ async function addWatchlistItem(rawCode, market){
   const list=wlLoad();
   const q=await fetchQuote(code, market);
   if(!q.ok){
-    showToast(q.error||'종목을 찾지 못했어요', 'err'); return false;
+    showToast(`${q.error || '종목을 찾지 못했어요'} 띄어쓰기를 빼고 다시 입력해 보세요.`, 'err'); return false;
   }
   if(q.market==='COIN' && selected!=='COIN'){
     showToast('코인 추가는 코인 시트에서만 가능합니다', 'warn'); return false;
@@ -7795,10 +7795,10 @@ function syncWatchlistMarketUi(){
   }
   if(isCoinTab){
     select.value='COIN';
-    if(input) input.placeholder='코인 입력 후 Enter (BTC, ETH, USDT…)';
+    if(input) input.placeholder='코인 입력 후 Enter해 종목 추가 (BTC, ETH, USDT…)';
   }else{
     select.value='auto';
-    if(input) input.placeholder='종목명·코드·지수 입력 후 Enter';
+    if(input) input.placeholder='종목명·코드·지수 입력 후 Enter해 종목 추가';
   }
   syncWatchlistAddMode();
 }
