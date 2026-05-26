@@ -2828,9 +2828,6 @@ function renderNewsFeedTable(rows){
     const desc = n.description && n.description.length >= 12
       ? esc(n.description)
       : `<span class="flat">${esc([rel, n.source].filter(Boolean).join(' · ')) || '—'}</span>`;
-    const link=n.url
-      ? `<a class="link-pill" href="${esc(n.url)}" target="_blank" rel="noopener">열기 ↗</a>`
-      : `<span class="flat">-</span>`;
     const matchKey = newsKey(n);
     const matchCls = personalKeys.has(matchKey) ? ' is-personal-match' : '';
     const newCls = ` news-row${n._isNew ? ' is-new' : ''}${matchCls}`;
@@ -2848,7 +2845,7 @@ function renderNewsFeedTable(rows){
       <td class="center time">${fmtTime(n.publishedAt || n.asOf)}</td>
       <td class="left">${titleHtml}</td>
       <td class="left news-desc">${desc}</td>
-      <td class="center">${link}</td>
+      <td class="center"></td>
     </tr>`;
   }).join('');
   const startIdx=rowNo + items.length;
