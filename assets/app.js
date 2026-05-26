@@ -6971,7 +6971,7 @@ function chatAwardNoticesHtml(){
   if(!chatAwardNotices.length) return '';
   return chatAwardNotices.map((notice)=>`<div class="chat-msg chat-award-message" role="status">
     <div class="chat-meta"><span class="chat-nick chat-award-nick">추천</span><span class="chat-time">${fmtTime(new Date(notice.at).toISOString())}</span></div>
-    <div class="chat-text"><span class="chat-award-mark" aria-hidden="true">${esc(notice.badge.mark || '✦')}</span><b>${esc(notice.nickname)}</b>님이 추천 받았습니다</div>
+    <div class="chat-text"><span class="chat-award-mark" aria-hidden="true">${esc(notice.badge.mark || '✦')}</span><b>${esc(notice.nickname)}</b>님이 추천을 여러 번 받아 별을 획득했습니다</div>
   </div>`).join('');
 }
 
@@ -6981,7 +6981,7 @@ function chatAwardNoticeRowsHtml(startRow=1){
   if(!chatAwardNotices.length) return '';
   return chatAwardNotices.map((notice, index)=>`<tr class="chat-excel-row chat-award-row">
     <td class="rownum">${startRow + index}</td>
-    <td class="left chat-excel-body chat-award-excel-body" colspan="3"><span class="chat-award-mark" aria-hidden="true">${esc(notice.badge.mark || '✦')}</span><b>${esc(notice.nickname)}</b>님이 추천 받았습니다</td>
+    <td class="left chat-excel-body chat-award-excel-body" colspan="3"><span class="chat-award-mark" aria-hidden="true">${esc(notice.badge.mark || '✦')}</span><b>${esc(notice.nickname)}</b>님이 추천을 여러 번 받아 별을 획득했습니다</td>
   </tr>`).join('');
 }
 
@@ -7027,9 +7027,9 @@ function chatNickMarkup(message, options={}){
   const nickClass=`chat-nick${isAdminNick?' admin-nick':''}${badge?' recommended-nick':''}`;
   const title=badge ? `${nick} · 최근 추천 ${Math.max(7, Number(badge.count || 0) || 7)}회` : nick;
   const badgeHtml=badge
-    ? `<span class="chat-recommend-badge" title="최근 추천 7회 이상">추천</span>`
+    ? `<span class="chat-recommend-badge" title="최근 추천 7회 이상" aria-label="추천 별">✦</span>`
     : '';
-  return `<span class="chat-nick-wrap${badge ? ' recommended-wrap' : ''}" title="${esc(title)}"><span class="${nickClass}">${esc(nick)}${badge ? '<span class="chat-recommend-star" aria-hidden="true">✦</span>' : ''}</span>${badgeHtml}</span>`;
+  return `<span class="chat-nick-wrap${badge ? ' recommended-wrap' : ''}" title="${esc(title)}"><span class="${nickClass}">${esc(nick)}</span>${badgeHtml}</span>`;
 }
 
 function chatRecommendButtonLabel(message){

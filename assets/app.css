@@ -3205,8 +3205,8 @@ body.excel-dark-mode:not(.theme-outlook) .chat-excel-nick.admin-nick,
 body.excel-dark-mode:not(.theme-outlook) .chat-nick.admin-nick{background:#21a366;color:#06180f!important;border-color:#6ee7a2}
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-nick.admin-nick{background:#19201d!important;color:#a6c8b5!important;border-color:var(--grid)!important}
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-body{color:#c8d1d9}
-body.excel-dark-mode:not(.theme-outlook) .chat-nick.recommended-nick{background:#2f2a1c;color:#dfc978;border-color:#5e5432}
-body.excel-dark-mode:not(.theme-outlook) .chat-recommend-badge{background:#25231c;color:#d5c58a;border-color:#5e5432}
+body.excel-dark-mode:not(.theme-outlook) .chat-nick.recommended-nick{background:#29261d;color:#d6c685;border-color:#50482d}
+body.excel-dark-mode:not(.theme-outlook) .chat-recommend-badge{background:#232118;color:#d2bd69;border-color:#51482d}
 body.excel-dark-mode:not(.theme-outlook) .chat-recommend-star{color:#d4b653}
 body.excel-dark-mode:not(.theme-outlook) .chat-recommend,
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-recommend{color:#e2c86b}
@@ -3262,10 +3262,10 @@ body.excel-dark-mode:not(.theme-outlook) .chat-donor-marquee-inline{background:#
 body.excel-dark-mode:not(.theme-outlook) .chat-donor-marquee-inline .chat-donor-track{background:#1b1f24}
 body.excel-dark-mode:not(.theme-outlook) .chat-donor-marquee-inline .chat-donor-label{background:#1f2328;border-color:#363a40;color:#c4cad0}
 body.excel-dark-mode:not(.theme-outlook) .chat-award-message,
-body.excel-dark-mode:not(.theme-outlook) .chat-award-row td:not(.rownum){background:#222119;color:#d6c98d;border-color:#4e4930}
+body.excel-dark-mode:not(.theme-outlook) .chat-award-row td:not(.rownum){background:#201f18;color:#cfc28d;border-color:#46412b}
 body.excel-dark-mode:not(.theme-outlook) .chat-award-message b,
-body.excel-dark-mode:not(.theme-outlook) .chat-award-row b{color:#e4d28c}
-body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#4d4628;color:#e6d48a}
+body.excel-dark-mode:not(.theme-outlook) .chat-award-row b{color:#d8c789}
+body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#423c25;color:#dec984}
 @media(max-width:760px){
   .chat-donor-marquee{height:23px;min-height:23px;font-size:10.5px}
   .chat-donor-label{font-size:10.5px;padding:0 8px;max-width:50%}
@@ -3287,12 +3287,13 @@ body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#4d4628;col
 .chat-sleep-notice{align-self:stretch;box-sizing:border-box;min-width:0;width:auto;max-width:none;margin:4px 0 0;background:#fff8e1;border:1px solid #ead38a;border-radius:8px;padding:8px 10px;color:#6b5a12;font-size:11.5px;line-height:1.45;text-align:left;white-space:normal;overflow:visible;overflow-wrap:anywhere;word-break:normal}
 .chat-new-inline{position:sticky;bottom:8px;z-index:8;align-self:center;display:inline-flex;align-items:center;justify-content:center;margin:2px auto 0;padding:6px 12px;border:1px solid rgba(255,255,255,.56);border-radius:999px;background:#107c41;color:#fff;font:inherit;font-size:11.5px;font-weight:800;line-height:1;box-shadow:0 8px 20px rgba(0,0,0,.2);cursor:pointer}
 .chat-new-inline:hover{background:#0c6a36}
-.chat-award-message{background:#fffaf0;border-color:#e3d6ad;color:#5d5639;box-shadow:0 1px 2px rgba(0,0,0,.025)}
+.chat-award-message{background:#fffbf3;border-color:#eadfbe;color:#665f47;box-shadow:0 1px 2px rgba(0,0,0,.018)}
 .chat-award-message .chat-meta{margin-bottom:2px}
-.chat-award-message b,.chat-award-row b{font-weight:800;color:#5d5639}
-.chat-award-nick{color:#74683f;font-weight:750}
-.chat-award-mark{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;margin-right:4px;border-radius:999px;background:#efe2b9;color:#71643b;font-size:9px;font-weight:850;box-shadow:inset 0 -1px 0 rgba(120,95,40,.09)}
-.chat-award-row td:not(.rownum){background:#fffaf0!important;color:#5d5639}
+.chat-award-message .chat-text,.chat-award-row .chat-award-excel-body{font-size:11.4px;line-height:1.35;color:#69624b}
+.chat-award-message b,.chat-award-row b{font-weight:650;color:#5f5841}
+.chat-award-nick{color:#756b4b;font-weight:650}
+.chat-award-mark{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;margin-right:4px;border-radius:999px;background:#f2e8c8;color:#7a6b3d;font-size:8.5px;font-weight:800;box-shadow:inset 0 -1px 0 rgba(120,95,40,.06)}
+.chat-award-row td:not(.rownum){background:#fffbf3!important;color:#69624b}
 .chat-award-excel-body{padding-right:5px!important;white-space:normal}
 .chat-msg{background:#fff;border:1px solid #e1dfdd;border-radius:8px;padding:6px 7px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .chat-msg.own{background:#eef8f0;border-color:#cfe7d7}
@@ -3301,12 +3302,12 @@ body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#4d4628;col
 .chat-moderated-text{color:#7b8490;font-size:11.5px;line-height:1.4;text-align:center}
 .chat-meta{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:10.5px;color:#6b7280}
 .chat-nick-wrap{display:inline-flex;align-items:center;gap:3px;min-width:0;max-width:188px;overflow:hidden;vertical-align:middle}
-.chat-nick-wrap.recommended-wrap{max-width:202px}
+.chat-nick-wrap.recommended-wrap{max-width:228px}
 .chat-nick{display:inline-flex;align-items:center;gap:2px;font-weight:800;color:#107c41;max-width:150px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chat-nick-wrap.recommended-wrap .chat-nick{max-width:132px}
-.chat-nick.recommended-nick{height:17px;padding:0 6px;border:1px solid #ded3ad;border-radius:4px;background:#fffaf0;color:#665d3a;box-shadow:inset 0 -1px 0 rgba(120,95,40,.05)}
+.chat-nick-wrap.recommended-wrap .chat-nick{max-width:176px}
+.chat-nick.recommended-nick{height:17px;padding:0 7px;border:1px solid #e9dfbd;border-radius:4px;background:#fffdf6;color:#625c43;box-shadow:inset 0 -1px 0 rgba(120,95,40,.035)}
 .chat-recommend-star{font-size:9.5px;line-height:1;color:#9f873e}
-.chat-recommend-badge{display:inline-flex;align-items:center;justify-content:center;height:15px;max-width:38px;padding:0 5px;border:1px solid #ded3ad;border-radius:999px;background:#fffdf6;color:#706540;font-size:9.4px;font-weight:750;line-height:1;white-space:nowrap;box-shadow:inset 0 -1px 0 rgba(120,95,40,.04)}
+.chat-recommend-badge{display:inline-flex;align-items:center;justify-content:center;width:16px;height:15px;min-width:16px;padding:0;border:1px solid #e9dfbd;border-radius:999px;background:#fffef9;color:#8e7a3e;font-size:8.8px;font-weight:750;line-height:1;white-space:nowrap;box-shadow:inset 0 -1px 0 rgba(120,95,40,.025)}
 .chat-time{margin-left:auto;font-variant-numeric:tabular-nums}
 .chat-report,.chat-recommend{border:0;background:transparent;color:#8a6d3b;cursor:pointer;font-size:10.5px;padding:0 2px;white-space:nowrap}
 .chat-recommend{color:#8a6d2a;font-weight:750}
@@ -3316,8 +3317,8 @@ body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#4d4628;col
 .chat-admin-action{border:0;background:transparent;color:#775000;cursor:pointer;font-size:10.5px;font-weight:800;padding:0 2px}
 .chat-admin-action.admin-action-danger{border:0;background:transparent;color:#a4262c}
 @media(max-width:430px){
-  .chat-nick-wrap.recommended-wrap{max-width:178px}
-  .chat-nick-wrap.recommended-wrap .chat-nick{max-width:116px}
+  .chat-nick-wrap.recommended-wrap{max-width:194px}
+  .chat-nick-wrap.recommended-wrap .chat-nick{max-width:142px}
 }
 .chat-admin-action:hover{text-decoration:underline}
 .chat-admin-action.admin-action-danger:hover{background:transparent}
