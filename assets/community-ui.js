@@ -25,6 +25,131 @@ function communityAuthorHtml(nickname){
   return `<span class="community-author-name${cls}">${esc(name)}</span>`;
 }
 
+function communityLinkPolicy(){
+  try{
+    if(typeof chatLinkPolicy === 'function') return chatLinkPolicy();
+  }catch{}
+  return window.__excelkospiChatConfig?.linkPolicy || null;
+}
+
+function renderCommunityRichText(text, options={}){
+  return renderTextWithImagePreviews(text || '', {
+    collapsed:true,
+    hidePreviewUrls:true,
+    stockMentions:true,
+    linkUrls:true,
+    linkPolicy:communityLinkPolicy(),
+    ...options,
+  });
+}
+
+const COMMUNITY_LINK_TITLE_MAX = 72;
+
+function normalizeCommunityLinkTitle(value){
+  const text = String(value || '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*[-|:]\s*(네이버 뉴스|Naver News|YouTube|Youtube|구글 뉴스|Google News)\s*$/i, '')
+    .trim();
+  if(!text || /^https?:\/\//i.test(text) || /^www\./i.test(text)) return '';
+  return Array.from(text).slice(0, COMMUNITY_LINK_TITLE_MAX).join('');
+}
+
+function firstAllowedCommunityLink(text){
+  let found = null;
+  String(text || '').replace(URL_TOKEN_RE, (token)=>{
+    if(found) return token;
+    const {urlText}=splitUrlToken(token);
+    const url=normalizeTextUrl(urlText);
+    if(url && chatLinkAllowed(url, communityLinkPolicy())) found = url;
+    return token;
+  });
+  return found;
+}
+
+function extractCommunityLinkTitleFromHtml(html, pastedText=''){
+  if(!html || typeof DOMParser !== 'function') return '';
+  try{
+    const doc = new DOMParser().parseFromString(String(html), 'text/html');
+    const pasted = String(pastedText || '');
+    const anchors = Array.from(doc.querySelectorAll('a[href]'));
+    for(const anchor of anchors){
+      const title = normalizeCommunityLinkTitle(anchor.getAttribute('title') || anchor.textContent || '');
+      const href = anchor.getAttribute('href') || '';
+      if(title && (!pasted || pasted.includes(href) || pasted.includes(anchor.textContent || ''))) return title;
+    }
+    const selectors = [
+      'meta[property="og:title"]',
+      'meta[name="twitter:title"]',
+      'meta[name="title"]',
+    ];
+    for(const selector of selectors){
+      const title = normalizeCommunityLinkTitle(doc.querySelector(selector)?.getAttribute('content') || '');
+      if(title) return title;
+    }
+    return normalizeCommunityLinkTitle(doc.querySelector('title')?.textContent || '');
+  }catch{
+    return '';
+  }
+}
+
+function appendCommunityLinkTitle(input, title, expectedUrl){
+  if(!input || !title || !expectedUrl) return false;
+  const current = String(input.value || '');
+  const currentUrl = firstAllowedCommunityLink(current);
+  if(!currentUrl || currentUrl.toString() !== expectedUrl.toString()) return false;
+  const normalizedTitle = normalizeCommunityLinkTitle(title);
+  if(!normalizedTitle || current.includes(normalizedTitle) || /(^|\n)링크:\s*/.test(current)) return false;
+  const line = `링크: ${normalizedTitle}`;
+  const next = `${current.trimEnd()}${current.trim() ? '\n' : ''}${line}`;
+  const max = Number(input.maxLength || 0);
+  if(max > 0 && next.length > max) return false;
+  input.value = next;
+  input.dispatchEvent(new Event('input', {bubbles:true}));
+  input.dataset.communityLinkPreviewUrl = expectedUrl.toString();
+  return true;
+}
+
+function maybeAppendCommunityLinkTitle(input, options={}){
+  if(!input) return;
+  const url = firstAllowedCommunityLink(input.value || '');
+  if(!url) return;
+  const href = url.toString();
+  if(input.dataset.communityLinkPreviewUrl === href || input.dataset.communityLinkPreviewBusy === href) return;
+  input.dataset.communityLinkPreviewBusy = href;
+  try{
+    const title = normalizeCommunityLinkTitle(options.title || '');
+    if(!title || !input.isConnected) return;
+    appendCommunityLinkTitle(input, title, url);
+  }finally{
+    if(input.dataset.communityLinkPreviewBusy === href) delete input.dataset.communityLinkPreviewBusy;
+  }
+}
+
+function bindCommunityLinkTitlePreview(input){
+  if(!input || input.dataset.communityLinkPreviewBound === '1') return;
+  input.dataset.communityLinkPreviewBound = '1';
+  const schedule = (delay=700, title='')=>{
+    clearTimeout(input._communityLinkPreviewTimer);
+    input._communityLinkPreviewTimer = setTimeout(()=>{
+      maybeAppendCommunityLinkTitle(input, {title});
+    }, delay);
+  };
+  input.addEventListener('paste', (ev)=>{
+    const html = ev.clipboardData?.getData?.('text/html') || '';
+    const text = ev.clipboardData?.getData?.('text/plain') || '';
+    const title = extractCommunityLinkTitleFromHtml(html, text);
+    input._communityLinkPreviewTitle = title;
+    input._communityLinkPreviewTitleUntil = Date.now() + 1500;
+    schedule(80, title);
+  });
+  input.addEventListener('input', ()=>{
+    const title = Number(input._communityLinkPreviewTitleUntil || 0) > Date.now()
+      ? input._communityLinkPreviewTitle
+      : '';
+    if(title) schedule(120, title);
+  });
+}
+
 function communityTableHeader(compact=false, topRows=''){
   const actionCols = compact
     ? ''
@@ -1369,7 +1494,7 @@ function renderCommunityTable(state='ready'){
       rows.push(`<tr class="community-post-row${pinnedClass}${hiddenClass}${newPostClass}${unreadPostClass}${mobileActionClass}" data-community-id="${esc(post.id)}">
       <td class="rownum">${rowNum++}</td>
       <td class="center community-author" title="${esc(post.nickname || '익명')}">${communityAuthorHtml(post.nickname)}</td>
-      <td class="left community-post-body community-body-with-actions" data-community-more="${esc(post.id)}" tabindex="0">${hiddenBadge}${pinBadge}${renderTextWithImagePreviews(post.body || '', {collapsed:true, hidePreviewUrls:true, stockMentions:true, stockMentionSnapshots:post.mentions})}${desktopReplyHtml}${mobileReportHtml}</td>
+      <td class="left community-post-body community-body-with-actions" data-community-more="${esc(post.id)}" tabindex="0">${hiddenBadge}${pinBadge}${renderCommunityRichText(post.body || '', {stockMentionSnapshots:post.mentions})}${desktopReplyHtml}${mobileReportHtml}</td>
       <td class="center time" title="${esc(createdTitle)}">${fmtCommunityDateTime(post.created_at, compact)}</td>
       ${reportCell}
     </tr>`);
@@ -1414,9 +1539,9 @@ function renderCommunityTable(state='ready'){
       const commentTailCell = compact ? '' : `<td class="center community-action-cell"><span class="community-action-group">${commentRecommendButton}${commentReportButton}${commentAdminActions}</span></td>`;
       const commentBodyHtml = hiddenComment
         ? (adminMode
-          ? `<span class="community-hidden-badge" title="신고 ${commentReportCount}개 누적으로 가려진 댓글입니다">신고가림</span>${renderTextWithImagePreviews(comment.body || '', {collapsed:true, hidePreviewUrls:true, stockMentions:true, stockMentionSnapshots:comment.mentions})}`
+          ? `<span class="community-hidden-badge" title="신고 ${commentReportCount}개 누적으로 가려진 댓글입니다">신고가림</span>${renderCommunityRichText(comment.body || '', {stockMentionSnapshots:comment.mentions})}`
           : '<span class="community-hidden-text">신고로 가려진 댓글입니다</span>')
-        : renderTextWithImagePreviews(comment.body || '', {collapsed:true, hidePreviewUrls:true, stockMentions:true, stockMentionSnapshots:comment.mentions});
+        : renderCommunityRichText(comment.body || '', {stockMentionSnapshots:comment.mentions});
       const justCommentClass = communityJustCommentedId === String(comment.id) ? ' is-just-commented' : '';
       const unreadCommentClass = (typeof communityCommentIsUnread === 'function' && communityCommentIsUnread(comment)) ? ' is-unread-community-comment' : '';
       rows.push(`<tr class="community-comment-row community-comment-depth-${depth}${hiddenComment ? ' community-hidden-row' : ''}${unreadCommentClass}${activeCommentActions ? ' community-actions-open' : ''}${justCommentClass}" data-community-parent="${esc(post.id)}" data-community-comment-id="${esc(comment.id)}">
@@ -1642,6 +1767,7 @@ function bindCommunityTable(){
     });
   }
   bindVanishingPlaceholder(body);
+  bindCommunityLinkTitlePreview(body);
   body?.addEventListener('input', ()=>{
     communityDraftBody = body.value || '';
   });
@@ -1799,6 +1925,7 @@ function bindCommunityTable(){
     });
   }
   bindVanishingPlaceholder(replyBody);
+  bindCommunityLinkTitlePreview(replyBody);
   replyBody?.addEventListener('input', ()=>{
     communityDraftReplyBody = replyBody.value || '';
   });
