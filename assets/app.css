@@ -56,7 +56,7 @@ body.excel-dark-mode{
   --statusbar-bg:#0b5a36; --statusbar-fg:#f8fff9; --statusbar-button-bg:rgba(248,255,249,.12); --statusbar-button-border:rgba(248,255,249,.38);
   --hover:#203329; --hover-border:#38664d; --pressed:#284536;
   --grid:#3a424a; --head:#20262c; --bg:#15191d; --txt:#eef2f4; --muted:#aab3bb;
-  --up:#ffa0a0; --down:#a8caff; --flat:#aab3bb;
+  --up:#ff8f8f; --down:#8bbdff; --flat:#aab3bb;
   --sep:#303840; --tab-bg:#1b2025; --ribbon-bg:#171b20; --formula-bg:#14181c;
   --top-tab-bg:#171b20; --sheet-tab-bg:#11161b;
   --panel-bg:#171b20; --soft-bg:#1d2328; --control-bg:#11161b; --control-border:#3a424a;
@@ -100,7 +100,7 @@ body.readability-mode .holding-value-cell.down,
 body.readability-mode .holding-return-cell.down,
 body.readability-mode .holding-summary-return-cell.down{color:#1f6fd6;font-weight:400}
 body.excel-dark-mode.readability-mode{
-  --txt:#f3f7f8; --muted:#c1cad2; --flat:#c1cad2; --up:#ffb0b0; --down:#bad6ff;
+  --txt:#f3f7f8; --muted:#c1cad2; --flat:#c1cad2; --up:#ff9a9a; --down:#9fc8ff;
   color:#f3f7f8;font-weight:450;
 }
 body.excel-dark-mode.readability-mode th,
@@ -111,14 +111,14 @@ body.excel-dark-mode.readability-mode .holding-line.up,
 body.excel-dark-mode.readability-mode .holding-meta-line .up,
 body.excel-dark-mode.readability-mode .holding-value-cell.up,
 body.excel-dark-mode.readability-mode .holding-return-cell.up,
-body.excel-dark-mode.readability-mode .holding-summary-return-cell.up{color:#ffb0b0}
+body.excel-dark-mode.readability-mode .holding-summary-return-cell.up{color:var(--up)}
 body.excel-dark-mode.readability-mode #cardsTable .down,
 body.excel-dark-mode.readability-mode .sheet.summary .down,
 body.excel-dark-mode.readability-mode .holding-line.down,
 body.excel-dark-mode.readability-mode .holding-meta-line .down,
 body.excel-dark-mode.readability-mode .holding-value-cell.down,
 body.excel-dark-mode.readability-mode .holding-return-cell.down,
-body.excel-dark-mode.readability-mode .holding-summary-return-cell.down{color:#bad6ff}
+body.excel-dark-mode.readability-mode .holding-summary-return-cell.down{color:var(--down)}
 .app{min-height:100vh;padding-bottom:calc(64px + env(safe-area-inset-bottom));overflow-x:clip}
 .outlook-app{display:none}
 body.theme-outlook{background:#f3f2f1;overflow:hidden;touch-action:pan-y}
@@ -2791,6 +2791,9 @@ body.excel-dark-mode:not(.theme-outlook) #timelineTable.community-table .rownum,
 body.excel-dark-mode:not(.theme-outlook) .community-note-row .rownum{color:#b6c0c8!important}
 body.excel-dark-mode:not(.theme-outlook) td,
 body.excel-dark-mode:not(.theme-outlook) .subhead{background:var(--bg);color:var(--txt)}
+body.excel-dark-mode:not(.theme-outlook) .up{color:var(--up)}
+body.excel-dark-mode:not(.theme-outlook) .down{color:var(--down)}
+body.excel-dark-mode:not(.theme-outlook) .flat{color:var(--flat)}
 body.excel-dark-mode:not(.theme-outlook) .sheet.summary tr.mood-row td,
 body.excel-dark-mode:not(.theme-outlook) .sheet.summary tr.flow-row td,
 body.excel-dark-mode:not(.theme-outlook) .community-pagination-row td:not(.rownum){background:#1a2025}
@@ -2814,9 +2817,9 @@ body.excel-dark-mode:not(.theme-outlook) a.stock-mention-badge:hover{background:
 body.excel-dark-mode:not(.theme-outlook) .stock-mention-badge.pending{background:#1c2228;border-color:#45505a;color:#aab3bb}
 body.excel-dark-mode:not(.theme-outlook) .stock-mention-market{color:#8ea89a}
 body.excel-dark-mode:not(.theme-outlook) .stock-mention-change{border-left-color:rgba(164,201,178,.18)}
-body.excel-dark-mode:not(.theme-outlook) .stock-mention-change.up{color:#e1a0a0}
-body.excel-dark-mode:not(.theme-outlook) .stock-mention-change.down{color:#9ebbd8}
-body.excel-dark-mode:not(.theme-outlook) .stock-mention-change.flat{color:#aab3bb}
+body.excel-dark-mode:not(.theme-outlook) .stock-mention-change.up{color:var(--up)}
+body.excel-dark-mode:not(.theme-outlook) .stock-mention-change.down{color:var(--down)}
+body.excel-dark-mode:not(.theme-outlook) .stock-mention-change.flat{color:var(--flat)}
 body.excel-dark-mode:not(.theme-outlook) .community-text-note,
 body.excel-dark-mode:not(.theme-outlook) .community-text-note .notice-copy{color:#c8b988}
 body.excel-dark-mode:not(.theme-outlook) .community-text-note a{color:inherit;box-shadow:inset 0 -.5px 0 rgba(200,185,136,.76)}
@@ -3130,6 +3133,14 @@ button.notice-card{cursor:pointer}
 .chat-cta .chat-dot{position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#ff5252;border:2px solid #fff;display:none}
 .chat-cta.has-unread .chat-dot{display:block}
 .chat-cta.has-unread .chat-new-badge{display:none}
+body.excel-dark-mode:not(.theme-outlook) .floating-actions .tg-cta,
+body.excel-dark-mode:not(.theme-outlook) .chat-cta{background:linear-gradient(135deg,#1d2a31,#173226);color:#d9f5e2;border:1px solid #365244;box-shadow:0 10px 26px rgba(0,0,0,.42),0 0 0 1px rgba(126,214,162,.08) inset}
+body.excel-dark-mode:not(.theme-outlook) .floating-actions .tg-cta:hover,
+body.excel-dark-mode:not(.theme-outlook) .chat-cta:hover{box-shadow:0 13px 30px rgba(0,0,0,.48),0 0 0 1px rgba(126,214,162,.16) inset}
+body.excel-dark-mode:not(.theme-outlook) .chat-cta.has-unread{background:linear-gradient(135deg,#3a241f,#4a2329);color:#ffe0dc;border-color:#7a3d43;box-shadow:0 10px 26px rgba(0,0,0,.46),0 0 0 1px rgba(255,143,143,.10) inset}
+body.excel-dark-mode:not(.theme-outlook) .tg-cta .tg-pulse,
+body.excel-dark-mode:not(.theme-outlook) .chat-new-badge,
+body.excel-dark-mode:not(.theme-outlook) .chat-cta .chat-dot{background:#ff7272;border-color:#15191d}
 @keyframes chatNewPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .chat-panel{position:fixed;right:18px;bottom:calc(116px + env(safe-area-inset-bottom));width:min(380px,calc(100vw - 36px));height:484px;max-height:min(70vh,560px);background:#fff;border:1px solid #b7c9bf;border-radius:12px;box-shadow:0 18px 48px rgba(0,0,0,.26),0 4px 12px rgba(0,0,0,.12);z-index:240;display:none;overflow:hidden;color:#252423;opacity:var(--chat-panel-opacity,1);transition:opacity 120ms ease}
 .chat-panel.is-large{width:min(500px,calc(100vw - 36px));height:620px;max-height:min(82vh,680px)}
