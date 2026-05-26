@@ -53,7 +53,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="excelkospi" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="build-id" content="20260527-595-swipe-community-state" />
+  <meta name="build-id" content="20260527-601-slock-hidden-beta-link" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -171,7 +171,7 @@
     .tool.big .ic svg{width:26px;height:26px}
     .seo-heading{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   </style>
-  <link rel="stylesheet" href="/assets/app.css?v=20260527-594" />
+  <link rel="stylesheet" href="/assets/app.css?v=20260527-601" />
 </head>
 <body>
 <h1 class="seo-heading">excelkospi - 엑셀 보는 척 주식 보기</h1>
@@ -552,6 +552,109 @@
       <div class="chat-dock-slot" id="chatDockSlot"></div>
     </section>
   </div>
+</div>
+
+<div class="slock-app" id="slockApp" aria-hidden="true">
+  <header class="slock-windowbar" aria-label="Slock 상단 바">
+    <div class="slock-window-controls" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="slock-history-controls" aria-hidden="true">
+      <button type="button" tabindex="-1">‹</button>
+      <button type="button" tabindex="-1">›</button>
+      <button type="button" tabindex="-1">↺</button>
+    </div>
+    <label class="slock-global-search" aria-label="Slock 전체 검색">
+      <span aria-hidden="true"></span>
+      <input type="search" placeholder="Market Ops 검색" />
+    </label>
+    <button class="slock-help" type="button" aria-label="도움말">?</button>
+  </header>
+  <aside class="slock-rail" aria-label="Slock 워크스페이스">
+    <button class="slock-rail-item active" type="button" aria-label="Market Ops">M</button>
+    <button class="slock-rail-item" type="button" aria-label="Audit Desk">A</button>
+    <button class="slock-rail-item" type="button" aria-label="Client Sync">C</button>
+    <button class="slock-rail-add" type="button" aria-label="워크스페이스 추가">+</button>
+  </aside>
+  <aside class="slock-sidebar" id="slockSidebar" aria-label="Slock 메뉴">
+    <header class="slock-workspace">
+      <button class="slock-mobile-close" type="button" data-slock-mobile-close aria-label="메뉴 닫기">×</button>
+      <strong>Market Ops</strong>
+      <span>업무 동기화실</span>
+    </header>
+    <nav class="slock-primary-nav" aria-label="Slock 주요 탭">
+      <button class="active" type="button" data-slock-nav="home"><span class="slock-nav-icon" data-icon="home" aria-hidden="true"></span><b>홈</b><em>업무 홈</em></button>
+      <button type="button" data-slock-nav="chat"><span class="slock-nav-icon" data-icon="dm" aria-hidden="true"></span><b>DM</b><em>실시간</em></button>
+      <button type="button" data-slock-nav="activity"><span class="slock-nav-icon" data-icon="activity" aria-hidden="true"></span><b>내 활동</b><em>확인할 것</em></button>
+      <button type="button" data-slock-nav="later"><span class="slock-nav-icon" data-icon="later" aria-hidden="true"></span><b>나중에</b><em>저장됨</em></button>
+      <button type="button" data-slock-nav="files"><span class="slock-nav-icon" data-icon="files" aria-hidden="true"></span><b>파일</b><em>자료함</em></button>
+      <button type="button" data-slock-nav="more"><span class="slock-nav-icon" data-icon="more" aria-hidden="true"></span><b>더 보기</b><em>도구</em></button>
+    </nav>
+    <div class="slock-sidebar-section">
+      <div class="slock-section-title">채널</div>
+      <button class="slock-channel active" type="button" data-slock-channel="home"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#korean-daily</b><em>오늘 체크</em></button>
+      <button class="slock-channel" type="button" data-slock-channel="kr"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#korean-monitoring</b><em>국내 업무</em></button>
+      <button class="slock-channel" type="button" data-slock-channel="us"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#global-briefing</b><em>해외 현황</em></button>
+      <button class="slock-channel" type="button" data-slock-channel="coin"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#digital-assets</b><em>디지털 자산</em></button>
+      <button class="slock-channel" type="button" data-slock-channel="holdings"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#ledger-review</b><em>보유 항목</em></button>
+      <button class="slock-channel" type="button" data-slock-channel="risk"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#risk-review</b><em>변동 감시</em></button>
+      <button class="slock-channel" type="button" data-slock-channel="news"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#vendor-feed</b><em>외부 소식</em></button>
+    </div>
+    <div class="slock-sidebar-section">
+      <div class="slock-section-title">업무 데스크</div>
+      <button class="slock-channel" type="button" data-slock-channel="chat"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#라운지</b><em>실시간 채팅</em></button>
+      <button class="slock-channel" type="button" data-slock-channel="community-kr"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#korean-desk</b><em>국내 메모</em></button>
+      <button class="slock-channel" type="button" data-slock-channel="community-us"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#global-desk</b><em>해외 메모</em></button>
+      <button class="slock-channel" type="button" data-slock-channel="community-coin"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#digital-desk</b><em>자산 메모</em></button>
+      <button class="slock-channel" type="button" data-slock-channel="community-ops"><span class="slock-channel-prefix" aria-hidden="true">#</span><b>#ops-help</b><em>운영 문의</em></button>
+    </div>
+    <div class="slock-sidebar-section slock-market-slot-section">
+      <div class="slock-section-title">시트 보기</div>
+      <div id="slockTabsSlot" class="slock-tabs-slot"></div>
+    </div>
+    <div class="slock-sidebar-section slock-tools">
+      <button type="button" data-slock-tool="notices"><span class="slock-tool-icon" data-icon="notice" aria-hidden="true"></span>공지사항</button>
+      <a href="/guide" data-slock-tool="guide"><span class="slock-tool-icon" data-icon="guide" aria-hidden="true"></span>사이트 소개</a>
+      <button type="button" data-slock-tool="settings"><span class="slock-tool-icon" data-icon="settings" aria-hidden="true"></span>설정</button>
+      <button class="slock-excel-back" type="button" data-slock-tool="excel"><span class="slock-tool-icon" data-icon="excel" aria-hidden="true"></span>엑셀로 돌아가기</button>
+    </div>
+  </aside>
+  <main class="slock-main" aria-label="Slock 채널">
+    <header class="slock-topbar">
+      <button class="slock-mobile-menu" type="button" data-slock-mobile-menu aria-label="메뉴 열기">☰</button>
+      <div class="slock-channel-title">
+        <strong id="slockChannelTitle">#daily-standup</strong>
+        <span id="slockChannelHint">오늘 체크 · 업무 메시지처럼 시세를 정리합니다</span>
+      </div>
+      <label class="slock-search" aria-label="Slock 검색">
+        <span>검색</span>
+        <input type="search" placeholder="업무·항목·메모 검색" />
+      </label>
+      <div class="slock-top-actions" aria-hidden="true">
+        <button type="button">허들</button>
+        <button type="button">⋯</button>
+      </div>
+    </header>
+    <nav class="slock-channel-tabs" aria-label="채널 탭">
+      <button class="active" type="button">메시지</button>
+      <button type="button">캔버스</button>
+      <button type="button">파일</button>
+      <button type="button">워크플로</button>
+      <button type="button">+</button>
+    </nav>
+    <section class="slock-channel-body" id="slockMessageList" aria-label="Slock 메시지 목록">
+      <div class="slock-empty">Slock 업무창을 준비하는 중...</div>
+    </section>
+    <form class="slock-composer" id="slockComposer" aria-label="메시지 입력창">
+      <button type="button" id="slockAttachButton" aria-label="첨부" disabled>＋</button>
+      <input type="text" id="slockComposerInput" readonly aria-label="메시지 입력" value="업무 메모는 기존 채팅/게시판에서 작성됩니다" />
+      <button type="submit" id="slockSendButton" aria-label="보내기" disabled>전송</button>
+    </form>
+  </main>
+  <aside class="slock-thread" id="slockThreadPane" aria-label="Slock 스레드">
+    <div class="slock-thread-empty">
+      <strong>스레드</strong>
+      <span>메시지를 선택하면 관련 업무 맥락이 표시됩니다.</span>
+    </div>
+  </aside>
 </div>
 
 <div class="outlook-app" id="outlookApp" aria-hidden="true">
@@ -986,7 +1089,7 @@
   <span id="loadingText">시장 데이터를 불러오는 중...</span>
 </div>
 
-  <script src="/assets/app-config.js?v=20260527-593"></script>
+  <script src="/assets/app-config.js?v=20260527-601"></script>
   <script>
     (() => {
       if (typeof GA_MEASUREMENT_ID !== 'string' || !GA_MEASUREMENT_ID) return;
@@ -1077,6 +1180,7 @@
   <script src="/assets/community-ui.js?v=20260527-592"></script>
   <script src="/assets/app-personal-feed.js?v=20260525-492"></script>
   <script src="/assets/app-outlook.js?v=20260527-591"></script>
+  <script src="/assets/app-slock.js?v=20260527-601"></script>
   <script src="/assets/app-outlook-preview.js?v=20260526-544"></script>
   <script src="/assets/app-watchlist-share.js?v=20260526-523"></script>
   <script src="/assets/app-cell-selection.js?v=20260526-575"></script>
@@ -1086,6 +1190,6 @@
   <script src="/assets/app-mini-chart.js?v=20260526-583"></script>
   <script src="/assets/app-tradingview.js?v=20260527-590"></script>
   <script src="/assets/app-chat-ui.js?v=20260526-546"></script>
-  <script src="/assets/app.js?v=20260527-595"></script>
+  <script src="/assets/app.js?v=20260527-601"></script>
 </body>
 </html>

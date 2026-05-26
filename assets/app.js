@@ -215,7 +215,7 @@ function applyExcelAppearance(){
   body.classList.add(`excel-theme-${EXCEL_THEMES.has(excelTheme) ? excelTheme : 'silver'}`);
   body.classList.toggle('excel-dark-mode', !!excelDarkMode);
   const theme=document.querySelector('meta[name="theme-color"]');
-  if(theme && !body.classList.contains('theme-outlook')){
+  if(theme && !body.classList.contains('theme-outlook') && !body.classList.contains('theme-slock')){
     theme.setAttribute('content', excelDarkMode ? '#101418' : (excelTheme === 'silver' ? '#e7e9ed' : (excelTheme === 'deep' ? '#06452b' : '#107c41')));
   }
 }
@@ -291,6 +291,7 @@ const BROWSER_DOCUMENT_STEM = 'market_brief';
 const SEARCH_CRAWLER_RE = /\b(googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|naverbot|yeti|daumoa|facebookexternalhit|twitterbot|discordbot|kakaotalk-scrap|crawler|spider|bot)\b/i;
 let patchNotesLoaded = false;
 let outlookBetaActive = false;
+let slockBetaActive = false;
 let lastVersionActivityAt=Date.now();
 let pendingBuildId='';
 let pendingBuildDetectedAt=0;
@@ -320,7 +321,7 @@ function syncStealthDocumentTitle(){
 function applyBrowserDocumentTitle(){
   const title = syncStealthDocumentTitle();
   if(SEARCH_CRAWLER_RE.test(navigator.userAgent || '')) return;
-  if(outlookBetaActive || document.body?.classList.contains('theme-outlook')) return;
+  if(outlookBetaActive || slockBetaActive || document.body?.classList.contains('theme-outlook') || document.body?.classList.contains('theme-slock')) return;
   document.title = title;
 }
 applyBrowserDocumentTitle();
@@ -1071,7 +1072,7 @@ function serverStatusHtml(){
 }
 function outlookBetaHtml(){
   // 서버 상태판 바로 아래에 들어가는 Ootlook 베타 안내. 다른 두 카드와 동일 포맷.
-  if(document.body?.classList?.contains('theme-outlook')) return '';
+  if(document.body?.classList?.contains('theme-outlook') || document.body?.classList?.contains('theme-slock')) return '';
   return `<button type="button" class="notice-card notice-card-button outlook-beta-banner" data-outlook-beta aria-label="Ootlook 위장 모드 사용해보기" data-accent="outlook">
     <span class="notice-card-summary notice-card-summary-static">
       <span class="notice-card-dot outlook-beta-dot" aria-hidden="true"></span>
@@ -1079,6 +1080,40 @@ function outlookBetaHtml(){
       <span class="notice-card-caret" aria-hidden="true">→</span>
     </span>
   </button>`;
+}
+function isSlockBetaUrl(href){
+  try{
+    const url = new URL(href, window.location.href);
+    return url.origin === window.location.origin && (
+      url.searchParams.get('slock') === '1'
+      || url.searchParams.get('slock') === 'beta'
+      || url.hash === '#slock-beta'
+    );
+  }catch{ return false; }
+}
+function clearSlockBetaUrl(){
+  try{
+    const url = new URL(window.location.href);
+    let changed = false;
+    if(url.searchParams.has('slock')){
+      url.searchParams.delete('slock');
+      changed = true;
+    }
+    if(url.hash === '#slock-beta'){
+      url.hash = '';
+      changed = true;
+    }
+    if(changed) window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  }catch{}
+}
+function enterSlockBetaFromHiddenLink({toast=false}={}){
+  if(document.body?.classList?.contains('theme-outlook')) return;
+  if(typeof activateSlockTheme !== 'function') return;
+  closeUpdatesModal();
+  slockBetaActive = true;
+  activateSlockTheme();
+  clearSlockBetaUrl();
+  if(toast) setTimeout(()=>showToast('테스트 화면으로 전환했습니다. 새로고침하면 Excel로 돌아갑니다.', 'info'), 300);
 }
 /* Ootlook disguise mode lives in app-outlook.js. */
 async function openUpdatesModal(options={}){
@@ -1318,7 +1353,15 @@ function syncSettingsUI(){
   const cip=document.getElementById('settingChatImagePreview');
   if(cip) cip.checked = chatImagePreviewEnabled();
   const o=document.getElementById('settingOutlook');
-  if(o) o.checked = !!document.body.classList.contains('theme-outlook') || outlookBetaActive;
+  if(o){
+    o.checked = !!document.body.classList.contains('theme-outlook') || outlookBetaActive;
+    o.disabled = !!document.body.classList.contains('theme-slock') || slockBetaActive;
+  }
+  const sl=document.getElementById('settingSlock');
+  if(sl){
+    sl.checked = !!document.body.classList.contains('theme-slock') || slockBetaActive;
+    sl.disabled = !!document.body.classList.contains('theme-outlook') || outlookBetaActive;
+  }
   const m=document.getElementById('settingRememberMarket');
   if(m) m.checked = rememberMarketEnabled();
   const u=document.getElementById('settingUsKrwDisplay');
@@ -1421,6 +1464,18 @@ async function handleSettingChange(key, checked){
     }
     return;
   }
+  if(key === 'slock'){
+    if(checked && !slockBetaActive){
+      closeSettingsModal();
+      slockBetaActive = true;
+      activateSlockTheme();
+      setTimeout(()=>showToast('새로고침하면 엑셀로 돌아갑니다', 'info'), 400);
+    } else if(!checked && slockBetaActive){
+      closeSettingsModal();
+      deactivateSlockTheme();
+    }
+    return;
+  }
   if(key === 'rememberMarket'){
     writeBoolSetting(SETTINGS_REMEMBER_MARKET_KEY, !!checked);
     showToast(checked ? '마지막 시장을 기억합니다.' : '항상 자동(현재 장)으로 시작합니다.', 'info');
@@ -1498,6 +1553,12 @@ document.addEventListener('click',(ev)=>{
     showToast('Ootlook 테마 베타로 전환했습니다. 새로고침하면 Excel로 돌아갑니다.', 'info');
     return;
   }
+  const slockBetaLink=ev.target?.closest?.('a[href]');
+  if(slockBetaLink && isSlockBetaUrl(slockBetaLink.href)){
+    ev.preventDefault();
+    enterSlockBetaFromHiddenLink({toast:true});
+    return;
+  }
   const outlookAction=ev.target?.closest?.('[data-outlook-action]');
   if(outlookAction){
     ev.preventDefault();
@@ -1561,6 +1622,9 @@ function bindSettingsModalTriggers(){
   });
 }
 bindSettingsModalTriggers();
+if(isSlockBetaUrl(window.location.href)){
+  setTimeout(()=>enterSlockBetaFromHiddenLink(), 0);
+}
 function updateZoomLabel(){
   const el=document.getElementById('zoomLabel');
   if(!el) return;
@@ -4225,7 +4289,7 @@ function applyFastQuoteToRow(token, card){
 
 function sheetSplitSupported(){
   try{
-    if(document.body?.classList.contains('theme-outlook')) return false;
+    if(document.body?.classList.contains('theme-outlook') || document.body?.classList.contains('theme-slock')) return false;
     return !!window.matchMedia?.('(min-width:1100px)').matches;
   }catch{
     return false;
@@ -4826,6 +4890,9 @@ function renderSnapshotView(s, market, baseCards, userCards=[]){
   if(document.body.classList.contains('theme-outlook')){
     try{ renderOutlookFromSnapshot(s, quoteCards); }catch(e){ debugWarn('outlook render failed', e); }
   }
+  if(document.body.classList.contains('theme-slock')){
+    try{ renderSlockFromSnapshot(s, quoteCards); }catch(e){ debugWarn('slock render failed', e); }
+  }
 
   lastLoadAt=snapshotFreshnessMs(s);
   lastQuoteLoadAt=lastSnapshotInfo.market !== market
@@ -4885,6 +4952,9 @@ function rerenderCardsTableFromCurrentState(){
   replaceTableHtmlStable(table, renderCardsTable(lastRenderedCards, lastSnapshot?.session));
   if(document.body.classList.contains('theme-outlook') && lastSnapshot){
     try{ renderOutlookFromSnapshot(lastSnapshot, lastRenderedCards.filter((card)=>card && !card._noteRow)); }catch(e){ debugWarn('outlook render failed', e); }
+  }
+  if(document.body.classList.contains('theme-slock') && lastSnapshot){
+    try{ renderSlockFromSnapshot(lastSnapshot, lastRenderedCards.filter((card)=>card && !card._noteRow)); }catch(e){ debugWarn('slock render failed', e); }
   }
   bindCardsTableControls();
 }
@@ -5129,6 +5199,9 @@ function renderAccumulatedNews(){
       const card = findOutlookCardByKey(outlookSelectedKey);
       if(card) renderOutlookReadingPane(card, lastSnapshot);
     }
+  }
+  if(document.body.classList.contains('theme-slock')){
+    try{ renderSlockChannel(); }catch(e){ debugWarn('slock news render failed', e); }
   }
   enableCellSelection();
 }
@@ -7799,6 +7872,11 @@ function renderChatMessages(options={}){
     body.scrollTop=scrollTopBefore;
     settleChatMediaScroll(body, {stickToBottom:false});
   }
+  try{
+    if(document.body.classList.contains('theme-slock') && typeof refreshSlockChatChannelFromChat === 'function'){
+      refreshSlockChatChannelFromChat();
+    }
+  }catch{}
 }
 
 function applyChatModeration(data){
@@ -8132,6 +8210,7 @@ function setupChatUi(){
   const chatButtonHidden=!!floatingHiddenFor('chat');
   if(!isMobile && !chatButtonHidden){
     setTimeout(()=>{
+      if(document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock')) return;
       setChatOpen(true, {connect:true, persist:false});
     }, 900);
   }else{
@@ -8226,8 +8305,10 @@ function setFloatingButtonHidden(kind, hidden){
 function renderFloatingButtons(){
   const state=floatingHiddenLoad();
   const inOutlook = document.body?.classList?.contains('theme-outlook');
-  const telegramHidden = !!state.telegram || !!inOutlook;
-  const chatHidden = !inOutlook && !!state.chat;
+  const inSlock = document.body?.classList?.contains('theme-slock');
+  const inDisguise = !!(inOutlook || inSlock);
+  const telegramHidden = !!state.telegram || inDisguise;
+  const chatHidden = !inDisguise && !!state.chat;
   const hidden = !!(telegramHidden && chatHidden);
   const actions=document.querySelector('.floating-actions');
   actions?.classList.toggle('is-hidden', hidden);
@@ -9157,13 +9238,13 @@ function showRibbonFeatureTip(delay=1800){
   setTimeout(()=>{
     const started=Date.now();
     const tryShow=()=>{
-      if(defaultRibbonCollapsed() || document.body.classList.contains('theme-outlook') || oneTimeTipSeen(RIBBON_TIP_KEY)) return;
+      if(defaultRibbonCollapsed() || document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock') || oneTimeTipSeen(RIBBON_TIP_KEY)) return;
       if(document.querySelector('.fv-tooltip')){
         if(Date.now() - started < 22000) setTimeout(tryShow, 700);
         return;
       }
       waitForElement('#ribbonInlineToggle', (btn)=>{
-        if(defaultRibbonCollapsed() || document.body.classList.contains('theme-outlook') || oneTimeTipSeen(RIBBON_TIP_KEY)) return;
+        if(defaultRibbonCollapsed() || document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock') || oneTimeTipSeen(RIBBON_TIP_KEY)) return;
         const dismiss=showAnchoredTooltip({
           target:btn,
           pulseTarget:btn,
@@ -9191,9 +9272,9 @@ function showHoldingFeatureTip(delay=800){
     return;
   }
   setTimeout(()=>{
-    if(document.body.classList.contains('theme-outlook')) return;
+    if(document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock')) return;
     waitForElement('button[data-action="edit-holding"]', (btn)=>{
-      if(document.body.classList.contains('theme-outlook')) return;
+      if(document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock')) return;
       if(oneTimeTipSeen(HOLDING_TIP_KEY)){
         showChangeWindowTip(400);
         return;
@@ -9219,9 +9300,9 @@ function showChangeWindowTip(delay=900){
     return;
   }
   setTimeout(()=>{
-    if(document.body.classList.contains('theme-outlook')) return;
+    if(document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock')) return;
     waitForElement('#changeWindowToggle [data-change-window="15"]', (btn)=>{
-      if(document.body.classList.contains('theme-outlook')) return;
+      if(document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock')) return;
       if(oneTimeTipSeen(CHANGE_WINDOW_TIP_KEY)){
         showChartFeatureTip(500);
         return;
@@ -9244,11 +9325,11 @@ function showChangeWindowTip(delay=900){
 function showChartFeatureTip(delay=1200){
   if(oneTimeTipSeen(CHART_TIP_KEY)) return;
   setTimeout(()=>{
-    if(document.body.classList.contains('theme-outlook')) return;
+    if(document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock')) return;
     const mobile = matchMedia('(max-width:1099px)').matches;
     const selector = '#cardsTable tr[data-tv-symbol]:not([data-tv-symbol=""])';
     waitForElement(selector, ()=>{
-      if(document.body.classList.contains('theme-outlook') || oneTimeTipSeen(CHART_TIP_KEY)) return;
+      if(document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock') || oneTimeTipSeen(CHART_TIP_KEY)) return;
       const preferredRow = document.querySelector('#cardsTable tr[data-tv-tip-preferred="1"][data-tv-symbol]:not([data-tv-symbol=""])');
       const row = preferredRow || document.querySelector('#cardsTable tr[data-tv-symbol]:not([data-tv-symbol=""])');
       const target = mobile
@@ -9278,13 +9359,13 @@ function showWatchlistPhoneTip(delay=1800){
   setTimeout(()=>{
     const started = Date.now();
     const tryShow = ()=>{
-      if(oneTimeTipSeen(WATCHLIST_PHONE_TIP_KEY) || wlLoad().length < 2 || document.body.classList.contains('theme-outlook')) return;
+      if(oneTimeTipSeen(WATCHLIST_PHONE_TIP_KEY) || wlLoad().length < 2 || document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock')) return;
       if(document.querySelector('.fv-tooltip')){
         if(Date.now() - started < 26000) setTimeout(tryShow, 800);
         return;
       }
       waitForElement('#watchlistPhoneShare', (btn)=>{
-        if(oneTimeTipSeen(WATCHLIST_PHONE_TIP_KEY) || wlLoad().length < 2 || document.body.classList.contains('theme-outlook')) return;
+        if(oneTimeTipSeen(WATCHLIST_PHONE_TIP_KEY) || wlLoad().length < 2 || document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock')) return;
         const dismiss=showAnchoredTooltip({
           target:btn,
           pulseTarget:btn,
@@ -9306,7 +9387,7 @@ function showWatchlistFirstVisitTip(){
     return;
   }
   setTimeout(()=>{
-    if(document.body.classList.contains('theme-outlook')) return;
+    if(document.body.classList.contains('theme-outlook') || document.body.classList.contains('theme-slock')) return;
     const panel=document.getElementById('watchlistPanel');
     if(!panel){
       showHoldingFeatureTip(600);
