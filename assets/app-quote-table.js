@@ -25,7 +25,7 @@ function renderHoldingLotRow(card, rowNo, lot, index, total){
   const metric = holdingModeMetric(calc);
   const returnClass = cls(metric.pct);
   const valueClass = cls(metric.pnl);
-  const pnlText = metric.unavailable ? '-' : signedHoldingAmountText(metric.pnl, calc.currency);
+  const pnlText = metric.unavailable ? '-' : signedHoldingPlainAmountText(metric.pnl, calc.currency);
   const pctText = metric.unavailable ? '-' : signedPctOne(metric.pct);
   const titlePrefix = total > 1 ? `보유 ${index + 1} · ` : '';
   const dailyTitle = Number.isFinite(Number(calc.dayPnl)) ? ` · 일일 손익 ${signedHoldingAmountText(calc.dayPnl, calc.currency)}` : '';
@@ -38,7 +38,7 @@ function renderHoldingLotRow(card, rowNo, lot, index, total){
         <button class="holding-row-add" data-action="add-holding-lot" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" data-key="${esc(card.key)}" title="${esc(card.key)} 보유 행 추가" aria-label="보유 행 추가">추가</button>
         <button class="row-x holding-row-x" data-action="clear-holding" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" data-key="${esc(card.key)}" title="${esc(card.key)} 보유 정보 삭제" aria-label="보유 정보 삭제">×</button>
       </td>
-      <td class="right quote-price-cell holding-value-cell ${valueClass}">${esc(pnlText)}</td>
+      <td class="right holding-value-cell ${valueClass}">${esc(pnlText)}</td>
       <td class="right holding-return-cell ${returnClass}">${esc(pctText)}</td>
     </tr>`;
 }

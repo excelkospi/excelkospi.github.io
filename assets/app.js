@@ -1985,6 +1985,11 @@ function signedHoldingAmountText(value, currency='KRW'){
   if(!Number.isFinite(n)) return '-';
   return `${n>=0?'+':'-'}${holdingCurrencyMark(currency)}${holdingAmountText(Math.abs(n), currency)}`;
 }
+function signedHoldingPlainAmountText(value, currency='KRW'){
+  const n=Number(value);
+  if(!Number.isFinite(n)) return '-';
+  return `${n>=0?'+':'-'}${holdingAmountText(Math.abs(n), currency)}`;
+}
 function holdingSummaryMoneyText(value, currency='KRW'){
   const n=Number(value);
   if(!Number.isFinite(n)) return '-';
