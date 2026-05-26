@@ -2664,7 +2664,7 @@ function visitorId(){
 /* 동접 표시
  *  - 사이트 접속자와 채팅을 실제로 열어둔 사람을 분리해서 표시한다.
  *  - 기본 경로는 Durable Object, 서비스 바인딩 장애 시 기존 KV 근사치로 fallback. */
-let presenceState = { online: null, chatOnline: null, today: null, peakToday: null, onlineDirectAt: 0 };
+let presenceState = { online: null, chatOnline: null, today: null, todayMode: '', peakToday: null, onlineDirectAt: 0 };
 const PRESENCE_DIRECT_FRESH_MS = 90 * 1000;
 let presenceToggleIdx = 0;
 let chatPresenceCount=0;
@@ -2684,7 +2684,8 @@ function renderPresenceToggled(){
   const items = [];
   if(Number.isFinite(presenceState.online)) items.push(`현재 접속 ${presenceState.online}명`);
   if(Number.isFinite(presenceState.today) && presenceState.today > 0){
-    items.push(`오늘 ${presenceState.today.toLocaleString('ko-KR')}명`);
+    const count = presenceState.today.toLocaleString('ko-KR');
+    items.push(presenceState.todayMode === 'visits_30m' ? `오늘 방문 ${count}회` : `오늘 ${count}명`);
   }
   if(items.length === 0){ el.textContent = '현재 접속 -'; return; }
   el.textContent = items[presenceToggleIdx % items.length];
@@ -2755,6 +2756,9 @@ async function pingPresence(options={}){
     if(typeof p.today==='number' && p.today > 0) {
       presenceState.today = p.today;
     }
+    if(typeof p.todayMode==='string') {
+      presenceState.todayMode = p.todayMode;
+    }
     if(typeof p.peakToday==='number' && p.peakToday > 0) {
       presenceState.peakToday = p.peakToday;
       updateServerStatusPeak(p.peakToday);
@@ -2781,6 +2785,7 @@ function absorbPresence(snap){
     renderChatStatus();
   }
   if(typeof snap.presence.today === 'number') presenceState.today = snap.presence.today;
+  if(typeof snap.presence.todayMode === 'string') presenceState.todayMode = snap.presence.todayMode;
   if(typeof snap.presence.peakToday === 'number') {
     presenceState.peakToday = snap.presence.peakToday;
     updateServerStatusPeak(snap.presence.peakToday);
