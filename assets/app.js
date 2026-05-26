@@ -2100,7 +2100,7 @@ function renderHoldingSummaryRow(cards, rowNo){
       <td class="rownum">${rowNo}</td>
       <td class="left holding-summary-merged-cell" colspan="3">
         <span class="holding-summary-content">
-          <span class="holding-summary-title">내 보유 합계</span>
+          <span class="holding-summary-title">보유 합계</span>
           <span class="holding-summary-meta">${esc(meta)}</span>
           <span class="holding-summary-value-label">현재가치</span>
           <span class="holding-summary-value">${esc(valueText)}</span>
