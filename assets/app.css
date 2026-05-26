@@ -2103,7 +2103,7 @@ tr.holding-summary-row:hover td:not(.rownum){background-color:#fafcfa}
 .holding-empty-title{font-weight:650;color:#3f5d4d;margin-right:7px;white-space:nowrap}
 .holding-empty-copy{color:#6f7c74;word-break:keep-all}
 .holding-empty-copy b{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1px solid #b9d7c2;border-radius:999px;background:#eef7f1;color:#107c41;font-size:10px;line-height:1;vertical-align:-2px}
-.holding-summary-merged-cell{position:relative;vertical-align:middle;padding-right:12px}
+.holding-summary-merged-cell{position:relative;vertical-align:middle;padding-right:74px}
 .holding-summary-content{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:100%;line-height:1.18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .holding-summary-title{font-weight:500;color:#3f5d4d;white-space:nowrap}
 .holding-summary-meta{color:#7a8780;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2113,6 +2113,24 @@ tr.holding-summary-row:hover td:not(.rownum){background-color:#fafcfa}
 .holding-summary-pct{font-size:11px}
 .holding-summary-pct.up{color:#6f8a56;font-weight:400}
 .holding-summary-pct.down{color:#7b7474;font-weight:400}
+.holding-summary-toggle{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  display:inline-flex;align-items:center;gap:1px;padding:1px;
+  background:rgba(255,255,255,.96);border:1px solid #d2ded7;border-radius:4px;
+  box-shadow:0 1px 3px rgba(15,23,42,.08);
+  opacity:0;pointer-events:none;transition:opacity 120ms,background 120ms,border-color 120ms;
+}
+tr.holding-summary-row:hover .holding-summary-toggle,
+tr.holding-summary-row:focus-within .holding-summary-toggle{opacity:1;pointer-events:auto}
+.holding-summary-toggle button{
+  min-width:26px;height:17px;border:0;border-radius:3px;background:transparent;color:#60746a;
+  font:inherit;font-size:10.3px;font-weight:600;line-height:1;padding:0 4px;cursor:pointer;
+}
+.holding-summary-toggle button[aria-pressed="true"]{background:#eaf4ef;color:#107c41}
+.holding-summary-toggle button:hover{background:#f3f7f4;color:#214d35}
+@media (hover:none){
+  .holding-summary-toggle{opacity:1;pointer-events:auto}
+}
 body.readability-mode #cardsTable tr.holding-row td:not(.rownum){
   height:23px;
   color:#5f6971;
@@ -2850,6 +2868,10 @@ body.excel-dark-mode:not(.theme-outlook) .holding-empty-copy b{background:#19332
 body.excel-dark-mode:not(.theme-outlook) .holding-summary-title{color:#b8cabf}
 body.excel-dark-mode:not(.theme-outlook) .holding-summary-meta{color:#8ea197}
 body.excel-dark-mode:not(.theme-outlook) .holding-summary-value-label{color:#8ea197}
+body.excel-dark-mode:not(.theme-outlook) .holding-summary-toggle{background:#11181d;border-color:#35404a;box-shadow:none}
+body.excel-dark-mode:not(.theme-outlook) .holding-summary-toggle button{color:#8ea197}
+body.excel-dark-mode:not(.theme-outlook) .holding-summary-toggle button[aria-pressed="true"]{background:#193321;color:#b8f2c9}
+body.excel-dark-mode:not(.theme-outlook) .holding-summary-toggle button:hover{background:#1b2a22;color:#d9e6de}
 body.excel-dark-mode:not(.theme-outlook) .holding-value-cell,
 body.excel-dark-mode:not(.theme-outlook) .holding-summary-value-cell{color:#b8cabf}
 body.excel-dark-mode:not(.theme-outlook) .holding-summary-pct.up{color:var(--up)}

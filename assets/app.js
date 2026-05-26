@@ -4,6 +4,7 @@
  * snapshot/news polling, chat, watchlist/holding controls.
  */
 const HOLDING_PNL_MODE_KEY = 'excelkospi:holdingPnlMode';
+const HOLDING_PNL_MODE_DEFAULT_RESET_KEY = 'excelkospi:holdingPnlModeDefaultReset:20260526';
 let selected = (()=>{
   try{
     const v = localStorage.getItem(VIEW_KEY);
@@ -26,12 +27,18 @@ let quoteSortMode = (()=>{
     return ['manual','change-desc','value-desc','pnl-desc','name-asc'].includes(v) ? v : 'manual';
   }catch{ return 'manual'; }
 })();
-let holdingPnlMode = (()=>{
+function readHoldingPnlMode(){
   try{
+    if(localStorage.getItem(HOLDING_PNL_MODE_DEFAULT_RESET_KEY) !== '1'){
+      localStorage.setItem(HOLDING_PNL_MODE_KEY, 'total');
+      localStorage.setItem(HOLDING_PNL_MODE_DEFAULT_RESET_KEY, '1');
+      return 'total';
+    }
     const v = localStorage.getItem(HOLDING_PNL_MODE_KEY);
     return v === 'daily' ? 'daily' : 'total';
   }catch{ return 'total'; }
-})();
+}
+let holdingPnlMode = readHoldingPnlMode();
 let holdingInputState = null;
 let nextNewsAt = null;
 let lastNewsHintState = { live: 0, fresh: 0, fallback: '데이터 헤드라인' };
@@ -2016,6 +2023,16 @@ function holdingLotMetaHtml(calc, index=0, total=1){
 function holdingModeToggleLabel(){
   return holdingPnlDisplayMode() === 'daily' ? '일일' : '누적';
 }
+function renderHoldingSummaryModeToggle(){
+  const mode = holdingPnlDisplayMode();
+  const totalActive = mode === 'total';
+  const dailyActive = mode === 'daily';
+  return `
+          <span class="holding-summary-toggle" role="group" aria-label="보유 수익 표시">
+            <button type="button" data-action="set-holding-pnl-mode" data-holding-pnl-mode="total" aria-pressed="${totalActive ? 'true' : 'false'}" title="누적 수익 표시">누적</button>
+            <button type="button" data-action="set-holding-pnl-mode" data-holding-pnl-mode="daily" aria-pressed="${dailyActive ? 'true' : 'false'}" title="일간 수익 표시">일간</button>
+          </span>`;
+}
 function holdingLineHtml(calc){
   const metric = holdingModeMetric(calc);
   if(metric.unavailable){
@@ -2076,27 +2093,41 @@ function holdingSummary(cards){
   const pnl = value - invested;
   const pctValue = (value / invested - 1) * 100;
   const dailyAvailable = dayCount > 0 && dayBaseValue > 0;
+  const dayPctValue = dailyAvailable ? (dayPnl / dayBaseValue) * 100 : null;
   const valueText = holdingSummaryMoneyText(value, currency);
   const investedText = holdingSummaryMoneyText(invested, currency);
   const pnlText = signedHoldingSummaryMoneyText(pnl, currency);
   const dayPnlText = dailyAvailable ? signedHoldingSummaryMoneyText(dayPnl, currency) : '';
-  const title = `보유 입력 ${count}건 · 현재가치 ${valueText} · 원금 ${investedText} · 누적 손익 ${pnlText}${dailyAvailable ? ` · 일일 손익 ${dayPnlText}` : ''}${converted ? ` · 원/달러 ${num(fx)}원 환산` : ''}`;
-  return { count, mixed:false, value, invested, pnl, pctValue, pctText:pctOne(pctValue), valueText, pnlText, title, converted, modeLabel:'누적' };
+  const dayPctText = dailyAvailable ? pctOne(dayPctValue) : '-';
+  const title = `보유 입력 ${count}건 · 현재가치 ${valueText} · 원금 ${investedText} · 누적 손익 ${pnlText}${dailyAvailable ? ` · 일간 손익 ${dayPnlText}` : ''}${converted ? ` · 원/달러 ${num(fx)}원 환산` : ''}`;
+  return { count, mixed:false, value, invested, pnl, pctValue, pctText:pctOne(pctValue), valueText, pnlText, title, converted, modeLabel:'누적', dailyAvailable, dayPnl, dayPctValue, dayPnlText, dayPctText };
 }
 function holdingSummaryView(cards){
   const summary = holdingSummary(cards);
   if(!summary) return null;
-  const klass = cls(summary.pctValue);
-  const meta = summary.mixed ? '환율 확인 후 합계 표시' : `${summary.count}건 · 손익 ${summary.pnlText}`;
+  const mode = holdingPnlDisplayMode();
+  const dailyMode = mode === 'daily';
+  const metricPnlText = dailyMode
+    ? (summary.dailyAvailable ? summary.dayPnlText : '-')
+    : summary.pnlText;
+  const metricPctValue = dailyMode
+    ? (summary.dailyAvailable ? summary.dayPctValue : null)
+    : summary.pctValue;
+  const metricPctText = dailyMode
+    ? (summary.dailyAvailable ? summary.dayPctText : '-')
+    : summary.pctText;
+  const klass = cls(metricPctValue);
+  const metricLabel = dailyMode ? '일간' : '누적';
+  const meta = summary.mixed ? '환율 확인 후 합계 표시' : `${summary.count}건 · ${metricLabel} ${metricPnlText}`;
   const valueText = summary.mixed ? '-' : summary.valueText;
-  return { summary, klass, meta, valueText };
+  return { summary, klass, meta, valueText, metricPctText, mode, metricLabel };
 }
 function renderHoldingSummaryRow(cards, rowNo){
   const view = holdingSummaryView(cards);
   if(!view) return '';
-  const {summary, klass, meta, valueText} = view;
+  const {summary, klass, meta, valueText, metricPctText, mode} = view;
   return `
-    <tr class="holding-row holding-summary-row" title="${esc(summary.title)}">
+    <tr class="holding-row holding-summary-row" data-holding-pnl-mode="${esc(mode)}" title="${esc(summary.title)}">
       <td class="rownum">${rowNo}</td>
       <td class="left holding-summary-merged-cell" colspan="3">
         <span class="holding-summary-content">
@@ -2104,8 +2135,9 @@ function renderHoldingSummaryRow(cards, rowNo){
           <span class="holding-summary-meta">${esc(meta)}</span>
           <span class="holding-summary-value-label">현재가치</span>
           <span class="holding-summary-value">${esc(valueText)}</span>
-          <span class="${klass} holding-summary-pct">${esc(summary.pctText)}</span>
+          <span class="${klass} holding-summary-pct">${esc(metricPctText)}</span>
         </span>
+        ${renderHoldingSummaryModeToggle()}
       </td>
     </tr>`;
 }
@@ -3985,8 +4017,9 @@ function updateHoldingSummaryRow(){
     row.remove();
     return;
   }
-  const {summary, klass, meta, valueText} = view;
+  const {summary, klass, meta, valueText, metricPctText, mode} = view;
   row.title = summary.title || '';
+  row.dataset.holdingPnlMode = mode;
   const metaEl = row.querySelector('.holding-summary-meta');
   if(metaEl) metaEl.textContent = meta;
   const valueEl = row.querySelector('.holding-summary-value');
@@ -3994,8 +4027,12 @@ function updateHoldingSummaryRow(){
   const pctEl = row.querySelector('.holding-summary-pct');
   if(pctEl){
     pctEl.className = `${klass} holding-summary-pct`;
-    pctEl.textContent = summary.pctText || '-';
+    pctEl.textContent = metricPctText || '-';
   }
+  row.querySelectorAll('.holding-summary-toggle button').forEach((btn)=>{
+    const active = btn.dataset.holdingPnlMode === mode;
+    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
 }
 
 function applyFastQuoteToRow(token, card){
@@ -7436,7 +7473,7 @@ async function restorePersistentSettings(){
     const restoredSort=localStorage.getItem(QUOTE_SORT_KEY);
     if(['manual','change-desc','value-desc','pnl-desc','name-asc'].includes(restoredSort)) quoteSortMode=restoredSort;
     ribbonCollapsed = initialRibbonCollapsed();
-    holdingPnlMode = localStorage.getItem(HOLDING_PNL_MODE_KEY) === 'daily' ? 'daily' : 'total';
+    holdingPnlMode = readHoldingPnlMode();
     chatPanelLarge = readStringSetting(CHAT_SIZE_KEY, 'normal', new Set(['normal','large'])) === 'large';
     chatPanelOpacity = readChatOpacitySetting();
     chatDockRequested = readBoolSetting(CHAT_DOCK_KEY, defaultChatDockOn());
@@ -7513,14 +7550,19 @@ function setChangeWindow(value){
   if(value !== 'day') loadSnapshot({force:true});
 }
 
-function toggleHoldingPnlMode(){
-  holdingPnlMode = holdingPnlDisplayMode() === 'daily' ? 'total' : 'daily';
+function setHoldingPnlMode(mode){
+  const next = mode === 'daily' ? 'daily' : 'total';
+  if(holdingPnlMode === next) return;
+  holdingPnlMode = next;
   try{
     localStorage.setItem(HOLDING_PNL_MODE_KEY, holdingPnlMode);
     persistSet(HOLDING_PNL_MODE_KEY, holdingPnlMode);
   }catch{}
   if(lastRenderedCards.length) rerenderCardsTableFromCurrentState();
   showToast(holdingPnlMode === 'daily' ? '보유 손익: 일일 손익 표시' : '보유 손익: 누적 손익 표시', 'info');
+}
+function toggleHoldingPnlMode(){
+  setHoldingPnlMode(holdingPnlDisplayMode() === 'daily' ? 'total' : 'daily');
 }
 
 function closeHoldingInline(options={}){

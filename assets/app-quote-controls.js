@@ -66,6 +66,12 @@ function bindCardsTableControls(){
       toggleHoldingPnlMode();
     });
   });
+  document.querySelectorAll('button[data-action=set-holding-pnl-mode]').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.preventDefault(); ev.stopPropagation();
+      setHoldingPnlMode(btn.dataset.holdingPnlMode);
+    });
+  });
   document.querySelectorAll('button[data-action=clear-holding]').forEach(btn=>{
     btn.addEventListener('click', (ev)=>{
       ev.preventDefault(); ev.stopPropagation();
