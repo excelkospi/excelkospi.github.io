@@ -6,7 +6,7 @@
   <title>excelkospi 광고 리포트</title>
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#107c41" />
-  <meta name="build-id" content="20260526-559-effective-impressions" />
+  <meta name="build-id" content="20260526-560-confirmed-impressions" />
   <link rel="icon" href="/favicon.ico?v=20260521-408" sizes="any" />
   <style>
     :root{
@@ -328,7 +328,7 @@
     <section class="access-panel">
       <div>
         <h1 class="access-title">리포트 토큰으로 광고 성과를 확인합니다.</h1>
-        <p class="access-copy">노출은 단순 로드가 아니라 실제 화면에 일정 시간 이상 보인 광고만 집계한 유효 노출 기준입니다.</p>
+        <p class="access-copy">확인된 노출과 원본 기록을 함께 표시합니다. 보고 기준은 실제 화면에 1초 이상 보인 광고입니다.</p>
         <div class="status" id="status" role="status"></div>
       </div>
       <form class="token-card" id="tokenForm">
@@ -353,12 +353,12 @@
         <section class="panel">
           <div class="panel-head">
             <h2>영역별 성과</h2>
-            <span>유효 노출 기준</span>
+            <span>확인된 노출 기준</span>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
-                <tr><th>영역</th><th>유효 노출</th><th>클릭</th><th>유효 CTR</th><th>비중</th></tr>
+                <tr><th>영역</th><th>확인된 노출</th><th>원본 기록</th><th>클릭</th><th>확인 CTR</th><th>원본 CTR</th><th>비중</th></tr>
               </thead>
               <tbody id="placementRows"></tbody>
             </table>
@@ -368,7 +368,7 @@
         <section class="panel">
           <div class="panel-head">
             <h2>일별 추이</h2>
-            <span>유효 노출 / 클릭</span>
+            <span>확인된 노출 / 클릭</span>
           </div>
           <div class="daily" id="dailyRows"></div>
         </section>
@@ -376,8 +376,8 @@
 
       <section class="panel" style="margin-top:10px">
         <div class="panel-head">
-          <h2>소재별 원본 참고</h2>
-          <span>보고 기준은 유효 노출</span>
+          <h2>소재별 원본 기록</h2>
+          <span>소재 단위</span>
         </div>
         <div class="table-wrap">
           <table>
@@ -394,7 +394,7 @@
 
     <section class="empty-state" id="setupHelp">
       <strong>광고주 리포트 안내</strong><br />
-      운영자가 전달한 리포트 링크 또는 토큰으로 접속하면 최근 광고 성과를 확인할 수 있습니다. 노출은 실제 화면에 보인 광고만 집계한 유효 노출 기준이며, 광고 차단 환경이나 분석 도구 집계 지연으로 일부 데이터는 늦게 표시될 수 있습니다.
+      운영자가 전달한 리포트 링크 또는 토큰으로 접속하면 최근 광고 성과를 확인할 수 있습니다. 보고 기준은 실제 화면에 1초 이상 보인 확인된 노출이며, 원본 기록도 함께 표시합니다.
     </section>
   </div>
 
@@ -424,8 +424,8 @@
         summary: '시세창 하단',
         notice: '공지 영역',
       };
-      const effectiveImpressionHelp = '단순 로드가 아니라 실제 화면에 50% 이상 1초 보인 광고만 집계합니다. 같은 광고·위치는 30분 기준으로 정리합니다.';
-      const rawImpressionHelp = 'GA4에 소재 단위로 기록된 원본 참고값입니다. 보고 기준은 유효 노출입니다.';
+      const effectiveImpressionHelp = '실제 화면에 50% 이상 1초 보인 광고입니다. 같은 광고·위치는 30분 기준으로 중복 정리합니다.';
+      const rawImpressionHelp = 'GA4에 소재 단위로 남은 원본 기록입니다. 확인된 노출과 비교할 수 있도록 함께 표시합니다.';
       const reachHelp = '광고 이벤트가 기록된 고유 사용자 수입니다.';
       const costHelp = '설정된 CPC와 클릭수로 계산한 예상값입니다.';
 
@@ -524,8 +524,8 @@
 
       function helpForLabel(label) {
         if (label.includes('CPM') || label.includes('예상 비용')) return costHelp;
-        if (label.includes('유효 노출') || label.includes('유효 CTR')) return effectiveImpressionHelp;
-        if (label.includes('RAW')) return rawImpressionHelp;
+        if (label.includes('확인된 노출') || label.includes('확인 CTR')) return effectiveImpressionHelp;
+        if (label.includes('원본')) return rawImpressionHelp;
         if (label === '도달수' || label.includes('도달당')) return reachHelp;
         return '';
       }
@@ -610,21 +610,24 @@
         if (!rows.length) {
           const tr = document.createElement('tr');
           const td = cell(emptyLabel, 'name-cell');
-          td.colSpan = 5;
+          td.colSpan = 7;
           tr.append(td);
           tbody.append(tr);
           return;
         }
         rows.forEach((row) => {
           const impressions = numberValue(row.impressions);
+          const rawImpressions = numberValue(row.rawImpressions ?? impressions);
           const clicks = numberValue(row.clicks);
           const tr = document.createElement('tr');
           const name = row.placement ? (placementNames[row.placement] || row.placement) : row.name;
           tr.append(
             cell(name || '미분류', 'name-cell'),
             cell(formatNumber(impressions)),
+            cell(formatNumber(rawImpressions)),
             cell(formatNumber(clicks)),
-            cell(formatPercent(impressions ? clicks / impressions : 0))
+            cell(formatPercent(impressions ? clicks / impressions : 0)),
+            cell(formatPercent(rawImpressions ? clicks / rawImpressions : 0))
           );
           const ratioTd = document.createElement('td');
           ratioTd.append(renderBar(totalImpressions ? impressions / totalImpressions : 0));
@@ -702,27 +705,32 @@
         $('campaignFacts').textContent = '';
         addFact('업데이트 시각', updatedKst || '-');
         addFact('광고 시작시각', adStartKst || '-');
-        addFact('유효 노출 기준', '50% 이상 1초 · 30분 기준');
+        addFact('확인된 노출 기준', '화면 50% 이상 1초 · 30분 기준');
+        addFact('원본 기록 기준', 'GA4 소재 단위 기록');
         const metricGrid = $('metricGrid');
         metricGrid.textContent = '';
         const metrics = [
-          renderMetric('유효 노출', formatNumber(basis.corrected), basis.capAdded > 0 ? `실측 보정 ${formatNumber(basis.measured)}회` : '보고 기준', 'primary'),
-          renderMetric('클릭', formatNumber(basis.clicks), `유효 CTR ${formatPercent(basis.ctr)}`),
-          renderMetric('유효 CTR', formatPercent(basis.ctr), '클릭 / 유효 노출'),
+          renderMetric('확인된 노출', formatNumber(basis.corrected), basis.capAdded > 0 ? `실측 보정 ${formatNumber(basis.measured)}회` : '보고 기준', 'primary'),
+          renderMetric('클릭', formatNumber(basis.clicks), `확인 CTR ${formatPercent(basis.ctr)}`),
+          renderMetric('확인 CTR', formatPercent(basis.ctr), '클릭 / 확인된 노출'),
           renderMetric('도달수', formatNumber(basis.reach), basis.frequency ? `고유 사용자 · 빈도 ${basis.frequency.toFixed(2)}회` : '고유 사용자')
         ];
         if (basis.estimatedCost) {
           metrics.push(
             renderMetric('예상 비용', formatCurrency(basis.estimatedCost, basis.currency), `CPC ${formatCurrency(basis.cpc, basis.currency)}`),
             renderMetric('도달당 비용', formatCurrency(basis.costPerReach, basis.currency), '예상 비용 / 도달수'),
-            renderMetric('CPM', formatCurrency(basis.cpm, basis.currency), '예상 비용 / 유효 노출 × 1,000')
+            renderMetric('CPM', formatCurrency(basis.cpm, basis.currency), '예상 비용 / 확인된 노출 × 1,000')
           );
         }
+        metrics.push(
+          renderMetric('원본 기록', formatNumber(basis.raw), 'GA4 소재 단위 기록'),
+          renderMetric('원본 CTR', formatPercent(basis.rawCtr), '클릭 / 원본 기록', 'warn')
+        );
         metricGrid.append(...metrics);
         renderBreakdown(report.placements || [], $('placementRows'), basis.corrected || 0, '영역별 데이터가 아직 없습니다.');
         renderCreatives(report.creatives || []);
         renderDaily(report.daily || []);
-        const defaultNote = '노출은 단순 로드 기준이 아니라 실제 화면에 일정 시간 이상 보인 광고만 집계한 유효 노출 기준입니다. 클릭과 비용 지표는 GA4 집계 지연으로 늦게 반영될 수 있습니다.';
+        const defaultNote = '확인된 노출은 실제 화면에 50% 이상 1초 표시된 광고 기준입니다. 원본 기록은 GA4 소재 단위 기록으로 함께 표시합니다. 클릭과 비용 지표는 GA4 집계 지연으로 늦게 반영될 수 있습니다.';
         $('reportNotes').textContent = report.notes ? `${report.notes} ${defaultNote}` : defaultNote;
         reportEl.style.display = 'block';
         setupHelp.style.display = 'none';
