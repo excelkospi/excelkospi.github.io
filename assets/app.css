@@ -1335,6 +1335,12 @@ body.quote-sort-auto #cardsTable .quote-row-handle{cursor:default}
 .timeline-tabs-wrap::after{right:0;background:linear-gradient(-90deg, var(--panel-bg, #fff) 35%, rgba(255,255,255,0))}
 .timeline-tabs-wrap[data-overflow-start="1"]::before{opacity:.95}
 .timeline-tabs-wrap[data-overflow-end="1"]::after{opacity:.95}
+.col-timeline.timeline-swipe-dragging,
+.col-timeline.timeline-swipe-animating{overflow:hidden}
+.col-timeline.timeline-swipe-dragging .sheet.timeline,
+.col-timeline.timeline-swipe-animating .sheet.timeline{will-change:transform,opacity;backface-visibility:hidden}
+.col-timeline.timeline-swipe-dragging .sheet.timeline{transition:none}
+.col-timeline.timeline-swipe-animating .sheet.timeline{transition:transform 170ms cubic-bezier(.2,.8,.2,1),opacity 170ms ease}
 #timelineTable.community-table{min-width:0!important;width:100%;table-layout:fixed}
 #timelineTable.community-table th,#timelineTable.community-table td{overflow:hidden;border-width:1px;border-style:solid;border-color:var(--grid);background-clip:padding-box}
 #timelineTable.community-table .rownum,#timelineTable.community-table .colhead{background:var(--head)!important;color:#555}

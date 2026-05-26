@@ -86,7 +86,7 @@ let timelineTab = (()=>{
     return v==='community' || v==='etf' ? v : 'news';
   }catch{ return 'news'; }
 })();
-const ETF_SCRIPT_VERSION = '20260527-587';
+const ETF_SCRIPT_VERSION = '20260527-588';
 const TIMELINE_TAB_ORDER = ['news', 'community-kr', 'community-us', 'community-coin', 'community-ops', 'etf'];
 let etfModulePromise = null;
 
@@ -625,13 +625,18 @@ function timelineActiveTabKey(){
   return 'news';
 }
 
-function setAdjacentTimelineTab(direction){
+function timelineAdjacentTabKey(direction){
   const delta = direction < 0 ? -1 : 1;
   const current = timelineActiveTabKey();
   const index = TIMELINE_TAB_ORDER.indexOf(current);
-  if(index < 0) return false;
+  if(index < 0) return '';
   const next = TIMELINE_TAB_ORDER[Math.min(TIMELINE_TAB_ORDER.length - 1, Math.max(0, index + delta))];
-  if(!next || next === current) return false;
+  return next && next !== current ? next : '';
+}
+
+function setAdjacentTimelineTab(direction){
+  const next = timelineAdjacentTabKey(direction);
+  if(!next) return false;
   setTimelineTab(next);
   return true;
 }
@@ -5379,6 +5384,10 @@ updateTimelineTabs();
   let startY = 0;
   let startAt = 0;
   let tracking = false;
+  let swipeMode = '';
+  let animating = false;
+  const OUT_MS = 170;
+  const IN_MS = 170;
   const interactiveSelector = [
     'a', 'button', 'input', 'select', 'textarea',
     '[role="button"]', '.timeline-tabs', '.community-compose-row',
@@ -5386,34 +5395,134 @@ updateTimelineTabs();
     '.etf-detail-cell'
   ].join(',');
   const isMobile = ()=> mobileQuery ? mobileQuery.matches : window.innerWidth <= 700;
+  const sheetEl = ()=> pane.querySelector('.sheet.timeline');
+  const paneWidth = ()=> Math.max(240, pane.getBoundingClientRect().width || window.innerWidth || 320);
+  const clearSwipeStyles = ()=>{
+    const sheet = sheetEl();
+    pane.classList.remove('timeline-swipe-dragging', 'timeline-swipe-animating');
+    if(sheet){
+      sheet.style.transition = '';
+      sheet.style.transform = '';
+      sheet.style.opacity = '';
+    }
+    animating = false;
+  };
+  const setSwipeOffset = (x)=>{
+    const sheet = sheetEl();
+    if(!sheet) return;
+    const ratio = Math.min(1, Math.abs(x) / paneWidth());
+    sheet.style.transform = `translate3d(${Math.round(x)}px,0,0)`;
+    sheet.style.opacity = String(Math.max(0.78, 1 - ratio * 0.2));
+  };
+  const animateReset = ()=>{
+    pane.classList.remove('timeline-swipe-dragging');
+    pane.classList.add('timeline-swipe-animating');
+    const sheet = sheetEl();
+    if(sheet) sheet.style.transition = '';
+    requestAnimationFrame(()=>setSwipeOffset(0));
+    window.setTimeout(clearSwipeStyles, IN_MS + 40);
+  };
+  const finishSwipe = (direction)=>{
+    const next = timelineAdjacentTabKey(direction);
+    if(!next){
+      animateReset();
+      return false;
+    }
+    animating = true;
+    const width = paneWidth();
+    const outX = direction > 0 ? -width : width;
+    const inX = direction > 0 ? width : -width;
+    pane.classList.remove('timeline-swipe-dragging');
+    pane.classList.add('timeline-swipe-animating');
+    const currentSheet = sheetEl();
+    if(currentSheet) currentSheet.style.transition = '';
+    requestAnimationFrame(()=>setSwipeOffset(outX));
+    window.setTimeout(()=>{
+      setTimelineTab(next);
+      const nextSheet = sheetEl();
+      if(!nextSheet){
+        clearSwipeStyles();
+        return;
+      }
+      pane.classList.add('timeline-swipe-animating');
+      nextSheet.style.transition = 'none';
+      nextSheet.style.transform = `translate3d(${Math.round(inX)}px,0,0)`;
+      nextSheet.style.opacity = '0.82';
+      void nextSheet.offsetWidth;
+      requestAnimationFrame(()=>{
+        nextSheet.style.transition = '';
+        setSwipeOffset(0);
+        window.setTimeout(clearSwipeStyles, IN_MS + 40);
+      });
+    }, OUT_MS);
+    return true;
+  };
+  const stopTracking = ()=>{
+    tracking = false;
+    swipeMode = '';
+  };
   pane.addEventListener('touchstart', (ev)=>{
-    if(!isMobile() || ev.touches.length !== 1) return;
+    if(animating || !isMobile() || ev.touches.length !== 1) return;
     if(ev.target?.closest?.(interactiveSelector)) return;
     const touch = ev.touches[0];
     startX = touch.clientX;
     startY = touch.clientY;
     startAt = Date.now();
     tracking = true;
+    swipeMode = '';
   }, { passive:true });
   pane.addEventListener('touchmove', (ev)=>{
     if(!tracking || ev.touches.length !== 1) return;
     const touch = ev.touches[0];
     const dx = touch.clientX - startX;
     const dy = touch.clientY - startY;
-    if(Math.abs(dy) > 28 && Math.abs(dy) > Math.abs(dx) * 0.8) tracking = false;
-  }, { passive:true });
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    if(!swipeMode){
+      if(absX < 10 && absY < 10) return;
+      if(absY > 16 && absY > absX * 0.85){
+        stopTracking();
+        return;
+      }
+      if(absX > 14 && absX > absY * 1.15){
+        swipeMode = 'horizontal';
+        pane.classList.add('timeline-swipe-dragging');
+        const sheet = sheetEl();
+        if(sheet) sheet.style.transition = 'none';
+      }
+    }
+    if(swipeMode !== 'horizontal') return;
+    if(ev.cancelable) ev.preventDefault();
+    const direction = dx < 0 ? 1 : -1;
+    const hasNext = !!timelineAdjacentTabKey(direction);
+    const limit = paneWidth() * 0.72;
+    let dragX = Math.max(-limit, Math.min(limit, dx));
+    if(!hasNext) dragX *= 0.32;
+    setSwipeOffset(dragX);
+  }, { passive:false });
   pane.addEventListener('touchend', (ev)=>{
     if(!tracking) return;
-    tracking = false;
     const touch = ev.changedTouches?.[0];
-    if(!touch) return;
+    const mode = swipeMode;
+    stopTracking();
+    if(!touch){
+      animateReset();
+      return;
+    }
     const dx = touch.clientX - startX;
     const dy = touch.clientY - startY;
     const elapsed = Date.now() - startAt;
-    if(elapsed > 900) return;
-    if(Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
-    if(setAdjacentTimelineTab(dx < 0 ? 1 : -1)) ev.preventDefault();
+    if(mode !== 'horizontal' || elapsed > 900 || Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.35){
+      animateReset();
+      return;
+    }
+    if(finishSwipe(dx < 0 ? 1 : -1) && ev.cancelable) ev.preventDefault();
   }, { passive:false });
+  pane.addEventListener('touchcancel', ()=>{
+    if(!tracking) return;
+    stopTracking();
+    animateReset();
+  }, { passive:true });
 })();
 startTimelineTabEngagement(timelineActiveTabKey(), 'initial');
 document.addEventListener('visibilitychange', ()=>{
