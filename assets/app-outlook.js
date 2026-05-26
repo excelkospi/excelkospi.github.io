@@ -310,7 +310,7 @@ function outlookCommunityPollHtml(poll, channel=outlookCommunityChannel){
   }).join('');
   const meta = total ? `${total.toLocaleString('ko-KR')}명 참여` : (voted ? '첫 투표 완료' : '첫 투표를 기다리는 중');
   return `<div class="outlook-community-poll-card" data-outlook-poll-id="${esc(poll.id || '')}">
-    <span class="outlook-poll-kicker">오늘의 투표</span>
+    <span class="outlook-poll-kicker">${esc(poll.kicker || '오늘의 투표')}</span>
     <strong>${esc(poll.question || '오늘 시장은?')}</strong>
     <div class="outlook-poll-options">${buttons}</div>
     <small>${esc(meta)}</small>

@@ -162,6 +162,6 @@ const AD_ROTATION_MS = 5 * 60 * 1000;
 const SERVER_STATUS_PEAK_KEY = 'kg_server_status_peak_v1';
 const SHARED_POLL_LOCK_PREFIX = 'kg_shared_poll_lock_v1:';
 const CHAT_DONORS_CACHE_KEY = 'kg_chat_donors_v1';
-const PATCH_NOTES_URL = '/patch-notes.md?v=20260527-589';
+const PATCH_NOTES_URL = '/patch-notes.md?v=20260527-591';
 const MARKET_LABELS = { AUTO: '자동', KR: '국장', US: '미장', COIN: '코인', ALL: '주식 전체', HOLDINGS: '보유' };
 const STOCK_MARKETS = new Set(['KR', 'US']);

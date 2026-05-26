@@ -90,7 +90,7 @@ let timelineTab = (()=>{
     return v==='community' || v==='etf' ? v : 'news';
   }catch{ return 'news'; }
 })();
-const ETF_SCRIPT_VERSION = '20260527-590';
+const ETF_SCRIPT_VERSION = '20260527-591';
 const TIMELINE_TAB_ORDER = ['news', 'community-kr', 'community-us', 'community-coin', 'community-ops', 'etf'];
 let etfModulePromise = null;
 
@@ -804,6 +804,8 @@ function normalizeCommunityPollPayload(payload, channel=communityActiveChannel()
     id:String(payload.id),
     channel:activeChannel,
     question:String(payload.question || '').trim().slice(0,80),
+    kicker:String(payload.kicker || '').trim().slice(0,24) || '오늘의 투표',
+    timeLabel:String(payload.timeLabel || '').trim().slice(0,16) || '오늘',
     options,
     counts,
     total,
@@ -840,6 +842,8 @@ function communityPollForChannel(channel=communityActiveChannel()){
     loading:true,
     channel:activeChannel,
     question:'오늘의 투표 불러오는 중...',
+    kicker:'오늘의 투표',
+    timeLabel:'오늘',
     options:['상승','하락','보합'],
     counts:[0,0,0],
     total:0,
@@ -869,13 +873,13 @@ function communityPollRow(rowNum, dataCols, compact=false){
     <td class="center community-author community-poll-author"><span>투표</span></td>
     <td class="left community-post-body community-poll-body">
       <div class="community-poll-inner">
-        <span class="community-poll-kicker">오늘의 투표</span>
+        <span class="community-poll-kicker">${esc(poll.kicker || '오늘의 투표')}</span>
         <span class="community-poll-question">${esc(poll.question)}</span>
         <span class="community-poll-options">${buttons}</span>
         ${inlineCount}
       </div>
     </td>
-    <td class="center time community-poll-time">오늘</td>
+    <td class="center time community-poll-time">${esc(poll.timeLabel || '오늘')}</td>
     ${tail}
   </tr>`;
 }
@@ -5495,6 +5499,70 @@ updateTimelineTabs();
     root.querySelectorAll?.('[id]').forEach((el)=>el.removeAttribute('id'));
     return root;
   };
+  const tabScroller = document.querySelector('.timeline-tabs');
+  let swipeFromKey = '';
+  let swipeToKey = '';
+  const tabButtonForKey = (key)=>Array.from(tabScroller?.querySelectorAll('button[data-timeline-tab]') || [])
+    .find((btn)=>btn.dataset.timelineTab === key) || null;
+  const ensureSwipeTabsVisible = ()=>{
+    if(!tabScroller || !swipeFromKey || !swipeToKey) return;
+    const from = tabButtonForKey(swipeFromKey);
+    const to = tabButtonForKey(swipeToKey);
+    if(!from || !to) return;
+    const scrollerRect = tabScroller.getBoundingClientRect();
+    const left = Math.min(from.getBoundingClientRect().left, to.getBoundingClientRect().left);
+    const right = Math.max(from.getBoundingClientRect().right, to.getBoundingClientRect().right);
+    if(left < scrollerRect.left + 8){
+      tabScroller.scrollBy({ left:left - scrollerRect.left - 12, behavior:'smooth' });
+    }else if(right > scrollerRect.right - 8){
+      tabScroller.scrollBy({ left:right - scrollerRect.right + 12, behavior:'smooth' });
+    }
+  };
+  const setSwipeTabIndicator = (progress, options={})=>{
+    if(!tabScroller || !swipeFromKey || !swipeToKey) return;
+    const from = tabButtonForKey(swipeFromKey);
+    const to = tabButtonForKey(swipeToKey);
+    if(!from || !to) return;
+    const ratio = Math.max(0, Math.min(1, Number(progress) || 0));
+    const fromLeft = from.offsetLeft;
+    const toLeft = to.offsetLeft;
+    const fromWidth = from.offsetWidth;
+    const toWidth = to.offsetWidth;
+    const x = fromLeft + (toLeft - fromLeft) * ratio;
+    const width = fromWidth + (toWidth - fromWidth) * ratio;
+    tabScroller.style.setProperty('--timeline-tab-indicator-x', `${Math.round(x)}px`);
+    tabScroller.style.setProperty('--timeline-tab-indicator-width', `${Math.round(width)}px`);
+    tabScroller.classList.toggle('is-swipe-animating', !!options.animate);
+    tabScroller.classList.toggle('is-swipe-tracking', !options.animate);
+    from.classList.add('is-swipe-hot');
+    to.classList.add('is-swipe-hot');
+  };
+  const clearSwipeTabIndicator = ()=>{
+    if(!tabScroller) return;
+    tabScroller.classList.remove('is-swipe-tracking', 'is-swipe-animating');
+    tabScroller.querySelectorAll('.is-swipe-hot').forEach((el)=>el.classList.remove('is-swipe-hot'));
+    tabScroller.style.removeProperty('--timeline-tab-indicator-x');
+    tabScroller.style.removeProperty('--timeline-tab-indicator-width');
+    swipeFromKey = '';
+    swipeToKey = '';
+  };
+  const communityPreviewComposeRow = (channel, dataCols)=>{
+    const meta = communityChannelMeta(channel);
+    const placeholder = channel === 'ops'
+      ? (meta.placeholder || '서비스 이용 의견이나 운영 관련 이야기를 남겨주세요.')
+      : `${meta.placeholder || '주식 이야기를 나누는 공간입니다.'}\n특정 종목 태그하기 : @종목명`;
+    return `<tr class="community-compose-row community-compose-top-row community-preview-compose-row">
+      <td class="rownum"></td>
+      <td colspan="${dataCols}" class="community-compose-cell">
+        <div class="community-compose-box community-main-compose">
+          <input class="community-nick-input" type="text" tabindex="-1" placeholder="닉네임" value="" />
+          <textarea class="community-post-input" tabindex="-1" rows="2" placeholder="${esc(placeholder).replace(/\n/g, '&#10;')}"></textarea>
+          <button class="community-attach" type="button" tabindex="-1" title="이미지 첨부(외부 링크)" aria-label="이미지 첨부"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5L19 18H5l3.5-4.5zM8 9.5A1.5 1.5 0 1 1 6.5 8 1.5 1.5 0 0 1 8 9.5z"/></svg></button>
+          <button class="community-cell-button community-compose-submit" type="button" tabindex="-1">등록</button>
+        </div>
+      </td>
+    </tr>`;
+  };
   const communityPreviewTable = (key)=>{
     const parts = timelineTabParts(key);
     const channel = parts.channel;
@@ -5506,7 +5574,7 @@ updateTimelineTabs();
         : (readCommunityPostsCache(channel, { allowStale:true }) || [])
     );
     const header = typeof communityTableHeader === 'function'
-      ? communityTableHeader(compact)
+      ? communityTableHeader(compact, communityPreviewComposeRow(channel, dataCols))
       : newsTableHeader();
     let rowNo = 2;
     const rows = [];
@@ -5590,6 +5658,7 @@ updateTimelineTabs();
     const sheet = sheetEl();
     pane.classList.remove('timeline-swipe-dragging', 'timeline-swipe-animating', 'timeline-swipe-staged');
     removeStage();
+    clearSwipeTabIndicator();
     if(sheet){
       sheet.classList.remove('timeline-swipe-fallback', 'is-animating');
       sheet.style.transform = '';
@@ -5602,11 +5671,12 @@ updateTimelineTabs();
     sheet.classList.add('timeline-swipe-fallback');
     sheet.style.transform = `translate3d(${Math.round(x)}px,0,0)`;
   };
-  const setStageOffset = (x)=>{
+  const setStageOffset = (x, options={})=>{
     if(!stage || !currentLayer || !nextLayer) return;
     const travel = stageDirection > 0 ? paneWidth() : -paneWidth();
     currentLayer.style.transform = `translate3d(${Math.round(x)}px,0,0)`;
     nextLayer.style.transform = `translate3d(${Math.round(x + travel)}px,0,0)`;
+    setSwipeTabIndicator(Math.abs(x) / Math.max(1, paneWidth()), options);
   };
   const reservePageScrollSpace = (targetY)=>{
     const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
@@ -5648,6 +5718,9 @@ updateTimelineTabs();
     removeStage();
     preloadTimelineTabData(next);
     stageDirection = direction;
+    swipeFromKey = timelineActiveTabKey();
+    swipeToKey = next;
+    ensureSwipeTabsVisible();
     stage = document.createElement('div');
     stage.className = 'timeline-swipe-stage';
     stage.style.top = `${Math.max(0, sheet.offsetTop)}px`;
@@ -5671,7 +5744,7 @@ updateTimelineTabs();
     if(stage){
       currentLayer?.classList.add('is-animating');
       nextLayer?.classList.add('is-animating');
-      requestAnimationFrame(()=>setStageOffset(0));
+      requestAnimationFrame(()=>setStageOffset(0, { animate:true }));
       window.setTimeout(clearSwipeStyles, SWIPE_MS + 40);
       return;
     }
@@ -5701,7 +5774,7 @@ updateTimelineTabs();
     currentLayer?.classList.add('is-animating');
     nextLayer?.classList.add('is-animating');
     const outX = direction > 0 ? -paneWidth() : paneWidth();
-    requestAnimationFrame(()=>setStageOffset(outX));
+    requestAnimationFrame(()=>setStageOffset(outX, { animate:true }));
     window.setTimeout(()=>{
       setTimelineTab(next);
       requestAnimationFrame(()=>{
@@ -5727,10 +5800,6 @@ updateTimelineTabs();
     gestureScrollY = window.scrollY || 0;
     tracking = true;
     swipeMode = '';
-    [-1, 1].forEach((direction)=>{
-      const key = timelineAdjacentTabKey(direction);
-      if(key) preloadTimelineTabData(key);
-    });
   }, { passive:true });
   pane.addEventListener('touchmove', (ev)=>{
     if(!tracking || ev.touches.length !== 1) return;
@@ -5759,6 +5828,7 @@ updateTimelineTabs();
     if(hasNext && prepareStage(direction)) setStageOffset(dragX);
     else{
       removeStage();
+      clearSwipeTabIndicator();
       dragX *= 0.32;
       setFallbackOffset(dragX);
     }
