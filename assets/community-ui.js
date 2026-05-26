@@ -546,6 +546,8 @@ const adHoverState = new WeakMap();
 let adImpressionObserver = null;
 let adClickTrackerReady = false;
 let adHoverTrackerReady = false;
+let adLastClickKey = '';
+let adLastClickAt = 0;
 const AD_VIEW_CAP_MS = 30 * 60 * 1000;
 const AD_VIEW_CAP_STORAGE_KEY = 'excelkospi.adViewCaps.v1';
 let adViewCapCache = null;
@@ -957,20 +959,29 @@ function setupAdClickTracker(){
   adClickTrackerReady = true;
   document.addEventListener('click', (ev)=>{
     const link = ev.target?.closest?.('[data-xk-click]');
-    if(!link) return;
-    const root = link.closest('[data-xk-area]');
-    if(!root) return;
-    reportAdClick(
-      root.dataset.xkId || root.getAttribute('data-xk-id') || '',
-      root.getAttribute('data-xk-area') || '',
-      link.href || link.getAttribute('href') || '',
-      root.dataset.xkVariantIndex || root.getAttribute('data-xk-variant-index') || '',
-      root.dataset.xkVariantText || root.getAttribute('data-xk-variant-text') || '',
-      root.dataset.xkLabel || root.getAttribute('data-xk-label') || '',
-      adPositionFromElement(root, root.getAttribute('data-xk-area') || ''),
-    );
+    reportAdClickFromLink(link);
   }, true);
 }
+function reportAdClickFromLink(link){
+  if(!link) return false;
+  const root = link.closest?.('[data-xk-area]');
+  if(!root) return false;
+  const placement = root.getAttribute('data-xk-area') || '';
+  const href = link.href || link.getAttribute?.('href') || '';
+  const position = adPositionFromElement(root, placement);
+  const adId = root.dataset.xkId || root.getAttribute('data-xk-id') || '';
+  const creativeIndex = root.dataset.xkVariantIndex || root.getAttribute('data-xk-variant-index') || '';
+  const creativeText = root.dataset.xkVariantText || root.getAttribute('data-xk-variant-text') || '';
+  const adLabel = root.dataset.xkLabel || root.getAttribute('data-xk-label') || '';
+  const clickKey = [adId, placement, position, href, creativeIndex, creativeText].join('\u001f');
+  const now = Date.now();
+  if(clickKey && adLastClickKey === clickKey && now - adLastClickAt < 800) return true;
+  adLastClickKey = clickKey;
+  adLastClickAt = now;
+  reportAdClick(adId, placement, href, creativeIndex, creativeText, adLabel, position);
+  return true;
+}
+window.reportAdClickFromLink = reportAdClickFromLink;
 function setupAdImpressionTracker(){
   if(adImpressionObserver) return;
   if(typeof IntersectionObserver !== 'function') return;

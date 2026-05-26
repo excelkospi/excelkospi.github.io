@@ -331,6 +331,11 @@ function beginCellSelection(ev){
     if(startedOnLink && !movedEnough){
       const href = linkTarget?.href || '';
       if(href){
+        try{
+          if(linkTarget?.matches?.('[data-xk-click]') && typeof window.reportAdClickFromLink === 'function'){
+            window.reportAdClickFromLink(linkTarget);
+          }
+        }catch{}
         if(linkTarget.target === '_blank') window.open(href, '_blank', 'noopener');
         else location.href = href;
       }
