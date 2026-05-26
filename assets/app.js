@@ -5564,8 +5564,16 @@ let chatExcelMode=readBoolSetting(CHAT_EXCEL_MODE_KEY, false);
 function chatImagePreviewEnabled(){
   return readBoolSetting(CHAT_IMAGE_PREVIEW_KEY, true);
 }
-function chatImagePreviewOptions(extra={}){
-  return {...extra, collapsed: !chatImagePreviewEnabled(), stockMentions:true};
+function chatImagePreviewOptions(messageOrOptions={}, maybeOptions={}){
+  const isMessage = messageOrOptions && typeof messageOrOptions === 'object' && Object.prototype.hasOwnProperty.call(messageOrOptions, 'body');
+  const message = isMessage ? messageOrOptions : null;
+  const extra = isMessage ? maybeOptions : messageOrOptions;
+  return {
+    ...extra,
+    collapsed: !chatImagePreviewEnabled(),
+    stockMentions:true,
+    stockMentionSnapshots: message?.mentions,
+  };
 }
 // 넓은 데스크탑(>=1600px)에 처음 접속한 사용자에겐 dock 을 기본 ON 으로 한다.
 // 사용자가 한 번이라도 toggle 을 누르면 localStorage 가 '0'/'1' 로 저장되어
@@ -6806,7 +6814,7 @@ function renderChatMessagesExcel(body){
       <td class="center chat-excel-time">${fmtTime(m.created_at)}</td>
     </tr>
     <tr class="${rowClass} chat-excel-body-row" data-chat-id="${esc(m.id)}">
-      <td class="left chat-excel-body" colspan="3">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions({linkUrls:true, linkPolicy:chatLinkPolicy()}))}<span class="chat-excel-row-actions"><button class="chat-report chat-excel-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>${adminActions}</span></td>
+      <td class="left chat-excel-body" colspan="3">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions(m, {linkUrls:true, linkPolicy:chatLinkPolicy()}))}<span class="chat-excel-row-actions"><button class="chat-report chat-excel-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>${adminActions}</span></td>
     </tr>`;
   }).join('');
   body.innerHTML=`<table class="chat-excel-table">
@@ -6858,7 +6866,7 @@ function renderChatMessages(options={}){
           <button class="chat-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>
           ${adminActions}
         </div>
-        <div class="chat-text">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions({linkUrls:true, linkPolicy:chatLinkPolicy()}))}</div>
+        <div class="chat-text">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions(m, {linkUrls:true, linkPolicy:chatLinkPolicy()}))}</div>
       </div>`;
     }).join('') + chatSleepNoticeHtml();
   }
