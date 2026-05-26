@@ -237,6 +237,17 @@ function communityPaginationRow(rowNum, dataCols){
   </tr>`;
 }
 
+function scrollCommunityListTop(){
+  const target = document.querySelector('.col-timeline');
+  if(!target) return;
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  try{
+    target.scrollIntoView({ block:'start', behavior:reduced ? 'auto' : 'smooth' });
+  }catch{
+    target.scrollIntoView();
+  }
+}
+
 function communityReadMarkerRow(rowNum, dataCols, info={}){
   const details = [];
   if(Number(info.unreadCount || 0) > 0) details.push(`위쪽 새 글 ${Number(info.unreadCount || 0)}개`);
@@ -1798,6 +1809,7 @@ function bindCommunityTable(){
       communityMobileActionCommentId = '';
       communityDraftReplyBody = '';
       renderCommunityTable();
+      if(communityPage !== current) requestAnimationFrame(scrollCommunityListTop);
     });
   });
   document.querySelectorAll('[data-community-poll-choice]').forEach((btn)=>{
@@ -2060,6 +2072,16 @@ async function loadCommunityPosts(options={}){
   try{
     const adminMode = isInlineAdmin();
     const channel = typeof communityActiveChannel === 'function' ? communityActiveChannel() : 'kr';
+    if(!adminMode && !options.force && communityPostsPreloadInFlight[channel]){
+      await communityPostsPreloadInFlight[channel];
+      const cached = typeof readCommunityPostsCache === 'function' ? readCommunityPostsCache(channel) : null;
+      if(cached){
+        communityPosts = cached;
+        clampCommunityPage();
+        renderCommunityTable();
+        return;
+      }
+    }
     const params = new URLSearchParams({ channel });
     params.set('include_summary', '1');
     if(options.force) params.set('fresh', '1');

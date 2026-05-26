@@ -660,15 +660,9 @@ function scheduleTimelineNeighborPreload(delay=700){
     clearTimeout(timelineNeighborPreloadTimer);
     timelineNeighborPreloadTimer = null;
   }
-  if(!shouldPreloadTimelineNeighbors()) return;
-  timelineNeighborPreloadTimer = setTimeout(()=>{
-    timelineNeighborPreloadTimer = null;
-    if(!shouldPreloadTimelineNeighbors()) return;
-    [-1, 1].forEach((direction)=>{
-      const key = timelineAdjacentTabKey(direction);
-      if(key) preloadTimelineTabData(key);
-    });
-  }, delay);
+  void delay;
+  // Cost guard: keep swipe previews gesture-driven. Idle tab switches no longer
+  // fetch adjacent community/news payloads before the user actually swipes.
 }
 
 function communityChannelMeta(id=communityChannel){
@@ -5364,11 +5358,12 @@ function syncActiveTab(){
   syncWatchlistMarketUi();
 }
 syncActiveTab();
-function setTimelineTab(tab){
+function setTimelineTab(tab, options={}){
   const previousKey = timelineActiveTabKey();
   const wasCommunity = timelineIsCommunity();
   const next = timelineTabParts(tab);
   const nextKey = next.tab === 'community' ? `community-${next.channel}` : next.tab;
+  const preferCached = !!options.preferCached;
   trackTimelineGaEvent('timeline_tab_click', timelineAnalyticsPayload(nextKey, {
     previous_timeline_tab_key:previousKey,
     value:1,
@@ -5407,7 +5402,7 @@ function setTimelineTab(tab){
   if(timelineIsCommunity()){
     clearCommunitySummaryRefresh();
     if(shouldPrimeCommunity) renderCommunityTable(communityPosts.length ? 'ready' : 'loading');
-    loadCommunityPosts({ force:channelChanged });
+    loadCommunityPosts({ force:channelChanged && !preferCached });
     scheduleCommunityRefresh();
   }
   else if(timelineIsEtf()){
@@ -5487,11 +5482,13 @@ updateTimelineTabs();
   let releaseScrollReserve = null;
   const SWIPE_MS = 150;
   const interactiveSelector = [
-    'a', 'button', 'input', 'select', 'textarea',
-    '[role="button"]', '.timeline-tabs', '.community-compose-row',
-    '.community-action-cell', '.community-pagination', '.etf-filter-cell',
+    'button', 'input', 'select', 'textarea', '[contenteditable="true"]',
+    '.timeline-tabs', '.community-compose-row', '.etf-filter-cell',
     '.etf-detail-cell'
   ].join(',');
+  const SWIPE_PRELOAD_PROGRESS = 0.2;
+  let stagePreloadKey = '';
+  let suppressSwipeClickUntil = 0;
   const isMobile = ()=> mobileQuery ? mobileQuery.matches : window.innerWidth <= 700;
   const sheetEl = ()=> pane.querySelector(':scope > .sheet.timeline');
   const paneWidth = ()=> Math.max(240, pane.getBoundingClientRect().width || window.innerWidth || 320);
@@ -5652,6 +5649,7 @@ updateTimelineTabs();
     currentLayer = null;
     nextLayer = null;
     stageDirection = 0;
+    stagePreloadKey = '';
     pane.classList.remove('timeline-swipe-staged');
   };
   const clearSwipeStyles = ()=>{
@@ -5674,9 +5672,17 @@ updateTimelineTabs();
   const setStageOffset = (x, options={})=>{
     if(!stage || !currentLayer || !nextLayer) return;
     const travel = stageDirection > 0 ? paneWidth() : -paneWidth();
+    const progress = Math.abs(x) / Math.max(1, paneWidth());
     currentLayer.style.transform = `translate3d(${Math.round(x)}px,0,0)`;
     nextLayer.style.transform = `translate3d(${Math.round(x + travel)}px,0,0)`;
-    setSwipeTabIndicator(Math.abs(x) / Math.max(1, paneWidth()), options);
+    setSwipeTabIndicator(progress, options);
+    maybePreloadStageTarget(progress);
+  };
+  const maybePreloadStageTarget = (progress=0, force=false)=>{
+    if(!swipeToKey || stagePreloadKey === swipeToKey) return;
+    if(!force && progress < SWIPE_PRELOAD_PROGRESS) return;
+    stagePreloadKey = swipeToKey;
+    preloadTimelineTabData(swipeToKey);
   };
   const reservePageScrollSpace = (targetY)=>{
     const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
@@ -5716,7 +5722,6 @@ updateTimelineTabs();
     if(!next || !sheet) return false;
     if(stage && stageDirection === direction) return true;
     removeStage();
-    preloadTimelineTabData(next);
     stageDirection = direction;
     swipeFromKey = timelineActiveTabKey();
     swipeToKey = next;
@@ -5762,8 +5767,9 @@ updateTimelineTabs();
     animating = true;
     const restoreScroll = capturePageScroll(gestureScrollX, gestureScrollY);
     prepareStage(direction);
+    maybePreloadStageTarget(1, true);
     if(!stage){
-      setTimelineTab(next);
+      setTimelineTab(next, { preferCached:true });
       restoreScroll();
       clearSwipeStyles();
       requestAnimationFrame(restoreScroll);
@@ -5776,7 +5782,7 @@ updateTimelineTabs();
     const outX = direction > 0 ? -paneWidth() : paneWidth();
     requestAnimationFrame(()=>setStageOffset(outX, { animate:true }));
     window.setTimeout(()=>{
-      setTimelineTab(next);
+      setTimelineTab(next, { preferCached:true });
       requestAnimationFrame(()=>{
         restoreScroll();
         clearSwipeStyles();
@@ -5817,6 +5823,7 @@ updateTimelineTabs();
       if(absX > 14 && absX > absY * 1.15){
         swipeMode = 'horizontal';
         pane.classList.add('timeline-swipe-dragging');
+        suppressSwipeClickUntil = Date.now() + 650;
       }
     }
     if(swipeMode !== 'horizontal') return;
@@ -5849,6 +5856,7 @@ updateTimelineTabs();
       animateReset();
       return;
     }
+    suppressSwipeClickUntil = Date.now() + 650;
     if(finishSwipe(dx < 0 ? 1 : -1) && ev.cancelable) ev.preventDefault();
   }, { passive:false });
   pane.addEventListener('touchcancel', ()=>{
@@ -5856,6 +5864,13 @@ updateTimelineTabs();
     stopTracking();
     animateReset();
   }, { passive:true });
+  pane.addEventListener('click', (ev)=>{
+    if(Date.now() > suppressSwipeClickUntil) return;
+    if(ev.target?.closest?.('a,[role="button"]')){
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+  }, true);
 })();
 startTimelineTabEngagement(timelineActiveTabKey(), 'initial');
 document.addEventListener('visibilitychange', ()=>{
