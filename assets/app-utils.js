@@ -208,6 +208,36 @@ function renderTextWithImagePreviews(text, options={}){
   return `${safe}<div class="message-image-list">${previews}</div>`;
 }
 
+function bindCollapsedImageToggles(root=document){
+  root?.querySelectorAll?.('[data-community-image-src]')?.forEach((btn)=>{
+    if(btn.dataset.imageToggleBound === '1') return;
+    btn.dataset.imageToggleBound = '1';
+    btn.addEventListener('click', (ev)=>{
+      ev.preventDefault();
+      ev.stopPropagation();
+      const slot=btn.parentElement?.querySelector?.('.community-image-preview-slot');
+      if(!slot) return;
+      const isOpen=btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      const label=btn.querySelector('.community-image-toggle-text');
+      if(isOpen){
+        slot.hidden = true;
+        if(label) label.textContent = '이미지 첨부됨 - 클릭해서 보기';
+        return;
+      }
+      if(!slot.dataset.loaded){
+        const src=btn.dataset.communityImageSrc || '';
+        const href=btn.dataset.communityImageHref || src;
+        slot.innerHTML=`<a class="message-image-preview" href="${esc(href)}" target="_blank" rel="noopener noreferrer" title="이미지 열기"><img src="${esc(src)}" alt="공유 이미지 썸네일" loading="lazy" decoding="async" referrerpolicy="no-referrer" /></a>`;
+        bindMessageImageFallback(slot);
+        slot.dataset.loaded='1';
+      }
+      slot.hidden = false;
+      if(label) label.textContent = '이미지 닫기';
+    });
+  });
+}
+
 function markMessageImagePreviewBroken(img){
   const link=img?.closest?.('.message-image-preview');
   if(!link || link.classList.contains('is-broken')) return;

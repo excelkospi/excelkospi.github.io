@@ -87,6 +87,7 @@ const STOCK_MENTION_CACHE_KEY = 'kg_stock_mention_cache_v1';
 const CHAT_SIZE_KEY = 'kg_chat_size_v1';
 const CHAT_POSITION_KEY = 'kg_chat_position_v1';
 const CHAT_OPACITY_KEY = 'kg_chat_opacity_v1';
+const CHAT_IMAGE_PREVIEW_KEY = 'kg_chat_image_preview_v1';
 const CHAT_DOCK_KEY = 'kg_chat_dock_v1';
 const CHAT_EXCEL_MODE_KEY = 'kg_chat_excel_mode_v1';
 const CHAT_REPORTED_KEY = 'kg_chat_reported_v1';

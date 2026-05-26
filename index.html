@@ -50,7 +50,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="excelkospi" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="build-id" content="20260526-562-watchlist-add-copy" />
+  <meta name="build-id" content="20260526-563-chat-image-setting" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -906,6 +906,13 @@
           </span>
           <span class="settings-toggle"><input type="checkbox" id="settingFloatingChat" /><span class="settings-toggle-slider"></span></span>
         </label>
+        <label class="settings-row" data-setting="chatImagePreview">
+          <span class="settings-row-text">
+            <strong>채팅 이미지 자동으로 보이기</strong>
+            <em>끄면 이미지가 게시판처럼 클릭해서 펼치기로 표시됩니다.</em>
+          </span>
+          <span class="settings-toggle"><input type="checkbox" id="settingChatImagePreview" /><span class="settings-toggle-slider"></span></span>
+        </label>
         <label class="settings-row" data-setting="wakelock">
           <span class="settings-row-text">
             <strong>모바일 화면 자동으로 안 꺼지게</strong>
@@ -976,7 +983,7 @@
   <span id="loadingText">시장 데이터를 불러오는 중...</span>
 </div>
 
-  <script src="/assets/app-config.js?v=20260526-560"></script>
+  <script src="/assets/app-config.js?v=20260526-563"></script>
   <script>
     (() => {
       if (typeof GA_MEASUREMENT_ID !== 'string' || !GA_MEASUREMENT_ID) return;
@@ -1087,7 +1094,7 @@
       installEngagementFallback();
     })();
   </script>
-  <script src="/assets/app-utils.js?v=20260526-547"></script>
+  <script src="/assets/app-utils.js?v=20260526-563"></script>
   <script src="/assets/app-mentions.js?v=20260524-471"></script>
   <script src="/assets/app-community-read.js?v=20260525-499"></script>
   <script src="/assets/community-ui.js?v=20260526-545"></script>
@@ -1102,6 +1109,6 @@
   <script src="/assets/app-mini-chart.js?v=20260525-511"></script>
   <script src="/assets/app-tradingview.js?v=20260525-510"></script>
   <script src="/assets/app-chat-ui.js?v=20260526-546"></script>
-  <script src="/assets/app.js?v=20260526-562"></script>
+  <script src="/assets/app.js?v=20260526-563"></script>
 </body>
 </html>

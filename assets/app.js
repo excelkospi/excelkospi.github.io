@@ -1175,6 +1175,8 @@ function syncSettingsUI(){
   if(ft) ft.checked = !floatingHiddenFor('telegram');
   const fc=document.getElementById('settingFloatingChat');
   if(fc) fc.checked = !floatingHiddenFor('chat');
+  const cip=document.getElementById('settingChatImagePreview');
+  if(cip) cip.checked = chatImagePreviewEnabled();
   const o=document.getElementById('settingOutlook');
   if(o) o.checked = !!document.body.classList.contains('theme-outlook') || outlookBetaActive;
   const m=document.getElementById('settingRememberMarket');
@@ -1259,6 +1261,12 @@ async function handleSettingChange(key, checked){
     chatPanelOpacity=writeChatOpacitySetting(checked);
     applyChatPanelOpacity();
     showToast(`채팅창 투명도 ${chatPanelOpacity}%`, 'info');
+    return;
+  }
+  if(key === 'chatImagePreview'){
+    writeBoolSetting(CHAT_IMAGE_PREVIEW_KEY, !!checked);
+    renderChatMessages({preserveScroll:true});
+    showToast(checked ? '채팅 이미지를 자동으로 보여줍니다.' : '채팅 이미지를 클릭해서 펼치도록 바꿨습니다.', 'info');
     return;
   }
   if(key === 'outlook'){
@@ -3211,7 +3219,7 @@ let pollHint={};
 let serverStatusState=null;
 let serverStatusExpanded=false;
 const HIDDEN_KEYS_STORE = 'kg_hidden_default_v1';
-const PERSIST_KEYS = [WATCHLIST_KEY, QUOTE_NOTES_KEY, HOLDINGS_KEY, HOLDING_PNL_MODE_KEY, HIDDEN_KEYS_STORE, DEFAULT_ORDER_STORE, QUOTE_SORT_KEY, CHANGE_WINDOW_KEY, TIMELINE_TAB_KEY, COMMUNITY_CHANNEL_KEY, COMMUNITY_READ_STATE_KEY, COMMUNITY_POLL_VOTES_KEY, VIEW_KEY, FLOATING_HIDDEN_KEY, CHAT_NICK_KEY, COMMUNITY_NICK_KEY, CHAT_SIZE_KEY, CHAT_POSITION_KEY, CHAT_OPACITY_KEY, CHAT_DOCK_KEY, VISITOR_ID_KEY, FIRST_VISIT_KEY, HOLDING_TIP_KEY, CHANGE_WINDOW_TIP_KEY, CHART_TIP_KEY, TV_CHART_HEIGHT_KEY, SHEET_SPLIT_KEY, PANEL_ORDER_KEY, READABILITY_KEY, RIBBON_COLLAPSED_KEY, EXCEL_THEME_KEY, EXCEL_DARK_MODE_KEY, US_SHEET_KRW_KEY, COIN_QUOTE_SOURCE_KEY, UPDATES_SEEN_KEY, SETTINGS_WAKELOCK_KEY, SETTINGS_REMEMBER_MARKET_KEY];
+const PERSIST_KEYS = [WATCHLIST_KEY, QUOTE_NOTES_KEY, HOLDINGS_KEY, HOLDING_PNL_MODE_KEY, HIDDEN_KEYS_STORE, DEFAULT_ORDER_STORE, QUOTE_SORT_KEY, CHANGE_WINDOW_KEY, TIMELINE_TAB_KEY, COMMUNITY_CHANNEL_KEY, COMMUNITY_READ_STATE_KEY, COMMUNITY_POLL_VOTES_KEY, VIEW_KEY, FLOATING_HIDDEN_KEY, CHAT_NICK_KEY, COMMUNITY_NICK_KEY, CHAT_SIZE_KEY, CHAT_POSITION_KEY, CHAT_OPACITY_KEY, CHAT_IMAGE_PREVIEW_KEY, CHAT_DOCK_KEY, VISITOR_ID_KEY, FIRST_VISIT_KEY, HOLDING_TIP_KEY, CHANGE_WINDOW_TIP_KEY, CHART_TIP_KEY, TV_CHART_HEIGHT_KEY, SHEET_SPLIT_KEY, PANEL_ORDER_KEY, READABILITY_KEY, RIBBON_COLLAPSED_KEY, EXCEL_THEME_KEY, EXCEL_DARK_MODE_KEY, US_SHEET_KRW_KEY, COIN_QUOTE_SOURCE_KEY, UPDATES_SEEN_KEY, SETTINGS_WAKELOCK_KEY, SETTINGS_REMEMBER_MARKET_KEY];
 const newsAccumulated=[];               // 평탄화된 누적 뉴스 (newest first)
 const newsSeenKeys=new Set();           // url 또는 title 기준 dedup (KR/US 중복도 하나로 합침)
 
@@ -5553,6 +5561,12 @@ let chatSendInFlight=false;
 let chatLastActivityAt=Date.now();
 let chatPanelLarge=readStringSetting(CHAT_SIZE_KEY, 'normal', new Set(['normal','large'])) === 'large';
 let chatExcelMode=readBoolSetting(CHAT_EXCEL_MODE_KEY, false);
+function chatImagePreviewEnabled(){
+  return readBoolSetting(CHAT_IMAGE_PREVIEW_KEY, true);
+}
+function chatImagePreviewOptions(extra={}){
+  return {...extra, collapsed: !chatImagePreviewEnabled()};
+}
 // 넓은 데스크탑(>=1600px)에 처음 접속한 사용자에겐 dock 을 기본 ON 으로 한다.
 // 사용자가 한 번이라도 toggle 을 누르면 localStorage 가 '0'/'1' 로 저장되어
 // 기본값이 더 이상 적용되지 않으므로, 명시적 선택을 덮어쓰지 않는다.
@@ -6792,7 +6806,7 @@ function renderChatMessagesExcel(body){
       <td class="center chat-excel-time">${fmtTime(m.created_at)}</td>
     </tr>
     <tr class="${rowClass} chat-excel-body-row" data-chat-id="${esc(m.id)}">
-      <td class="left chat-excel-body" colspan="3">${renderTextWithImagePreviews(m.body, {linkUrls:true, linkPolicy:chatLinkPolicy()})}<span class="chat-excel-row-actions"><button class="chat-report chat-excel-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>${adminActions}</span></td>
+      <td class="left chat-excel-body" colspan="3">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions({linkUrls:true, linkPolicy:chatLinkPolicy()}))}<span class="chat-excel-row-actions"><button class="chat-report chat-excel-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>${adminActions}</span></td>
     </tr>`;
   }).join('');
   body.innerHTML=`<table class="chat-excel-table">
@@ -6844,10 +6858,11 @@ function renderChatMessages(options={}){
           <button class="chat-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>
           ${adminActions}
         </div>
-        <div class="chat-text">${renderTextWithImagePreviews(m.body, {linkUrls:true, linkPolicy:chatLinkPolicy()})}</div>
+        <div class="chat-text">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions({linkUrls:true, linkPolicy:chatLinkPolicy()}))}</div>
       </div>`;
     }).join('') + chatSleepNoticeHtml();
   }
+  bindCollapsedImageToggles(body);
   body.querySelectorAll('[data-report-id]').forEach(btn=>{
     btn.addEventListener('click',()=>reportChatMessage(Number(btn.dataset.reportId)));
   });
