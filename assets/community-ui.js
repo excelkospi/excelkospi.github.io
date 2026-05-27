@@ -407,7 +407,11 @@ function textAdForPlacement(placement, options={}){
 function textAdForPlacementSlot(placement, slotKey, options={}){
   const key = `${String(placement || 'default')}:${String(slotKey || 'default')}`;
   const excludeIds = new Set((Array.isArray(options.excludeIds) ? options.excludeIds : []).map((id)=>String(id || '')).filter(Boolean));
-  const rawAds = textAdCandidates(placement);
+  let rawAds = textAdCandidates(placement);
+  if(options.excludeHouseWhenReal){
+    const realAds = rawAds.filter((ad)=>ad && !isHouseTextAd(ad));
+    if(realAds.length) rawAds = realAds;
+  }
   if(!rawAds.length) return null;
   const current = textAdById(textAdSlotSelections[key]?.id);
   if(current && (!excludeIds.has(String(current.id || '')) || rawAds.length <= excludeIds.size + 1)) return current;
@@ -425,10 +429,10 @@ function secondCommunityTextAd(firstAd){
   const realAds = textAdCandidates('community').filter((ad)=>ad && !isHouseTextAd(ad));
   const hasOtherRealAd = realAds.some((ad)=>String(ad?.id || '') !== String(firstAd?.id || ''));
   if(hasOtherRealAd){
-    return textAdForPlacementSlot('community', 'community-after-22', { excludeIds:firstAd?.id ? [firstAd.id] : [] });
+    return textAdForPlacementSlot('community', 'community-after-22', { excludeIds:firstAd?.id ? [firstAd.id] : [], excludeHouseWhenReal:true });
   }
   if(firstAd && !isHouseTextAd(firstAd)) return firstAd;
-  return textAdForPlacementSlot('community', 'community-after-22', { excludeIds:firstAd?.id ? [firstAd.id] : [] });
+  return textAdForPlacementSlot('community', 'community-after-22', { excludeIds:firstAd?.id ? [firstAd.id] : [], excludeHouseWhenReal:true });
 }
 
 function textAdTexts(ad){
@@ -1481,7 +1485,7 @@ function renderCommunityTable(state='ready'){
     rows.push(`<tr><td class="rownum">${rowNum++}</td><td colspan="${dataCols}" class="community-ready-cell">${esc(channelLabel)}에 아직 게시글이 없습니다</td></tr>`);
   }else{
     const adBreakPostCounts = new Set([9, 22].filter((count)=>posts.length > count));
-    const firstAd = textAdForPlacementSlot('community', 'community-after-9');
+    const firstAd = textAdForPlacementSlot('community', 'community-after-9', { excludeHouseWhenReal:true });
     const secondAd = secondCommunityTextAd(firstAd);
     const adBreakSelections = {
       9: { ad:firstAd, slot:1, position:'community-after-9' },
