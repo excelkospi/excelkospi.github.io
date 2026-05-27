@@ -99,8 +99,55 @@ body.readability-mode .holding-meta-line .down,
 body.readability-mode .holding-value-cell.down,
 body.readability-mode .holding-return-cell.down,
 body.readability-mode .holding-summary-return-cell.down{color:#1f6fd6;font-weight:400}
-body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid{filter:grayscale(1) saturate(0) contrast(.92) brightness(.98)}
-body.sheet-monochrome-mode:not(.theme-outlook).excel-dark-mode .sheets-grid{filter:grayscale(1) saturate(0) contrast(.86) brightness(.9)}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid{
+  --sheet-mono-text:#343434;
+  --sheet-mono-muted:#62676b;
+  --sheet-mono-control-bg:#f7f8f8;
+  --sheet-mono-control-hover:#edf0f1;
+  --sheet-mono-control-active:#e2e6e8;
+  --sheet-mono-control-border:#c8cdd0;
+  --sheet-mono-control-border-strong:#9ba2a7;
+  --sheet-mono-focus-ring:rgba(95,103,108,.24);
+  color:var(--sheet-mono-text);
+}
+body.sheet-monochrome-mode:not(.theme-outlook).excel-dark-mode .sheets-grid{
+  --sheet-mono-text:#d8dde0;
+  --sheet-mono-muted:#aeb5ba;
+  --sheet-mono-control-bg:#20262b;
+  --sheet-mono-control-hover:#2a3137;
+  --sheet-mono-control-active:#343c43;
+  --sheet-mono-control-border:#4a535b;
+  --sheet-mono-control-border-strong:#717b84;
+  --sheet-mono-focus-ring:rgba(174,181,186,.28);
+}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid *,
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid *::before,
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid *::after{color:var(--sheet-mono-text)!important;text-shadow:none!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(.sub,.time,.source-pill,.sheet-title .hint,.news-desc,.flow-pill,.flow-pill .flow-label,.holding-meta-line,small,em){color:var(--sheet-mono-muted)!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,[role="button"],.timeline-tabs button,.change-toggle button,.watchlist-add > button,.watchlist-more-menu button){
+  background:var(--sheet-mono-control-bg)!important;
+  border-color:var(--sheet-mono-control-border)!important;
+  color:var(--sheet-mono-text)!important;
+  box-shadow:none!important;
+}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,[role="button"],.timeline-tabs button,.change-toggle button,.watchlist-add > button,.watchlist-more-menu button):is(:hover,.active,[aria-selected="true"],[aria-pressed="true"],[aria-expanded="true"]){
+  background:var(--sheet-mono-control-hover)!important;
+  border-color:var(--sheet-mono-control-border-strong)!important;
+  box-shadow:inset 0 -2px 0 var(--sheet-mono-control-border-strong)!important;
+}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,[role="button"],.timeline-tabs button,.change-toggle button,.watchlist-add > button,.watchlist-more-menu button):active{background:var(--sheet-mono-control-active)!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(input,select,textarea){
+  color:var(--sheet-mono-text)!important;
+  border-color:var(--sheet-mono-control-border)!important;
+}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(input,select,textarea):focus{border-color:var(--sheet-mono-control-border-strong)!important;box-shadow:0 0 0 1px var(--sheet-mono-focus-ring)!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(input,textarea)::placeholder{color:var(--sheet-mono-muted)!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,a,[role="button"]) svg,
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,a,[role="button"]) svg *{color:var(--sheet-mono-text)!important;stroke:currentColor!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,a,[role="button"]) svg *:not([fill="none"]){fill:currentColor!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,[role="button"],.timeline-tabs button)::before,
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,[role="button"],.timeline-tabs button)::after{border-color:var(--sheet-mono-control-border-strong)!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid .timeline-tabs button.has-unread::after{background:var(--sheet-mono-muted)!important}
 body.excel-dark-mode.readability-mode{
   --txt:#f3f7f8; --muted:#c1cad2; --flat:#c1cad2; --up:#ff8585; --down:#88baff;
   color:#f3f7f8;font-weight:450;

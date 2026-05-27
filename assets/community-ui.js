@@ -417,6 +417,20 @@ function textAdForPlacementSlot(placement, slotKey, options={}){
   return ad || DEFAULT_TEXT_AD;
 }
 
+function isHouseTextAd(ad){
+  return String(ad?.id || '') === String(DEFAULT_TEXT_AD.id || '');
+}
+
+function secondCommunityTextAd(firstAd){
+  const realAds = textAdCandidates('community').filter((ad)=>ad && !isHouseTextAd(ad));
+  const hasOtherRealAd = realAds.some((ad)=>String(ad?.id || '') !== String(firstAd?.id || ''));
+  if(hasOtherRealAd){
+    return textAdForPlacementSlot('community', 'community-after-22', { excludeIds:firstAd?.id ? [firstAd.id] : [] });
+  }
+  if(firstAd && !isHouseTextAd(firstAd)) return firstAd;
+  return textAdForPlacementSlot('community', 'community-after-22', { excludeIds:firstAd?.id ? [firstAd.id] : [] });
+}
+
 function textAdTexts(ad){
   const values = Array.isArray(ad?.texts) && ad.texts.length ? ad.texts : [ad?.text || DEFAULT_TEXT_AD.text];
   return values.map((v)=>String(v || '').trim()).filter(Boolean);
@@ -1468,7 +1482,7 @@ function renderCommunityTable(state='ready'){
   }else{
     const adBreakPostCounts = new Set([9, 22].filter((count)=>posts.length > count));
     const firstAd = textAdForPlacementSlot('community', 'community-after-9');
-    const secondAd = textAdForPlacementSlot('community', 'community-after-22', { excludeIds:firstAd?.id ? [firstAd.id] : [] });
+    const secondAd = secondCommunityTextAd(firstAd);
     const adBreakSelections = {
       9: { ad:firstAd, slot:1, position:'community-after-9' },
       22: { ad:secondAd, slot:2, position:'community-after-22' },
