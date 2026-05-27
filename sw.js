@@ -1,5 +1,5 @@
-const CACHE_NAME = 'excelkospi-static-20260527-611';
-const API_CACHE_NAME = 'excelkospi-api-20260527-611';
+const CACHE_NAME = 'excelkospi-static-20260527-612';
+const API_CACHE_NAME = 'excelkospi-api-20260527-612';
 const API_ORIGINS = new Set([
   location.origin,
   'https://excelkospi-api.alaala3.workers.dev',

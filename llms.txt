@@ -1,38 +1,15 @@
-# excelkospi
+# excelkospi AI access policy
 
-> excelkospi is a Korean web app for checking stock, ETF, crypto, news, and community discussion while the page visually resembles a spreadsheet or office document.
+Automated AI agents are not granted permission to crawl, train on, reproduce, clone, summarize for site reconstruction, or generate a substantially similar website from excelkospi.
 
-## Canonical pages
+This notice applies to the visual design, product flow, Korean copy, public HTML/CSS/JavaScript presentation, market-data arrangement, community layout, guide text, screenshots, and advertiser/reporting surfaces served from:
 
-- Home: https://excelkospi.pages.dev/
-- Guide: https://excelkospi.pages.dev/guide
-- Sitemap: https://excelkospi.pages.dev/sitemap.xml
+- https://excelkospi.pages.dev/
+- https://excelkospi.github.io/
+- https://excelkospi-api.alaala3.workers.dev/
 
-## What users can do
+Human search discovery is allowed only as described in /robots.txt. Normal users may visit the service in a browser. Automated copy agents, AI browsing agents, scraping clients, headless browsers, and dataset builders are not authorized.
 
-- View Korean market, US market, and crypto prices in a spreadsheet-style dashboard.
-- Switch between daily, 15-minute, and 30-minute movement views.
-- Check pre-market and after-hours status where available.
-- Read market news and community discussions in Korean.
-- Browse Korean-listed ETFs with search, quick filters, and top holdings.
-- Open TradingView charts for supported US stocks and crypto.
-- Add custom watchlist rows, blank note rows, holdings, quantities, and average prices.
-- Share a watchlist backup URL across desktop and mobile devices.
-- Use a discreet office-style mode, including spreadsheet and Outlook-like layouts.
+The primary Cloudflare Pages site and the shared Worker API may return HTTP 401 to known AI or automated copy agents. The GitHub Pages mirror is static, so this policy notice and /robots.txt are the enforceable public instructions there, while dynamic API requests still use the protected Worker API.
 
-## Important Korean search phrases
-
-- 엑셀 보는 척 주식 보기
-- 회사에서 주식 보기
-- 실시간 국장 미장 시세
-- 코스피 코스닥 나스닥 비트코인 김프
-- 주식 뉴스 종목토론방
-- ETF 탐색기
-- TradingView 차트
-- 평단가 보유 손익 계산
-
-## Notes
-
-- Primary language: Korean (ko-KR).
-- The service is not affiliated with Microsoft, Excel, Outlook, TradingView, or any exchange.
-- Contact: excelkospi@outlook.com
+Contact: excelkospi@outlook.com
