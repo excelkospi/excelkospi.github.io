@@ -6,7 +6,7 @@
   <title>excelkospi 광고 리포트</title>
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#107c41" />
-  <meta name="build-id" content="20260526-562-report-stale-guard" />
+  <meta name="build-id" content="20260527-603-advertiser-font-polish" />
   <link rel="icon" href="/favicon.ico?v=20260521-408" sizes="any" />
   <style>
     :root{
@@ -25,13 +25,23 @@
       --sheet:#fbfcfa;
       --page:#f3f6f2;
       --shadow:0 8px 22px rgba(32,54,42,.08);
-      font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+      font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Segoe UI",Roboto,Arial,sans-serif;
       color:var(--ink);
       background:var(--page);
     }
     *{box-sizing:border-box}
     [hidden]{display:none!important}
-    body{margin:0;min-height:100vh;overflow-x:hidden}
+    body{
+      margin:0;
+      min-height:100vh;
+      overflow-x:hidden;
+      color:var(--ink);
+      background:var(--page);
+      font-family:var(--report-font,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Segoe UI",Roboto,Arial,sans-serif);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+      word-break:keep-all;
+    }
     a{color:var(--green-ink)}
     button,input{font:inherit;min-width:0}
     .shell{width:min(1160px,calc(100% - 28px));margin:0 auto;padding:18px 0 42px}
@@ -56,10 +66,10 @@
       border-radius:6px;
       background:var(--green);
       color:#fff;
-      font-weight:900;
-      letter-spacing:-.04em;
+      font-weight:800;
+      letter-spacing:0;
     }
-    .brand-title{font-size:15px;font-weight:900;letter-spacing:-.01em;white-space:nowrap}
+    .brand-title{font-size:15px;font-weight:800;letter-spacing:0;white-space:nowrap}
     .brand-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .top-meta{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap}
     .access-panel{
@@ -74,7 +84,7 @@
       padding:14px;
       box-shadow:var(--shadow);
     }
-    .access-title{margin:0 0 4px;font-size:18px;letter-spacing:-.025em}
+    .access-title{margin:0 0 4px;font-size:18px;letter-spacing:0}
     .access-copy{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
     .token-card{
       display:grid;
@@ -111,7 +121,7 @@
       color:#fff;
       cursor:pointer;
       font-size:13px;
-      font-weight:850;
+      font-weight:750;
       white-space:nowrap;
       -webkit-appearance:none;
       appearance:none;
@@ -127,7 +137,7 @@
       background:#fff7f6;
       color:var(--red);
       font-size:13px;
-      font-weight:750;
+      font-weight:700;
     }
     .status.good{border-color:#b9dcc8;background:#f2faf5;color:var(--green-ink)}
     .report{display:none;margin-top:14px}
@@ -142,7 +152,7 @@
       padding:14px;
       box-shadow:var(--shadow);
     }
-    .campaign-title{margin:0;font-size:21px;letter-spacing:-.025em;line-height:1.25}
+    .campaign-title{margin:0;font-size:21px;letter-spacing:0;line-height:1.35}
     .meta{margin-top:6px;color:var(--muted);font-size:12px;line-height:1.5}
     .report-facts{
       display:grid;
@@ -157,8 +167,8 @@
       background:#fbfdfb;
       padding:7px 9px;
     }
-    .report-fact .k{font-size:11px;font-weight:900;color:var(--muted)}
-    .report-fact .v{margin-top:3px;font-size:13px;font-weight:850;color:#24332b;line-height:1.35}
+    .report-fact .k{font-size:11px;font-weight:750;color:var(--muted)}
+    .report-fact .v{margin-top:3px;font-size:13px;font-weight:750;color:#24332b;line-height:1.42}
     .grid{display:grid;gap:10px}
     .metrics{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:10px}
     .metric{
@@ -169,7 +179,7 @@
       box-shadow:0 5px 16px rgba(32,54,42,.05);
       min-width:0;
     }
-    .metric .label{font-size:12px;font-weight:900;color:var(--muted)}
+    .metric .label{font-size:12px;font-weight:750;color:var(--muted)}
     .with-help{display:inline-flex;align-items:center;gap:4px;min-width:0}
     .help-tip{
       position:relative;
@@ -183,7 +193,7 @@
       background:#fff;
       color:var(--green-ink);
       font-size:11px;
-      font-weight:950;
+      font-weight:800;
       line-height:1;
       cursor:help;
       text-transform:none;
@@ -203,7 +213,7 @@
       color:var(--ink);
       box-shadow:0 8px 22px rgba(32,54,42,.14);
       font-size:12px;
-      font-weight:750;
+      font-weight:700;
       line-height:1.45;
       white-space:normal;
       text-align:left;
@@ -213,7 +223,7 @@
       transition:opacity .14s,transform .14s;
     }
     .help-tip:hover::after,.help-tip:focus-visible::after{opacity:1;transform:translate(-50%,0)}
-    .metric .value{margin-top:7px;font-size:28px;font-weight:950;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+    .metric .value{margin-top:7px;font-size:28px;font-weight:800;letter-spacing:0;line-height:1.08;font-variant-numeric:tabular-nums}
     .metric .sub{margin-top:4px;font-size:12px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .metric.primary{border-color:#a9ceb7;background:#f7fcf8}
     .metric.warn{border-color:#e5c58e;background:#fffaf0}
@@ -235,8 +245,8 @@
       border-bottom:1px solid var(--line);
       background:#fbfdfb;
     }
-    .panel-head h2{margin:0;font-size:15px;letter-spacing:-.01em}
-    .panel-head span{font-size:12px;color:var(--muted);font-weight:800;white-space:nowrap}
+    .panel-head h2{margin:0;font-size:15px;letter-spacing:0}
+    .panel-head span{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap}
     .sections{grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr);align-items:start;margin-top:10px}
     .table-wrap{overflow:auto}
     table{width:100%;border-collapse:collapse;min-width:640px}
@@ -249,7 +259,7 @@
       white-space:nowrap;
       font-variant-numeric:tabular-nums;
     }
-    th{background:var(--sheet);color:#607168;font-size:12px;font-weight:950}
+    th{background:var(--sheet);color:#607168;font-size:12px;font-weight:750}
     td:first-child,th:first-child{text-align:left}
     tr:last-child td{border-bottom:0}
     .name-cell{max-width:330px;white-space:normal;line-height:1.35;font-variant-numeric:normal}
@@ -266,7 +276,7 @@
       border-bottom:1px solid #edf1ee;
     }
     .day-row:last-child{border-bottom:0}
-    .day-date{color:var(--muted);font-weight:850}
+    .day-date{color:var(--muted);font-weight:750}
     .day-value,.day-click{text-align:right;font-variant-numeric:tabular-nums}
     .day-click{color:var(--faint)}
     .footnote{
@@ -307,6 +317,20 @@
       .metric .value{font-size:24px}
       .campaign-title{font-size:18px}
       table{min-width:580px}
+      th,td{padding:9px 8px}
+      .placement-panel table,.creative-panel table{min-width:100%}
+      .placement-panel th:nth-child(5),
+      .placement-panel th:nth-child(6),
+      .placement-panel th:nth-child(7),
+      .placement-panel td:nth-child(5),
+      .placement-panel td:nth-child(6),
+      .placement-panel td:nth-child(7),
+      .creative-panel th:nth-child(4),
+      .creative-panel th:nth-child(5),
+      .creative-panel td:nth-child(4),
+      .creative-panel td:nth-child(5){display:none}
+      .placement-panel .name-cell{max-width:112px}
+      .creative-panel .name-cell{max-width:184px}
       .day-row{grid-template-columns:76px 1fr 66px;gap:8px}
       .day-click{display:none}
     }
@@ -350,7 +374,7 @@
       <div class="grid metrics" id="metricGrid"></div>
 
       <div class="grid sections">
-        <section class="panel">
+        <section class="panel placement-panel">
           <div class="panel-head">
             <h2>영역별 성과</h2>
             <span>확인된 노출 기준</span>
@@ -374,7 +398,7 @@
         </section>
       </div>
 
-      <section class="panel" style="margin-top:10px">
+      <section class="panel creative-panel" style="margin-top:10px">
         <div class="panel-head">
           <h2>소재별 원본 기록</h2>
           <span>소재 단위</span>
