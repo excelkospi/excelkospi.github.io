@@ -296,11 +296,28 @@ function normalizeTextAdTexts(item){
     .slice(0,8);
 }
 
+// 텍스트별 링크는 옵션. hrefs[i] 가 있으면 그 텍스트만 해당 URL 로 이동하고,
+// 비어 있으면 ad.href 로 fallback. 모든 항목이 비어 있으면 hrefs 필드 생략.
+function normalizeTextAdHrefs(item, textCount){
+  const limit = Math.max(0, Math.min(8, Number(textCount) || 0));
+  if(limit === 0) return [];
+  const source = Array.isArray(item?.hrefs)
+    ? item.hrefs
+    : (typeof item?.hrefs === 'string' ? item.hrefs.split(/\r?\n/) : []);
+  const list = [];
+  for(let i = 0; i < limit; i += 1){
+    list.push(String(source?.[i] || '').trim());
+  }
+  return list;
+}
+
 function normalizeTextAd(item){
   if(!item || item.active === false) return null;
   const texts = normalizeTextAdTexts(item);
   if(!texts.length) return null;
   const href = String(item.href || item.url || '').trim();
+  const hrefs = normalizeTextAdHrefs(item, texts.length);
+  const hasPerTextHref = hrefs.some((value)=>value);
   const placements = Array.isArray(item.placements)
     ? item.placements.map((v)=>String(v||'').trim()).filter(Boolean)
     : ['chat','community','summary'];
@@ -311,6 +328,7 @@ function normalizeTextAd(item){
     text:texts[0],
     texts,
     href,
+    ...(hasPerTextHref ? { hrefs } : {}),
     weight:normalizeTextAdWeight(item.weight ?? item.exposureWeight ?? item.priority),
     placements:placements.length ? placements : ['chat','community','summary'],
   };
@@ -363,6 +381,7 @@ function textAdSelectionSignature(ads){
     ad.id || '',
     ad.weight ?? 1,
     ad.href || '',
+    (Array.isArray(ad.hrefs) ? ad.hrefs : []).join('|'),
     ad.active === false ? 0 : 1,
     textAdTexts(ad).join('\u001f'),
   ].join(':')).join('|');
@@ -403,14 +422,24 @@ function textAdTexts(ad){
   return values.map((v)=>String(v || '').trim()).filter(Boolean);
 }
 
+// 텍스트별 href 가 옵션으로 설정되어 있으면 그 텍스트만 별도 링크를 쓴다.
+// 비어 있거나 hrefs 자체가 없으면 ad.href 로 fallback. 기본 동작과 동일.
+function textAdHrefForIndex(ad, index){
+  if(!ad || !Array.isArray(ad.hrefs)) return safeTextAdHref(ad?.href);
+  const candidate = String(ad.hrefs[index] || '').trim();
+  return candidate ? safeTextAdHref(candidate) : safeTextAdHref(ad.href);
+}
+
 function textAdCreative(ad, placement='', slot=0){
   const texts = textAdTexts(ad);
   const list = texts.length ? texts : [DEFAULT_TEXT_AD.text];
-  if(list.length <= 1) return { text:list[0], index:0, total:list.length };
+  if(list.length <= 1){
+    return { text:list[0], index:0, total:list.length, href:textAdHrefForIndex(ad, 0) };
+  }
   const offset = (placement === 'community' ? 1 : (placement === 'summary' ? 2 : 0)) + (Number(slot) || 0);
   const bucket = Math.floor(Date.now() / AD_CREATIVE_ROTATION_MS);
   const index = (bucket + offset) % list.length;
-  return { text:list[index], index, total:list.length };
+  return { text:list[index], index, total:list.length, href:textAdHrefForIndex(ad, index) };
 }
 
 function textAdDataAttrs(ad, creative){
@@ -423,7 +452,7 @@ function textAdDataAttrs(ad, creative){
 }
 
 function textAdLinkHtml(ad, creative){
-  const href = safeTextAdHref(ad?.href);
+  const href = safeTextAdHref(creative?.href || ad?.href);
   if(!href) return '';
   const external = /^https?:\/\//i.test(href);
   const attrs = external ? ' target="_blank" rel="noopener"' : '';
@@ -431,7 +460,7 @@ function textAdLinkHtml(ad, creative){
 }
 
 function textAdTitle(ad, creative){
-  const href = safeTextAdHref(ad?.href);
+  const href = safeTextAdHref(creative?.href || ad?.href);
   const suffix = creative?.total > 1 ? `${Number(creative.index || 0) + 1}/${creative.total}` : '';
   return [creative?.text || ad?.text || '', suffix, href].filter(Boolean).join(' · ');
 }

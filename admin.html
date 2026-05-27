@@ -530,6 +530,14 @@
             <div class="field col-4">
               <label for="adHref">링크 URL (선택)</label>
               <input id="adHref" type="text" maxlength="400" placeholder="https://... 또는 mailto:...">
+              <p class="help">기본은 모든 문구가 이 링크 하나를 함께 사용합니다.</p>
+            </div>
+            <div class="field col-4">
+              <label class="field-check" style="font-weight:600">
+                <input id="adPerTextLinkToggle" type="checkbox"> 문구마다 링크 따로 지정
+              </label>
+              <p class="help">옵션. 켜면 아래에 각 문구별 링크 칸이 나오고, 비워두면 위 기본 링크로 자동 fallback. GA 광고 집계는 동일 광고 ID 로 묶입니다.</p>
+              <div id="adPerTextLinkList" hidden style="display:flex;flex-direction:column;gap:6px;margin-top:6px"></div>
             </div>
           </div>
           <div class="field-actions">
@@ -1241,9 +1249,53 @@
       const values=Array.isArray(ad?.texts) ? ad.texts : [ad?.text || ''];
       return values.map((v)=>String(v || '').trim()).filter(Boolean);
     }
+    function adHrefsArray(ad){
+      if(!Array.isArray(ad?.hrefs)) return [];
+      return ad.hrefs.map((v)=>String(v || '').trim()).slice(0,8);
+    }
     function parseAdTexts(){
       return $('adText').value.split(/\r?\n/).map((v)=>v.trim()).filter(Boolean).slice(0,8);
     }
+    // 텍스트별 링크 토글이 켜져 있으면 현재 화면의 인풋들에서 값을 모아 hrefs[] 를
+    // 만든다. 인덱스는 parseAdTexts 결과와 1:1. 비어 있는 칸은 ''(공백)으로 두면
+    // 서버/클라가 ad.href 로 fallback. 토글이 꺼져 있으면 hrefs 를 보내지 않는다.
+    function perTextLinkInputs(){
+      return Array.from(document.querySelectorAll('#adPerTextLinkList input[data-ad-text-href]'));
+    }
+    function readPerTextLinks(textCount){
+      if(!$('adPerTextLinkToggle')?.checked) return null;
+      const inputs=perTextLinkInputs();
+      const list=[];
+      for(let i=0; i<textCount; i+=1){
+        list.push(String(inputs[i]?.value || '').trim());
+      }
+      return list;
+    }
+    function renderPerTextLinkRows(initialValues){
+      const list=$('adPerTextLinkList');
+      const enabled=!!$('adPerTextLinkToggle')?.checked;
+      if(!list) return;
+      list.hidden=!enabled;
+      if(!enabled){ list.innerHTML=''; return; }
+      const texts=parseAdTexts();
+      if(!texts.length){
+        list.innerHTML='<p class="help" style="margin:0">위 문구 목록을 먼저 입력하면 칸이 생깁니다.</p>';
+        return;
+      }
+      const existing=perTextLinkInputs();
+      const preserved=existing.map((el)=>el.value);
+      list.innerHTML=texts.map((text, idx)=>{
+        const value=Array.isArray(initialValues) ? (initialValues[idx] || '') : (preserved[idx] || '');
+        return `<label style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-size:11px;color:var(--muted)">문구 ${idx + 1}: <span style="color:var(--txt)">${esc(text)}</span></span>
+          <input type="text" maxlength="400" data-ad-text-href="${idx}" placeholder="비우면 위 기본 링크 사용" value="${esc(value)}">
+        </label>`;
+      }).join('');
+    }
+    $('adPerTextLinkToggle')?.addEventListener('change', ()=>renderPerTextLinkRows());
+    $('adText')?.addEventListener('input', ()=>{
+      if($('adPerTextLinkToggle')?.checked) renderPerTextLinkRows();
+    });
     function renderAds(ads=[]){
       const rows=$('adRows');
       latestAds=Array.isArray(ads) ? ads : [];
@@ -1265,12 +1317,21 @@
           ? (report.stats?.hasStats ? '<span class="pill ok">리포트 반영</span>' : '<span class="pill warn">리포트 집계 대기</span>')
           : '';
         const textLines=adTexts(ad);
+        const adHrefs=adHrefsArray(ad);
+        const hasPerTextLinks=adHrefs.some((v)=>v);
         const textHtml=textLines.length
-          ? textLines.map((t)=>`<span class="ad-text-line">${esc(t)}</span>`).join('')
+          ? textLines.map((t, idx)=>{
+              const perLink=hasPerTextLinks ? adHrefs[idx] : '';
+              const hint=perLink
+                ? `<span class="ad-text-link-hint" title="${esc(perLink)}"> · ${esc(perLink)}</span>`
+                : '';
+              return `<span class="ad-text-line">${esc(t)}${hint}</span>`;
+            }).join('')
           : '<span class="ad-text-line" style="color:var(--muted);font-style:italic">문구 없음</span>';
+        const linkLabel=hasPerTextLinks ? '기본 링크' : '링크';
         const linkHtml=ad.href
-          ? `<a class="ad-card-link" href="${esc(ad.href)}" target="_blank" rel="noopener" title="${esc(ad.href)}">${esc(ad.href)}</a>`
-          : '';
+          ? `<a class="ad-card-link" href="${esc(ad.href)}" target="_blank" rel="noopener" title="${esc(ad.href)}">${esc(linkLabel)}: ${esc(ad.href)}</a>`
+          : (hasPerTextLinks ? '<span class="ad-card-link" style="color:var(--muted)">기본 링크 없음 · 문구별 링크만 사용</span>' : '');
         const editing=editingAdId===ad.id;
         const classes=['ad-card'];
         if(ad.active===false) classes.push('is-inactive');
@@ -1323,6 +1384,8 @@
       $('adPlaceChat').checked=true;
       $('adPlaceCommunity').checked=true;
       $('adPlaceSummary').checked=true;
+      if($('adPerTextLinkToggle')){ $('adPerTextLinkToggle').checked=false; }
+      renderPerTextLinkRows([]);
       $('adAddBtn').textContent='광고 저장';
       $('adCancelEditBtn').hidden=true;
     }
@@ -1345,6 +1408,10 @@
       $('adEndAt').value=isoToKstDateTimeInput(ad.endAt);
       $('adText').value=adTexts(ad).join('\n');
       $('adHref').value=ad.href || '';
+      const adHrefs=adHrefsArray(ad);
+      const hasPerText=adHrefs.some((v)=>v);
+      if($('adPerTextLinkToggle')){ $('adPerTextLinkToggle').checked=hasPerText; }
+      renderPerTextLinkRows(hasPerText ? adHrefs : []);
       const placements=Array.isArray(ad.placements) ? ad.placements : [];
       $('adPlaceChat').checked=placements.includes('chat') || !placements.length;
       $('adPlaceCommunity').checked=placements.includes('community') || !placements.length;
@@ -1369,6 +1436,7 @@
         showToast('종료 시각은 시작 시각보다 뒤여야 합니다.', 'bad');
         return null;
       }
+      const perTextLinks=readPerTextLinks(texts.length);
       const body={
         action,
         ...(id ? { id } : {}),
@@ -1376,6 +1444,9 @@
         text:texts[0],
         texts,
         href:$('adHref').value.trim(),
+        // 토글이 꺼져 있으면 hrefs 를 보내지 않는다. 서버에서 기존 데이터를
+        // 유지/제거하기 위해 빈 배열로 명시 전송한다 (수정 시 토글을 끄면 옵션 해제).
+        hrefs:perTextLinks || [],
         weight:readAdWeightInput($('adWeight'), 1),
         placements:placements.length ? placements : ['chat','community','summary'],
         startAt,
