@@ -3343,7 +3343,7 @@ body.excel-dark-mode:not(.theme-outlook) .chat-nick.admin-nick{background:#21a36
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-nick.admin-nick{background:#19201d!important;color:#a6c8b5!important;border-color:var(--grid)!important}
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-body{color:#c8d1d9}
 body.excel-dark-mode:not(.theme-outlook) .chat-nick.recommended-nick{background:#29261d;color:#d6c685;border-color:#50482d}
-body.excel-dark-mode:not(.theme-outlook) .chat-recommend-badge{background:#232118;color:#d2bd69;border-color:#51482d}
+body.excel-dark-mode:not(.theme-outlook) .chat-recommend-badge{background:#2c2615;color:#e8c969;border-color:#5a4b22;box-shadow:inset 0 -1px 0 rgba(0,0,0,.18),0 1px 1px rgba(0,0,0,.18)}
 body.excel-dark-mode:not(.theme-outlook) .chat-recommend-star{color:#d4b653}
 body.excel-dark-mode:not(.theme-outlook) .chat-recommend,
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-recommend{color:#e2c86b}
@@ -3402,7 +3402,8 @@ body.excel-dark-mode:not(.theme-outlook) .chat-award-message,
 body.excel-dark-mode:not(.theme-outlook) .chat-award-row td:not(.rownum){background:#201f18;color:#cfc28d;border-color:#46412b}
 body.excel-dark-mode:not(.theme-outlook) .chat-award-message b,
 body.excel-dark-mode:not(.theme-outlook) .chat-award-row b{color:#d8c789}
-body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#423c25;color:#dec984}
+body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#423c25;color:#f0d27a}
+body.excel-dark-mode:not(.theme-outlook) .chat-award-benefit{color:#bdaf85;border-top-color:rgba(220,201,132,.22)}
 @media(max-width:760px){
   .chat-donor-marquee{height:23px;min-height:23px;font-size:10.5px}
   .chat-donor-label{font-size:10.5px;padding:0 8px;max-width:50%}
@@ -3429,9 +3430,37 @@ body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#423c25;col
 .chat-award-message .chat-text,.chat-award-row .chat-award-excel-body{font-size:11.4px;line-height:1.35;color:#69624b}
 .chat-award-message b,.chat-award-row b{font-weight:650;color:#5f5841}
 .chat-award-nick{color:#756b4b;font-weight:650}
-.chat-award-mark{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;margin-right:4px;border-radius:999px;background:#f2e8c8;color:#7a6b3d;font-size:8.5px;font-weight:800;box-shadow:inset 0 -1px 0 rgba(120,95,40,.06)}
+.chat-award-mark{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-right:5px;border-radius:999px;background:#f2e8c8;color:#9a7f2b;font-size:11px;font-weight:800;line-height:1;box-shadow:inset 0 -1px 0 rgba(120,95,40,.06);vertical-align:-2px}
+.chat-award-benefit{display:block;margin-top:4px;padding-top:4px;border-top:1px dashed rgba(120,95,40,.22);font-size:10.8px;color:#7a6f4d;line-height:1.4}
 .chat-award-row td:not(.rownum){background:#fffbf3!important;color:#69624b}
 .chat-award-excel-body{padding-right:5px!important;white-space:normal}
+/* 채팅에 떠 있는 종토방 일일 투표 말풍선. 5분에 한 번 자연스럽게 노출되며,
+ * 같은 poll_id 로 국장 토론방과 집계를 공유한다. */
+.chat-poll-message{background:#f4faf6;border-color:#cfe0d4;color:#3d5343;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.chat-poll-message .chat-meta{margin-bottom:2px}
+.chat-poll-nick{color:#107c41;font-weight:750}
+.chat-poll-body,.chat-poll-excel-body{display:flex;flex-direction:column;gap:5px;font-size:11.4px;line-height:1.35;color:#3d5343}
+.chat-poll-excel-body{padding-right:5px!important;white-space:normal}
+.chat-poll-row td:not(.rownum){background:#f4faf6!important;color:#3d5343}
+.chat-poll-kicker{display:inline-block;width:fit-content;padding:1px 7px;border:1px solid #b7d4c2;border-radius:999px;background:#eaf4ee;color:#107c41;font-size:10.5px;font-weight:750;line-height:1.3}
+.chat-poll-question{font-size:11.8px;font-weight:650;color:#2f4739}
+.chat-poll-options{display:flex;flex-wrap:wrap;gap:5px}
+.chat-poll-choice{display:inline-flex;align-items:center;justify-content:center;min-width:54px;height:24px;padding:0 9px;border:1px solid #c2d4c8;border-radius:6px;background:#fff;color:#3b3f45;font:inherit;font-size:11px;font-weight:650;line-height:1;cursor:pointer;transition:background 100ms ease, border-color 100ms ease}
+.chat-poll-choice:hover:not(:disabled){background:#eaf4ef;border-color:#a7cdb4;color:#107c41}
+.chat-poll-choice.selected{background:#107c41;border-color:#107c41;color:#fff}
+.chat-poll-choice:disabled{cursor:default;opacity:.86}
+.chat-poll-tail{color:#6f7771;font-size:10.5px;font-weight:600}
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-message{background:#152019;border-color:#3a554a;color:#bdd2c3;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-row td:not(.rownum){background:#152019!important;color:#bdd2c3}
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-body,
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-excel-body{color:#bdd2c3}
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-nick{color:#7cd6a2}
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-kicker{background:#193321;border-color:#4a7a5d;color:#b8f2c9}
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-question{color:#d6e6dc}
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-choice{background:#1d2825;border-color:#3f5950;color:#bdd2c3}
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-choice:hover:not(:disabled){background:#26352d;border-color:#5a8d6b;color:#7cd6a2}
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-choice.selected{background:#21a366;border-color:#21a366;color:#06180f}
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-tail{color:#9aaaa1}
 .chat-msg{background:#fff;border:1px solid #e1dfdd;border-radius:8px;padding:6px 7px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .chat-msg.own{background:#eef8f0;border-color:#cfe7d7}
 .chat-msg.admin{background:#f7fbf8;border-color:#b7d9c4}
@@ -3444,7 +3473,9 @@ body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#423c25;col
 .chat-nick-wrap.recommended-wrap .chat-nick{max-width:176px}
 .chat-nick.recommended-nick{height:17px;padding:0 7px;border:1px solid #e9dfbd;border-radius:4px;background:#fffdf6;color:#625c43;box-shadow:inset 0 -1px 0 rgba(120,95,40,.035)}
 .chat-recommend-star{font-size:9.5px;line-height:1;color:#9f873e}
-.chat-recommend-badge{display:inline-flex;align-items:center;justify-content:center;width:16px;height:15px;min-width:16px;padding:0;border:1px solid #e9dfbd;border-radius:999px;background:#fffef9;color:#8e7a3e;font-size:8.8px;font-weight:750;line-height:1;white-space:nowrap;box-shadow:inset 0 -1px 0 rgba(120,95,40,.025)}
+/* 추천 별 배지 — ★ 글리프가 명확히 보이도록 크기·색·voffset 을 다듬었다.
+ * 기존엔 ✦ 마크가 작아서 별인지 다이아인지 헷갈렸다. */
+.chat-recommend-badge{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;min-width:17px;padding:0;border:1px solid #e2cf8a;border-radius:999px;background:#fff8d8;color:#a8851d;font-size:11px;font-weight:800;line-height:1;white-space:nowrap;cursor:help;box-shadow:inset 0 -1px 0 rgba(120,95,40,.08),0 1px 1px rgba(168,133,29,.12);vertical-align:-2px}
 .chat-time{margin-left:auto;font-variant-numeric:tabular-nums}
 .chat-report,.chat-recommend{border:0;background:transparent;color:#8a6d3b;cursor:pointer;font-size:10.5px;padding:0 2px;white-space:nowrap}
 .chat-recommend{color:#8a6d2a;font-weight:750}

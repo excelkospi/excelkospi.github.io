@@ -6258,6 +6258,17 @@ let chatRecommendedSet=null;
 let chatAwardNotices=[];
 let chatKnownAwardIds=new Set();
 let chatAwardNoticePrimed=false;
+// 채팅 투표 말풍선 — 국장 토론방의 일일 투표 데이터를 그대로 공유한다.
+// `communityPollsByChannel.kr` 가 비어 있으면 한 번만 짧게 fetch 한다.
+// 한 번 뜨면 CHAT_POLL_BUBBLE_VISIBLE_MS 만큼 채팅에 머물고, 그 뒤
+// CHAT_POLL_BUBBLE_INTERVAL_MS 휴식 후 다시 떠 자연스러운 노출 흐름을 만든다.
+let chatPollSnapshot=null;
+let chatPollFetchInFlight=null;
+let chatPollShownAt=0;        // 현재 떠 있는 bubble 최초 노출 시각 (0이면 미표시)
+let chatPollLastShownAt=0;    // 마지막으로 닫힌 bubble 닫힘 시각
+let chatPollVoteInFlight=false;
+const CHAT_POLL_BUBBLE_INTERVAL_MS = 5 * 60 * 1000;
+const CHAT_POLL_BUBBLE_VISIBLE_MS = 90 * 1000;
 let chatIsOpen=false;
 let chatConnectionStatus='연결 준비 중';
 let chatIdleTimer=null;
@@ -7326,6 +7337,9 @@ function setChatOpen(open, options={}){
       initChatPreview().catch((e)=>renderChatConnectionError(e, '채팅 미리보기'));
     }
     try{ window.loadChatDonors?.(); }catch{}
+    // 국장 토론방 일일 투표를 채팅 말풍선으로 띄울 수 있도록 한 번만 가볍게 받아둔다.
+    // 이미 토론방을 방문해서 캐시가 있으면 fetch 가 즉시 캐시를 반환한다.
+    try{ fetchChatPollSnapshot().then(()=>{ if(chatIsOpen) renderChatMessages({preserveScroll:true}); }); }catch{}
     requestAnimationFrame(()=>{
       applyChatPanelPosition({saveClamp:true});
       scrollChatToBottom();
@@ -7625,24 +7639,194 @@ function queueChatAwardNotice(userId, nickname, badge){
   return true;
 }
 
+// 축하 말풍선이 너무 빨리 사라지면 사용자가 못 보고 지나친다. 90초까지 둔다.
+const CHAT_AWARD_NOTICE_TTL_MS = 90 * 1000;
+
+function chatAwardNoticeBodyHtml(notice){
+  const mark=esc(notice.badge?.mark || '★');
+  return `<span class="chat-award-mark" aria-hidden="true">${mark}</span>`
+    + `<b>${esc(notice.nickname)}</b>님이 추천을 여러 번 받아 별을 받으셨어요! 축하합니다 🎉`
+    + `<span class="chat-award-benefit">★ 받은 분은 채팅 전송 간격이 짧아지고 신고 한도가 2배가 됩니다.</span>`;
+}
+
 function chatAwardNoticesHtml(){
   const now=Date.now();
-  chatAwardNotices=chatAwardNotices.filter((notice)=>now-Number(notice.at || 0) < 30000);
+  chatAwardNotices=chatAwardNotices.filter((notice)=>now-Number(notice.at || 0) < CHAT_AWARD_NOTICE_TTL_MS);
   if(!chatAwardNotices.length) return '';
   return chatAwardNotices.map((notice)=>`<div class="chat-msg chat-award-message" role="status">
-    <div class="chat-meta"><span class="chat-nick chat-award-nick">추천</span><span class="chat-time">${fmtTime(new Date(notice.at).toISOString())}</span></div>
-    <div class="chat-text"><span class="chat-award-mark" aria-hidden="true">${esc(notice.badge.mark || '✦')}</span><b>${esc(notice.nickname)}</b>님이 추천을 여러 번 받아 별을 획득했습니다</div>
+    <div class="chat-meta"><span class="chat-nick chat-award-nick">추천 ★</span><span class="chat-time">${fmtTime(new Date(notice.at).toISOString())}</span></div>
+    <div class="chat-text">${chatAwardNoticeBodyHtml(notice)}</div>
   </div>`).join('');
 }
 
 function chatAwardNoticeRowsHtml(startRow=1){
   const now=Date.now();
-  chatAwardNotices=chatAwardNotices.filter((notice)=>now-Number(notice.at || 0) < 30000);
+  chatAwardNotices=chatAwardNotices.filter((notice)=>now-Number(notice.at || 0) < CHAT_AWARD_NOTICE_TTL_MS);
   if(!chatAwardNotices.length) return '';
   return chatAwardNotices.map((notice, index)=>`<tr class="chat-excel-row chat-award-row">
     <td class="rownum">${startRow + index}</td>
-    <td class="left chat-excel-body chat-award-excel-body" colspan="3"><span class="chat-award-mark" aria-hidden="true">${esc(notice.badge.mark || '✦')}</span><b>${esc(notice.nickname)}</b>님이 추천을 여러 번 받아 별을 획득했습니다</td>
+    <td class="left chat-excel-body chat-award-excel-body" colspan="3">${chatAwardNoticeBodyHtml(notice)}</td>
   </tr>`).join('');
+}
+
+// === 채팅 투표 말풍선 ===
+// 국장 토론방의 일일 투표 데이터를 채팅에 같이 띄운다. communityPollsByChannel.kr 가
+// 비어 있으면 한 번만 가볍게 fetch 한다. 투표는 기존 /api/community poll_vote 로
+// 같은 집계 데이터를 공유한다.
+async function fetchChatPollSnapshot({force=false}={}){
+  if(typeof apiUrl !== 'function') return null;
+  const cached=communityPollsByChannel?.kr;
+  if(cached && !force) return cached;
+  if(chatPollFetchInFlight && !force) return chatPollFetchInFlight;
+  const promise=(async()=>{
+    try{
+      const data=await fetchJsonClient('/api/community?channel=kr&include_summary=1', 6000, { cache:'default' });
+      if(data?.poll && typeof syncCommunityPollFromPayload === 'function'){
+        return syncCommunityPollFromPayload(data.poll, 'kr');
+      }
+      return data?.poll || null;
+    }catch{
+      return null;
+    }
+  })();
+  chatPollFetchInFlight=promise.finally(()=>{ chatPollFetchInFlight=null; });
+  return promise;
+}
+
+function currentChatPollSnapshot(){
+  const poll=communityPollsByChannel?.kr || chatPollSnapshot;
+  if(!poll || poll.loading) return null;
+  if(!Array.isArray(poll.options) || poll.options.length < 2) return null;
+  return poll;
+}
+
+function shouldShowChatPollBubble(){
+  const poll=currentChatPollSnapshot();
+  if(!poll) return false;
+  const now=Date.now();
+  // 이미 떠 있는 bubble이 visible 윈도우 안이면 계속 보여준다.
+  if(chatPollShownAt && now - chatPollShownAt < CHAT_POLL_BUBBLE_VISIBLE_MS) return true;
+  // 닫혔다가 다시 뜰 차례인지 확인.
+  if(chatPollLastShownAt && now - chatPollLastShownAt < CHAT_POLL_BUBBLE_INTERVAL_MS) return false;
+  return true;
+}
+
+function chatPollBubbleBodyHtml(poll){
+  const selectedChoice=selectedCommunityPollChoice(poll);
+  const voted=Number.isInteger(selectedChoice);
+  const total=Math.max(0, Number(poll.total || 0) || 0);
+  const showResults=total > 0 || voted;
+  const buttons=poll.options.map((option, index)=>{
+    const pct=Number(poll.percentages?.[index] || 0);
+    const selected=selectedChoice === index;
+    const label=showResults ? `${option} ${pct ? `${pct.toFixed(pct % 1 ? 1 : 0)}%` : '0%'}` : option;
+    return `<button class="chat-poll-choice${selected ? ' selected' : ''}" type="button" data-chat-poll-choice="${index}" ${chatPollVoteInFlight || voted ? 'disabled' : ''} aria-pressed="${selected ? 'true' : 'false'}">${esc(label)}</button>`;
+  }).join('');
+  const tail=voted
+    ? `<span class="chat-poll-tail">${total.toLocaleString('ko-KR')}명 참여 · 국장 토론방과 같은 투표</span>`
+    : `<span class="chat-poll-tail">${total ? `${total.toLocaleString('ko-KR')}명 참여중` : '첫 투표 기다리는 중'} · 국장 토론방과 같은 투표</span>`;
+  return `<span class="chat-poll-kicker">${esc(poll.kicker || '오늘의 투표')}</span>`
+    + `<span class="chat-poll-question">${esc(poll.question || '시장 분위기 어때요?')}</span>`
+    + `<span class="chat-poll-options">${buttons}</span>`
+    + tail;
+}
+
+function chatPollBubbleMessageHtml(){
+  if(!shouldShowChatPollBubble()) return '';
+  const poll=currentChatPollSnapshot();
+  if(!poll) return '';
+  return `<div class="chat-msg chat-poll-message" role="group" aria-label="국장 토론방 일일 투표">
+    <div class="chat-meta"><span class="chat-nick chat-poll-nick">투표</span><span class="chat-time">지금</span></div>
+    <div class="chat-text chat-poll-body">${chatPollBubbleBodyHtml(poll)}</div>
+  </div>`;
+}
+
+function chatPollBubbleRowsHtml(startRow=1){
+  if(!shouldShowChatPollBubble()) return '';
+  const poll=currentChatPollSnapshot();
+  if(!poll) return '';
+  return `<tr class="chat-excel-row chat-poll-row">
+    <td class="rownum">${startRow}</td>
+    <td class="left chat-excel-body chat-poll-excel-body" colspan="3">${chatPollBubbleBodyHtml(poll)}</td>
+  </tr>`;
+}
+
+async function submitChatPollVote(choice){
+  if(chatPollVoteInFlight) return;
+  const poll=currentChatPollSnapshot();
+  if(!poll) return;
+  const selected=Number(choice);
+  if(!Number.isInteger(selected)) return;
+  const previous=selectedCommunityPollChoice(poll);
+  if(Number.isInteger(previous)){
+    showToast('오늘 투표는 이미 참여했습니다', 'info');
+    return;
+  }
+  chatPollVoteInFlight=true;
+  renderChatMessages({preserveScroll:true});
+  try{
+    const data=await fetchJsonClient('/api/community', 7000, {
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({
+        action:'poll_vote',
+        channel:'kr',
+        choice:selected,
+        user_id:chatUserId(),
+      }),
+    });
+    if(data?.poll){
+      const next=syncCommunityPollFromPayload(data.poll, 'kr');
+      if(next) rememberCommunityPollVote(next);
+      if(typeof trackCommunityGaEvent === 'function' && typeof communityGaPayload === 'function'){
+        try{
+          trackCommunityGaEvent('community_poll_vote', communityGaPayload({
+            poll_id:String(data.poll.id || '').slice(0,80),
+            channel:'kr',
+            choice:selected,
+            source:'chat_bubble',
+          }), {interaction:true});
+        }catch{}
+      }
+      chatPollLastShownAt=Date.now();
+      showToast('투표 완료. 국장 토론방에도 반영돼요.', 'ok');
+    }else if(data?.error){
+      showToast('투표를 처리하지 못했습니다.', 'warn');
+    }
+  }catch(err){
+    debugWarn('chat poll vote failed', err);
+    showToast('투표 처리 중 오류가 발생했습니다.', 'warn');
+  }finally{
+    chatPollVoteInFlight=false;
+    renderChatMessages({preserveScroll:true});
+  }
+}
+
+function bindChatPollChoices(body){
+  if(!body) return;
+  body.querySelectorAll('[data-chat-poll-choice]').forEach((btn)=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.preventDefault();
+      const choice=Number(btn.dataset.chatPollChoice);
+      submitChatPollVote(choice);
+    });
+  });
+}
+
+function markChatPollBubbleSeen(){
+  const now=Date.now();
+  const poll=currentChatPollSnapshot();
+  if(!poll) return;
+  // bubble을 새로 띄운 순간을 기록한다. 이미 떠 있던 bubble의 visible 윈도우가 끝나면
+  // chatPollShownAt 을 0으로 돌리고 last 기준만 남겨 5분 휴식 후 재노출 트리거.
+  if(!chatPollShownAt && shouldShowChatPollBubble()){
+    chatPollShownAt=now;
+    return;
+  }
+  if(chatPollShownAt && now - chatPollShownAt >= CHAT_POLL_BUBBLE_VISIBLE_MS){
+    chatPollLastShownAt=now;
+    chatPollShownAt=0;
+  }
 }
 
 function syncChatRecommendBadgesFromMessages(options={}){
@@ -7650,11 +7834,9 @@ function syncChatRecommendBadgesFromMessages(options={}){
   const own=chatUserId();
   let ownBadge=null;
   let noticed=false;
-  let sawOwnMessage=false;
   for(const message of chatMessages){
     const badge=chatRecommendBadge(message);
     const userId=String(message?.user_id || '');
-    if(userId === own) sawOwnMessage=true;
     if(!badge) continue;
     if(userId === own) ownBadge=badge;
     const id=chatAwardNoticeId(userId, badge);
@@ -7663,8 +7845,17 @@ function syncChatRecommendBadgesFromMessages(options={}){
     }
     if(id) chatKnownAwardIds.add(id);
   }
+  // 저장된 별 배지는 expires_at 으로만 만료시킨다. 폴링 응답 한 번에 내 메시지가
+  // 안 잡혔다고 해서 stored 배지를 지우면 화면이 깜빡인다. 이전엔 own 메시지가
+  // 윈도우 밖이면 강제로 null 처리해서 별이 사라졌다 다시 붙는 flicker 가 있었다.
   if(ownBadge) saveOwnChatRecommendBadge(ownBadge);
-  else if(!sawOwnMessage || !storedOwnChatRecommendBadge()) saveOwnChatRecommendBadge(null);
+  else {
+    const stored=storedOwnChatRecommendBadge();
+    const expiresAt=stored ? Date.parse(stored.expires_at || '') : 0;
+    if(stored && (!Number.isFinite(expiresAt) || expiresAt <= Date.now())){
+      saveOwnChatRecommendBadge(null);
+    }
+  }
   chatAwardNoticePrimed=true;
   return noticed;
 }
@@ -7685,11 +7876,13 @@ function chatNickMarkup(message, options={}){
   const isAdminNick=!!options.isAdminNick;
   const badge=!isAdminNick ? chatRecommendBadge(message) : null;
   const nickClass=`chat-nick${isAdminNick?' admin-nick':''}${badge?' recommended-nick':''}`;
-  const title=badge ? `${nick} · 최근 추천 ${Math.max(7, Number(badge.count || 0) || 7)}회` : nick;
+  const count=badge ? Math.max(7, Number(badge.count || 0) || 7) : 0;
+  const wrapTitle=badge ? `${nick} · 최근 추천 ${count}회 · 채팅 더 빨리 보내기·신고 한도 2배` : nick;
+  const badgeTitle=badge ? `최근 추천 ${count}회 · 채팅 빠른 전송과 신고 한도 2배 혜택` : '';
   const badgeHtml=badge
-    ? `<span class="chat-recommend-badge" title="최근 추천 7회 이상" aria-label="추천 별">✦</span>`
+    ? `<span class="chat-recommend-badge" title="${esc(badgeTitle)}" aria-label="추천 별, 채팅 빠른 전송과 신고 한도 2배 혜택">★</span>`
     : '';
-  return `<span class="chat-nick-wrap${badge ? ' recommended-wrap' : ''}" title="${esc(title)}"><span class="${nickClass}">${esc(nick)}</span>${badgeHtml}</span>`;
+  return `<span class="chat-nick-wrap${badge ? ' recommended-wrap' : ''}" title="${esc(wrapTitle)}"><span class="${nickClass}">${esc(nick)}</span>${badgeHtml}</span>`;
 }
 
 function chatRecommendButtonLabel(message){
@@ -7738,7 +7931,7 @@ function renderChatMessagesExcel(body){
       <col class="chat-excel-col-body"/>
       <col class="chat-excel-col-time"/>
     </colgroup>
-    <tbody>${rows}${chatAwardNoticeRowsHtml(chatMessages.length + 1)}</tbody>
+    <tbody>${rows}${chatAwardNoticeRowsHtml(chatMessages.length + 1)}${chatPollBubbleRowsHtml(chatMessages.length + 1 + chatAwardNotices.length)}</tbody>
   </table>${chatSleepNoticeHtml()}`;
 }
 
@@ -7786,7 +7979,7 @@ function renderChatMessages(options={}){
         </div>
         <div class="chat-text">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions(m, {linkUrls:true, linkPolicy:chatLinkPolicy()}))}</div>
       </div>`;
-    }).join('') + chatAwardNoticesHtml() + chatSleepNoticeHtml();
+    }).join('') + chatAwardNoticesHtml() + chatPollBubbleMessageHtml() + chatSleepNoticeHtml();
   }
   bindCollapsedImageToggles(body);
   flushStockMentionQueue({chat:true});
@@ -7797,6 +7990,8 @@ function renderChatMessages(options={}){
   body.querySelectorAll('[data-recommend-id]').forEach(btn=>{
     btn.addEventListener('click',()=>recommendChatMessage(Number(btn.dataset.recommendId)));
   });
+  bindChatPollChoices(body);
+  markChatPollBubbleSeen();
   body.querySelectorAll('[data-chat-admin-action]').forEach(btn=>{
     btn.addEventListener('click',(ev)=>{
       ev.preventDefault();
