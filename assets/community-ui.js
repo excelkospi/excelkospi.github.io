@@ -1501,7 +1501,7 @@ function renderCommunityTable(state='ready'){
   }else if(!posts.length){
     rows.push(`<tr><td class="rownum">${rowNum++}</td><td colspan="${dataCols}" class="community-ready-cell">${esc(channelLabel)}에 아직 게시글이 없습니다</td></tr>`);
   }else{
-    const adBreakPostCounts = new Set([7, 22].filter((count)=>posts.length > count));
+    const adBreakPostCounts = new Set([7, 22].filter((count)=>posts.length >= count));
     const firstAd = textAdForPlacementSlot('community', 'community-after-7', { excludeHouseWhenReal:true });
     const secondAd = secondCommunityTextAd(firstAd);
     const adBreakSelections = {
