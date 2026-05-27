@@ -99,6 +99,8 @@ body.readability-mode .holding-meta-line .down,
 body.readability-mode .holding-value-cell.down,
 body.readability-mode .holding-return-cell.down,
 body.readability-mode .holding-summary-return-cell.down{color:#1f6fd6;font-weight:400}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid{filter:grayscale(1) saturate(0) contrast(.92) brightness(.98)}
+body.sheet-monochrome-mode:not(.theme-outlook).excel-dark-mode .sheets-grid{filter:grayscale(1) saturate(0) contrast(.86) brightness(.9)}
 body.excel-dark-mode.readability-mode{
   --txt:#f3f7f8; --muted:#c1cad2; --flat:#c1cad2; --up:#ff8585; --down:#88baff;
   color:#f3f7f8;font-weight:450;

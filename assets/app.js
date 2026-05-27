@@ -195,6 +195,7 @@ if(IS_STANDALONE) document.documentElement.classList.add('pwa-standalone');
 const EXCEL_THEMES = new Set(['classic','silver','deep']);
 let excelTheme = readStringSetting(EXCEL_THEME_KEY, 'classic', EXCEL_THEMES);
 let excelDarkMode = readBoolSetting(EXCEL_DARK_MODE_KEY, false);
+let sheetMonochromeMode = readBoolSetting(SHEET_MONOCHROME_KEY, false);
 function defaultRibbonCollapsed(){
   try{ return !!window.matchMedia?.('(max-width: 760px)')?.matches; }catch{ return false; }
 }
@@ -214,6 +215,7 @@ function applyExcelAppearance(){
   body.classList.remove('excel-theme-silver','excel-theme-classic','excel-theme-deep');
   body.classList.add(`excel-theme-${EXCEL_THEMES.has(excelTheme) ? excelTheme : 'silver'}`);
   body.classList.toggle('excel-dark-mode', !!excelDarkMode);
+  body.classList.toggle('sheet-monochrome-mode', !!sheetMonochromeMode);
   const theme=document.querySelector('meta[name="theme-color"]');
   if(theme && !body.classList.contains('theme-outlook')){
     theme.setAttribute('content', excelDarkMode ? '#101418' : (excelTheme === 'silver' ? '#e7e9ed' : (excelTheme === 'deep' ? '#06452b' : '#107c41')));
@@ -1302,6 +1304,8 @@ function syncSettingsUI(){
   if(theme) theme.value = EXCEL_THEMES.has(excelTheme) ? excelTheme : 'classic';
   const d=document.getElementById('settingDarkMode');
   if(d) d.checked = !!excelDarkMode;
+  const sm=document.getElementById('settingSheetMonochrome');
+  if(sm) sm.checked = !!sheetMonochromeMode;
   const r=document.getElementById('settingReadability');
   if(r) r.checked = !!readabilityMode;
   const w=document.getElementById('settingWakeLock');
@@ -1361,6 +1365,13 @@ async function handleSettingChange(key, checked){
     writeBoolSetting(EXCEL_DARK_MODE_KEY, excelDarkMode);
     applyExcelAppearance();
     showToast(excelDarkMode ? '엑셀 다크모드를 켰습니다.' : '엑셀 다크모드를 껐습니다.', 'info');
+    return;
+  }
+  if(key === 'sheetMonochrome'){
+    sheetMonochromeMode = !!checked;
+    writeBoolSetting(SHEET_MONOCHROME_KEY, sheetMonochromeMode);
+    applyExcelAppearance();
+    showToast(sheetMonochromeMode ? '시트 흑백 모드를 켰습니다.' : '시트 흑백 모드를 껐습니다.', 'info');
     return;
   }
   if(key === 'readability'){
@@ -3378,7 +3389,7 @@ let pollHint={};
 let serverStatusState=null;
 let serverStatusExpanded=false;
 const HIDDEN_KEYS_STORE = 'kg_hidden_default_v1';
-const PERSIST_KEYS = [WATCHLIST_KEY, QUOTE_NOTES_KEY, HOLDINGS_KEY, HOLDING_PNL_MODE_KEY, HIDDEN_KEYS_STORE, DEFAULT_ORDER_STORE, QUOTE_SORT_KEY, CHANGE_WINDOW_KEY, TIMELINE_TAB_KEY, COMMUNITY_CHANNEL_KEY, COMMUNITY_READ_STATE_KEY, COMMUNITY_POLL_VOTES_KEY, VIEW_KEY, FLOATING_HIDDEN_KEY, CHAT_NICK_KEY, COMMUNITY_NICK_KEY, CHAT_SIZE_KEY, CHAT_POSITION_KEY, CHAT_OPACITY_KEY, CHAT_IMAGE_PREVIEW_KEY, CHAT_DOCK_KEY, VISITOR_ID_KEY, FIRST_VISIT_KEY, HOLDING_TIP_KEY, CHANGE_WINDOW_TIP_KEY, CHART_TIP_KEY, TV_CHART_HEIGHT_KEY, SHEET_SPLIT_KEY, PANEL_ORDER_KEY, READABILITY_KEY, RIBBON_COLLAPSED_KEY, EXCEL_THEME_KEY, EXCEL_DARK_MODE_KEY, US_SHEET_KRW_KEY, COIN_QUOTE_SOURCE_KEY, UPDATES_SEEN_KEY, SETTINGS_WAKELOCK_KEY, SETTINGS_REMEMBER_MARKET_KEY];
+const PERSIST_KEYS = [WATCHLIST_KEY, QUOTE_NOTES_KEY, HOLDINGS_KEY, HOLDING_PNL_MODE_KEY, HIDDEN_KEYS_STORE, DEFAULT_ORDER_STORE, QUOTE_SORT_KEY, CHANGE_WINDOW_KEY, TIMELINE_TAB_KEY, COMMUNITY_CHANNEL_KEY, COMMUNITY_READ_STATE_KEY, COMMUNITY_POLL_VOTES_KEY, VIEW_KEY, FLOATING_HIDDEN_KEY, CHAT_NICK_KEY, COMMUNITY_NICK_KEY, CHAT_SIZE_KEY, CHAT_POSITION_KEY, CHAT_OPACITY_KEY, CHAT_IMAGE_PREVIEW_KEY, CHAT_DOCK_KEY, VISITOR_ID_KEY, FIRST_VISIT_KEY, HOLDING_TIP_KEY, CHANGE_WINDOW_TIP_KEY, CHART_TIP_KEY, TV_CHART_HEIGHT_KEY, SHEET_SPLIT_KEY, PANEL_ORDER_KEY, READABILITY_KEY, RIBBON_COLLAPSED_KEY, EXCEL_THEME_KEY, EXCEL_DARK_MODE_KEY, SHEET_MONOCHROME_KEY, US_SHEET_KRW_KEY, COIN_QUOTE_SOURCE_KEY, UPDATES_SEEN_KEY, SETTINGS_WAKELOCK_KEY, SETTINGS_REMEMBER_MARKET_KEY];
 const newsAccumulated=[];               // 평탄화된 누적 뉴스 (newest first)
 const newsSeenKeys=new Set();           // url 또는 title 기준 dedup (KR/US 중복도 하나로 합침)
 
@@ -8492,6 +8503,7 @@ async function restorePersistentSettings(){
     readabilityMode = localStorage.getItem(READABILITY_KEY)==='1';
     excelTheme = readStringSetting(EXCEL_THEME_KEY, 'classic', EXCEL_THEMES);
     excelDarkMode = readBoolSetting(EXCEL_DARK_MODE_KEY, false);
+    sheetMonochromeMode = readBoolSetting(SHEET_MONOCHROME_KEY, false);
     applyExcelAppearance();
     applyRibbonCollapsed();
     applyChatPanelOpacity();
