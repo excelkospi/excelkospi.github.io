@@ -14,8 +14,6 @@
     "/404.html",
     "/patch-notes.md",
     "/llms.txt",
-    "/ads.json",
-    "/assets/*",
     "/api/*"
   ],
   "exclude": [
@@ -28,16 +26,7 @@
     "/icon-192.png",
     "/icon-512.png",
     "/apple-touch-icon.png",
-    "/assets/guide/*",
-    "/assets/favicon.svg",
-    "/assets/favicon-32.png",
-    "/assets/icon-192.png",
-    "/assets/icon-512.png",
-    "/assets/maskable-192.png",
-    "/assets/maskable-512.png",
-    "/assets/apple-touch-icon.png",
-    "/assets/excelkospi-logo.png",
-    "/assets/microsoft-excel.svg",
-    "/assets/keep-awake.mp4"
+    "/ads.json",
+    "/assets/*"
   ]
 }

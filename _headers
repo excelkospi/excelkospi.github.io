@@ -1,7 +1,6 @@
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
-  X-Robots-Tag: noai, noimageai
 
 /og.png
   Cache-Control: public, max-age=3600
@@ -78,4 +77,3 @@
 /llms.txt
   Content-Type: text/plain; charset=utf-8
   Cache-Control: public, max-age=3600
-  X-Robots-Tag: noindex, nofollow, noai, noimageai
