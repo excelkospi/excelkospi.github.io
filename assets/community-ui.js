@@ -572,12 +572,27 @@ function updateSummaryTextAd(){
 }
 
 function updateCommunityTextAdElements(){
-  const rows = document.querySelectorAll('[data-xk-area="community"]');
+  const rows = Array.from(document.querySelectorAll('[data-xk-area="community"]'));
   if(!rows.length) return 0;
+  const hasRealAds = textAdCandidates('community').some((ad)=>ad && !isHouseTextAd(ad));
+  const firstSlotRow = rows.find((row)=>row.dataset.xkPosition === 'community-after-7');
+  const currentFirstAd = textAdById(firstSlotRow?.dataset.xkId || firstSlotRow?.getAttribute?.('data-xk-id'));
+  const firstSlotAd = firstSlotRow
+    ? (currentFirstAd && !(hasRealAds && isHouseTextAd(currentFirstAd))
+      ? currentFirstAd
+      : textAdForPlacementSlot('community', 'community-after-7', { excludeHouseWhenReal:true }))
+    : null;
+  const secondSlotAd = rows.some((row)=>row.dataset.xkPosition === 'community-after-22')
+    ? secondCommunityTextAd(firstSlotAd)
+    : null;
   let updated = 0;
   rows.forEach((root, index)=>{
     flushAdHover(root);
-    const ad = textAdById(root.dataset.xkId || root.getAttribute('data-xk-id')) || textAdForPlacementSlot('community', root.dataset.xkPosition || `community-row-${index + 1}`);
+    const position = root.dataset.xkPosition || `community-row-${index + 1}`;
+    let ad = null;
+    if(position === 'community-after-7') ad = firstSlotAd;
+    else if(position === 'community-after-22') ad = secondSlotAd;
+    else ad = textAdById(root.dataset.xkId || root.getAttribute('data-xk-id')) || textAdForPlacementSlot('community', position);
     if(!ad){
       root.remove();
       return;
@@ -1486,11 +1501,11 @@ function renderCommunityTable(state='ready'){
   }else if(!posts.length){
     rows.push(`<tr><td class="rownum">${rowNum++}</td><td colspan="${dataCols}" class="community-ready-cell">${esc(channelLabel)}에 아직 게시글이 없습니다</td></tr>`);
   }else{
-    const adBreakPostCounts = new Set([9, 22].filter((count)=>posts.length > count));
-    const firstAd = textAdForPlacementSlot('community', 'community-after-9', { excludeHouseWhenReal:true });
+    const adBreakPostCounts = new Set([7, 22].filter((count)=>posts.length > count));
+    const firstAd = textAdForPlacementSlot('community', 'community-after-7', { excludeHouseWhenReal:true });
     const secondAd = secondCommunityTextAd(firstAd);
     const adBreakSelections = {
-      9: { ad:firstAd, slot:1, position:'community-after-9' },
+      7: { ad:firstAd, slot:1, position:'community-after-7' },
       22: { ad:secondAd, slot:2, position:'community-after-22' },
     };
     const maybeInsertReadMarkerAfterPost = (postIndex)=>{
