@@ -5,15 +5,17 @@
 // 뷰포트가 좁거나 (모바일/태블릿), 데스크탑이라도 timeline 패널이 좁게 줄어들면
 // compact (2~3 컬럼) 레이아웃으로 전환한다. 좁은 데스크탑에서 5 컬럼이 우겨 들어가서
 // '요약' 이 줄바꿈 폭탄이 되고 '링크' 버튼이 어색해 보이는 문제를 막는다.
-// 임계값은 sheets-grid 가 single-column 으로 떨어지는 1100px 와 맞춤.
+// 임계값은 sheets-grid 가 single-column 으로 떨어지는 폭과 맞춤.
 // body.timeline-narrow 는 ResizeObserver 가 별도로 토글한다 (좁은 timeline 패널).
 function newsCompactLayout(){
-  if(window.matchMedia?.('(max-width:1099px)')?.matches) return true;
+  const splitMin = typeof SHEET_SPLIT_DESKTOP_MIN_PX === 'number' ? SHEET_SPLIT_DESKTOP_MIN_PX : 960;
+  if(window.matchMedia?.(`(max-width:${splitMin - 1}px)`)?.matches) return true;
   return !!document.body?.classList.contains('timeline-narrow');
 }
 
 function communityCompactLayout(){
-  if(window.matchMedia?.('(max-width:1099px)')?.matches) return true;
+  const splitMin = typeof SHEET_SPLIT_DESKTOP_MIN_PX === 'number' ? SHEET_SPLIT_DESKTOP_MIN_PX : 960;
+  if(window.matchMedia?.(`(max-width:${splitMin - 1}px)`)?.matches) return true;
   return !!document.body?.classList.contains('timeline-narrow');
 }
 

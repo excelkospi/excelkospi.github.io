@@ -4237,7 +4237,8 @@ function applyFastQuoteToRow(token, card){
 function sheetSplitSupported(){
   try{
     if(document.body?.classList.contains('theme-outlook')) return false;
-    return !!window.matchMedia?.('(min-width:1100px)').matches;
+    const splitMin = typeof SHEET_SPLIT_DESKTOP_MIN_PX === 'number' ? SHEET_SPLIT_DESKTOP_MIN_PX : 960;
+    return !!window.matchMedia?.(`(min-width:${splitMin}px)`).matches;
   }catch{
     return false;
   }
@@ -4476,7 +4477,8 @@ function panelDragTitleFor(id){
 }
 
 function setupPanelDragToReorder(){
-  if(!window.matchMedia?.('(min-width:1100px)').matches) return;
+  const splitMin = typeof SHEET_SPLIT_DESKTOP_MIN_PX === 'number' ? SHEET_SPLIT_DESKTOP_MIN_PX : 960;
+  if(!window.matchMedia?.(`(min-width:${splitMin}px)`).matches) return;
   PANEL_IDS.forEach(id=>{
     const title=panelDragTitleFor(id);
     if(!title || title.dataset.panelDragBound==='1') return;
@@ -6541,7 +6543,7 @@ window.addEventListener('resize', ()=>{
   } else if(timelineIsEtf()){
     try{ renderEtfBrowser(); }catch(_){}
   } else {
-    // news 도 viewport 가 1100 임계를 넘나들면 다시 렌더 (5-col ↔ 3-col).
+    // news 도 split 임계를 넘나들면 다시 렌더 (5-col ↔ 3-col).
     const nextNewsCompact = newsCompactLayout();
     if(lastNewsCompactState !== null && nextNewsCompact !== lastNewsCompactState){
       try{ renderAccumulatedNews(); }catch(_){}
@@ -9257,7 +9259,8 @@ function showChartFeatureTip(delay=1200){
   if(oneTimeTipSeen(CHART_TIP_KEY)) return;
   setTimeout(()=>{
     if(document.body.classList.contains('theme-outlook')) return;
-    const mobile = matchMedia('(max-width:1099px)').matches;
+    const splitMin = typeof SHEET_SPLIT_DESKTOP_MIN_PX === 'number' ? SHEET_SPLIT_DESKTOP_MIN_PX : 960;
+    const mobile = matchMedia(`(max-width:${splitMin - 1}px)`).matches;
     const selector = '#cardsTable tr[data-tv-symbol]:not([data-tv-symbol=""])';
     waitForElement(selector, ()=>{
       if(document.body.classList.contains('theme-outlook') || oneTimeTipSeen(CHART_TIP_KEY)) return;

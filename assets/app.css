@@ -100,19 +100,19 @@ body.readability-mode .holding-value-cell.down,
 body.readability-mode .holding-return-cell.down,
 body.readability-mode .holding-summary-return-cell.down{color:#1f6fd6;font-weight:400}
 body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid{
-  --sheet-mono-text:#343434;
-  --sheet-mono-muted:#62676b;
-  --sheet-mono-control-bg:#f7f8f8;
-  --sheet-mono-control-hover:#edf0f1;
-  --sheet-mono-control-active:#e2e6e8;
-  --sheet-mono-control-border:#c8cdd0;
-  --sheet-mono-control-border-strong:#9ba2a7;
-  --sheet-mono-focus-ring:rgba(95,103,108,.24);
+  --sheet-mono-text:#585d60;
+  --sheet-mono-muted:#757b80;
+  --sheet-mono-control-bg:#f8f9f8;
+  --sheet-mono-control-hover:#f0f2f1;
+  --sheet-mono-control-active:#e7e9e8;
+  --sheet-mono-control-border:#d2d6d8;
+  --sheet-mono-control-border-strong:#aeb5b9;
+  --sheet-mono-focus-ring:rgba(115,122,127,.18);
   color:var(--sheet-mono-text);
 }
 body.sheet-monochrome-mode:not(.theme-outlook).excel-dark-mode .sheets-grid{
-  --sheet-mono-text:#d8dde0;
-  --sheet-mono-muted:#aeb5ba;
+  --sheet-mono-text:#c2c8cc;
+  --sheet-mono-muted:#9ea7ad;
   --sheet-mono-control-bg:#20262b;
   --sheet-mono-control-hover:#2a3137;
   --sheet-mono-control-active:#343c43;
@@ -133,8 +133,9 @@ body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,[role="bu
 body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,[role="button"],.timeline-tabs button,.change-toggle button,.watchlist-add > button,.watchlist-more-menu button):is(:hover,.active,[aria-selected="true"],[aria-pressed="true"],[aria-expanded="true"]){
   background:var(--sheet-mono-control-hover)!important;
   border-color:var(--sheet-mono-control-border-strong)!important;
-  box-shadow:inset 0 -2px 0 var(--sheet-mono-control-border-strong)!important;
+  box-shadow:none!important;
 }
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid .timeline-tabs button:is(.active,[aria-selected="true"]){box-shadow:inset 0 -2px 0 var(--sheet-mono-control-border-strong)!important}
 body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,[role="button"],.timeline-tabs button,.change-toggle button,.watchlist-add > button,.watchlist-more-menu button):active{background:var(--sheet-mono-control-active)!important}
 body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(input,select,textarea){
   color:var(--sheet-mono-text)!important;
@@ -148,6 +149,22 @@ body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,a,[role="
 body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,[role="button"],.timeline-tabs button)::before,
 body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid :is(button,[role="button"],.timeline-tabs button)::after{border-color:var(--sheet-mono-control-border-strong)!important}
 body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid .timeline-tabs button.has-unread::after{background:var(--sheet-mono-muted)!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid .chat-head{color:var(--titlebar-fg)!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid .chat-head *{color:inherit!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid .chat-head :is(.chat-close,.chat-size-toggle,.chat-head-btn){
+  background:rgba(255,255,255,.14)!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid .chat-head :is(.chat-close,.chat-size-toggle,.chat-head-btn):hover{background:rgba(255,255,255,.24)!important}
+body.sheet-monochrome-mode:not(.theme-outlook) .sheets-grid .chat-head .chat-head-btn.is-active{background:rgba(255,255,255,.36)!important}
+body.sheet-monochrome-mode:not(.theme-outlook).excel-theme-silver:not(.excel-dark-mode) .sheets-grid .chat-head :is(.chat-close,.chat-size-toggle,.chat-head-btn){
+  background:transparent!important;
+  color:#6b7175!important;
+}
+body.sheet-monochrome-mode:not(.theme-outlook).excel-theme-silver:not(.excel-dark-mode) .sheets-grid .chat-head{color:#242424!important}
+body.sheet-monochrome-mode:not(.theme-outlook).excel-theme-silver:not(.excel-dark-mode) .sheets-grid .chat-head :is(.chat-close,.chat-size-toggle,.chat-head-btn):hover{background:#f0f2f1!important}
+body.sheet-monochrome-mode:not(.theme-outlook).excel-theme-silver:not(.excel-dark-mode) .sheets-grid .chat-head .chat-head-btn.is-active{background:#e6e9e8!important;color:#52575a!important}
 body.excel-dark-mode.readability-mode{
   --txt:#f3f7f8; --muted:#c1cad2; --flat:#c1cad2; --up:#ff8585; --down:#88baff;
   color:#f3f7f8;font-weight:450;
@@ -1093,7 +1110,7 @@ body.ribbon-collapsed .ribbon-inline-toggle{background:var(--control-bg);border-
 /* Empty trailing rows = "끝까지 뻗은" Excel grid look */
 tr.empty-row td{height:24px;background:var(--bg);color:#8f98a3;font-weight:400}
 tr.empty-row .rownum{color:#9aa0a6}
-@media(max-width:1099px){
+@media(max-width:959px){
   tr.empty-row{display:none}
 }
 /* 새로 들어온 뉴스 row 강조 — 4초 동안 노란 배경 fade out */
@@ -1303,7 +1320,7 @@ body.theme-outlook .outlook-mail-table tr:hover td:nth-child(4){opacity:.18}
 .news-feed table:not(.community-table){min-width:0;width:100%;table-layout:fixed}
 .news-feed table:not(.community-table) th:nth-child(2),
 .news-feed table:not(.community-table) td:nth-child(2){width:58px;min-width:58px;white-space:nowrap}
-@media(min-width:1100px){
+@media(min-width:960px){
   .news-feed table:not(.community-table){table-layout:fixed}
   .news-feed table:not(.community-table) th:nth-child(1),
   .news-feed table:not(.community-table) td:nth-child(1){width:36px}
@@ -2379,7 +2396,7 @@ tr.summary-sheet-note-row{display:none}
 .col-chat-dock[hidden]{display:none!important}
 .chat-dock-slot{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;overflow:hidden;background:var(--bg);border-top:1px solid var(--grid);border-left:1px solid var(--grid)}
 .sheet-splitter{display:none}
-@media(min-width:1100px){
+@media(min-width:960px){
   .sheets-grid{
     flex-direction:row;
     height:calc(100dvh - var(--app-header-h) - 66px);
@@ -2426,7 +2443,7 @@ tr.summary-sheet-note-row{display:none}
 
 /* === Panel drag-to-reorder (desktop only) === */
 .col-drag-handle{display:none!important}
-@media(min-width:1100px){
+@media(min-width:960px){
   .panel-drag-title{cursor:grab;user-select:none;touch-action:none}
   .panel-drag-title.is-grabbing{cursor:grabbing}
   .panel-drag-title button,
@@ -2645,8 +2662,9 @@ body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note .notice-copy:hover{
   body.excel-dark-mode:not(.theme-outlook).chat-docked .chat-composer{background:var(--soft-bg);border-color:var(--grid)}
 }
 /* Stacked (mobile / tablet): keep current behaviour, but slightly tighter spacing */
-@media(max-width:1099px){
+@media(max-width:959px){
   .sheets-grid .sheet-title{margin-top:8px}
+  .sheets-grid .sheet{min-height:0}
   .tv-chart-button,.tv-chart-panel{display:none!important}
   tr.mobile-tv-chart-row{display:table-row}
 }
@@ -2941,7 +2959,7 @@ body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note a.notice-copy{color
 body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note a.notice-copy:hover{color:#7cd6a2;text-decoration-color:currentColor}
 body.excel-dark-mode:not(.theme-outlook) tr.summary-sheet-note-row td.summary-sheet-note-cell a.notice-copy{box-shadow:none;text-decoration-color:rgba(203,213,206,.55)}
 body.excel-dark-mode:not(.theme-outlook) tr.summary-sheet-note-row td.summary-sheet-note-cell a.notice-copy:hover{color:#7cd6a2;text-decoration-color:currentColor}
-@media(max-width:1099px){
+@media(max-width:959px){
   body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note{background:transparent;border-color:transparent;box-shadow:none;color:#cbd5ce}
   body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note-rownum{background:var(--head);border-color:var(--grid);color:#b6c0c8}
   body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note-blank-cell{background:var(--bg);border-color:var(--grid)}

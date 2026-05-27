@@ -212,7 +212,8 @@ function openTradingViewChart({token, symbol, label}={}){
 }
 
 function mobileTradingViewSupported(){
-  return !!window.matchMedia?.('(max-width:1099px)')?.matches;
+  const splitMin = typeof SHEET_SPLIT_DESKTOP_MIN_PX === 'number' ? SHEET_SPLIT_DESKTOP_MIN_PX : 960;
+  return !!window.matchMedia?.(`(max-width:${splitMin - 1}px)`)?.matches;
 }
 
 function closeMobileTradingViewChart(){
