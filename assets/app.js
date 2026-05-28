@@ -1983,6 +1983,7 @@ function userCardLink(c){
     return `https://www.binance.com/en/trade/${esc(base)}_USDT`;
   }
   if(c.market==='KR'){
+    if(String(c.code || '').toUpperCase() === 'JPYKRW=X') return 'https://finance.yahoo.com/quote/JPYKRW%3DX';
     if(c.code==='KOSPI'||c.code==='KOSDAQ') return `https://finance.naver.com/sise/sise_index.naver?code=${esc(c.code)}`;
     return `https://finance.naver.com/item/main.naver?code=${esc(c.code)}`;
   }
@@ -8710,6 +8711,11 @@ renderFloatingButtons();
 function wlLoad(){ try{ return JSON.parse(localStorage.getItem(WATCHLIST_KEY)||'[]'); }catch{ return []; } }
 function wlSave(list){ const value=JSON.stringify(list); localStorage.setItem(WATCHLIST_KEY, value); persistSet(WATCHLIST_KEY, value); }
 function wlSame(a, b){ return String(a||'').toUpperCase()===String(b||'').toUpperCase(); }
+function wlMatches(item, code, market=''){
+  if(!wlSame(item?.code, code)) return false;
+  const m=String(market || '').toUpperCase();
+  return !m || String(item?.market || '').toUpperCase() === m;
+}
 
 function newQuoteNoteId(){
   return `note_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
@@ -9374,10 +9380,10 @@ function syncWatchlistMarketUi(){
   syncWatchlistAddMode();
 }
 
-async function removeWatchlistItem(code){
+async function removeWatchlistItem(code, market=''){
   const list=wlLoad();
-  const it=list.find(x=>wlSame(x.code, code));
-  const next=list.filter(x=>!wlSame(x.code, code));
+  const it=list.find(x=>wlMatches(x, code, market));
+  const next=list.filter(x=>!wlMatches(x, code, market));
   wlSave(next);
   if(it){
     const removedId=watchlistItemOrderId(it);
@@ -9387,11 +9393,11 @@ async function removeWatchlistItem(code){
   if(it){ showToast(`${it.name||it.code} 삭제됨`, 'info'); }
 }
 
-async function moveWatchlistItem(code, dir){
-  const rendered=lastRenderedCards.find(card=>card.userAdded && wlSame(card.code, code));
+async function moveWatchlistItem(code, dir, market=''){
+  const rendered=lastRenderedCards.find(card=>card.userAdded && wlMatches(card, code, market));
   if(rendered && moveVisibleQuoteRowByDelta(quoteRowOrderId(rendered), dir==='up' ? -1 : 1)) return;
   const list=wlLoad();
-  const idx=list.findIndex(x=>wlSame(x.code, code));
+  const idx=list.findIndex(x=>wlMatches(x, code, market));
   const delta=dir==='up' ? -1 : 1;
   const nextIdx=idx+delta;
   if(idx<0 || nextIdx<0 || nextIdx>=list.length) return;

@@ -253,9 +253,10 @@ function renderCardsTable(cards, session){
       if(MOOD_PROTECTED_KEYS.has(c.key)){
         removeBtn = '';
       } else if(isUser){
+        const marketAttr = `data-market="${esc(c.market || '')}"`;
         const holdingBtn = canHoldCard(c) ? `<button class="row-holding ${holdingFor(c)?'is-set':''}" data-action="edit-holding" data-holding-id="${esc(holdingId(c))}" data-key="${esc(c.key)}" data-price="${esc(c.price??'')}" title="${esc(c.key)} 구매가격/수량" aria-label="구매가격/수량">₩</button>` : '';
-        const moveBtns = manualOrdering ? `<button class="row-move" data-action="move-row" data-dir="up" data-code="${esc(c.code)}" title="${esc(c.key)} 위로 이동" aria-label="위로 이동" ${i===firstMovableRow?'disabled':''}>▲</button><button class="row-move" data-action="move-row" data-dir="down" data-code="${esc(c.code)}" title="${esc(c.key)} 아래로 이동" aria-label="아래로 이동" ${i===lastMovableRow?'disabled':''}>▼</button>` : '';
-        removeBtn = `<span class="row-actions">${holdingBtn}${moveBtns}<button class="row-x" data-action="remove-row" data-code="${esc(c.code)}" title="${esc(c.key)} 삭제" aria-label="삭제">×</button></span>`;
+        const moveBtns = manualOrdering ? `<button class="row-move" data-action="move-row" data-dir="up" data-code="${esc(c.code)}" ${marketAttr} title="${esc(c.key)} 위로 이동" aria-label="위로 이동" ${i===firstMovableRow?'disabled':''}>▲</button><button class="row-move" data-action="move-row" data-dir="down" data-code="${esc(c.code)}" ${marketAttr} title="${esc(c.key)} 아래로 이동" aria-label="아래로 이동" ${i===lastMovableRow?'disabled':''}>▼</button>` : '';
+        removeBtn = `<span class="row-actions">${holdingBtn}${moveBtns}<button class="row-x" data-action="remove-row" data-code="${esc(c.code)}" ${marketAttr} title="${esc(c.key)} 삭제" aria-label="삭제">×</button></span>`;
       } else {
         const orderId = cardOrderId(c);
         const holdingBtn = canHoldCard(c) ? `<button class="row-holding ${holdingFor(c)?'is-set':''}" data-action="edit-holding" data-holding-id="${esc(holdingId(c))}" data-key="${esc(c.key)}" data-price="${esc(c.price??'')}" title="${esc(c.key)} 구매가격/수량" aria-label="구매가격/수량">₩</button>` : '';

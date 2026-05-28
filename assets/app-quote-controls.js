@@ -5,13 +5,13 @@ function bindCardsTableControls(){
   document.querySelectorAll('button[data-action=remove-row]').forEach(btn=>{
     btn.addEventListener('click', (ev)=>{
       ev.preventDefault(); ev.stopPropagation();
-      removeWatchlistItem(btn.dataset.code);
+      removeWatchlistItem(btn.dataset.code, btn.dataset.market);
     });
   });
   document.querySelectorAll('button[data-action=move-row]').forEach(btn=>{
     btn.addEventListener('click', (ev)=>{
       ev.preventDefault(); ev.stopPropagation();
-      moveWatchlistItem(btn.dataset.code, btn.dataset.dir);
+      moveWatchlistItem(btn.dataset.code, btn.dataset.dir, btn.dataset.market);
     });
   });
   document.querySelectorAll('button[data-action=move-default]').forEach(btn=>{
