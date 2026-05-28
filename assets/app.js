@@ -6400,17 +6400,17 @@ let chatRecommendedSet=null;
 let chatAwardNotices=[];
 let chatKnownAwardIds=new Set();
 let chatAwardNoticePrimed=false;
-// 채팅 투표 말풍선 — 국장 토론방의 일일 투표 데이터를 그대로 공유한다.
-// `communityPollsByChannel.kr` 가 비어 있으면 한 번만 짧게 fetch 한다.
-// 한 번 뜨면 CHAT_POLL_BUBBLE_VISIBLE_MS 만큼 채팅에 머물고, 그 뒤
-// CHAT_POLL_BUBBLE_INTERVAL_MS 휴식 후 다시 떠 자연스러운 노출 흐름을 만든다.
+// 채팅 투표 말풍선 — 국장 토론방의 일일 투표 데이터를 그대로 공유하되,
+// 고정 상자가 아니라 실제 채팅 흐름 안에 한 번 끼워 넣는다.
 let chatPollSnapshot=null;
 let chatPollFetchInFlight=null;
-let chatPollShownAt=0;        // 현재 떠 있는 bubble 최초 노출 시각 (0이면 미표시)
-let chatPollLastShownAt=0;    // 마지막으로 닫힌 bubble 닫힘 시각
+let chatPollEligibleSince=0;
+let chatPollNotice=null;
+let chatPollLastInsertedAt=0;
 let chatPollVoteInFlight=false;
+const CHAT_POLL_MIN_MESSAGES = 10;
+const CHAT_POLL_INSERT_DELAY_MS = 5 * 60 * 1000;
 const CHAT_POLL_BUBBLE_INTERVAL_MS = 5 * 60 * 1000;
-const CHAT_POLL_BUBBLE_VISIBLE_MS = 90 * 1000;
 let chatIsOpen=false;
 let chatConnectionStatus='연결 준비 중';
 let chatIdleTimer=null;
@@ -7761,6 +7761,36 @@ function chatRecommendBadge(message){
     || (String(message?.user_id || '') === chatUserId() ? storedOwnChatRecommendBadge() : null);
 }
 
+function chatMessageKey(message){
+  if(!message) return '';
+  if(message.id !== null && message.id !== undefined && message.id !== '') return `id:${String(message.id)}`;
+  const created=String(message.created_at || '');
+  const user=String(message.user_id || '');
+  return created ? `at:${created}:${user}` : '';
+}
+
+function chatMessageAnchorForNotice(options={}){
+  const userId=String(options.userId || '');
+  if(userId){
+    for(let i=chatMessages.length - 1; i>=0; i-=1){
+      const message=chatMessages[i];
+      if(String(message?.user_id || '') !== userId) continue;
+      if(chatMessageKey(message)) return message;
+    }
+  }
+  return randomChatNoticeAnchor();
+}
+
+function randomChatNoticeAnchor(){
+  const count=chatMessages.length;
+  if(count <= 0) return null;
+  const maxIndex=count > 1 ? count - 2 : count - 1;
+  const minIndex=Math.max(0, count - 7);
+  const span=Math.max(1, maxIndex - minIndex + 1);
+  const index=minIndex + Math.floor(Math.random() * span);
+  return chatMessages[Math.max(0, Math.min(count - 1, index))] || chatMessages[count - 1] || null;
+}
+
 function chatAwardNoticeId(userId, badge){
   const normalized=normalizeChatRecommendBadge(badge);
   if(!normalized) return '';
@@ -7770,45 +7800,47 @@ function chatAwardNoticeId(userId, badge){
 function queueChatAwardNotice(userId, nickname, badge){
   const normalized=normalizeChatRecommendBadge(badge);
   const id=chatAwardNoticeId(userId, normalized);
-  if(!id || chatAwardNotices.some((notice)=>notice.id===id)) return false;
+  if(!id || chatKnownAwardIds.has(id) || chatAwardNotices.some((notice)=>notice.id===id)) return false;
+  const anchor=chatMessageAnchorForNotice({userId});
+  const anchorId=chatMessageKey(anchor);
+  if(!anchorId) return false;
   chatAwardNotices.push({
     id,
+    userId:String(userId || ''),
+    anchorId,
     at:Date.now(),
     nickname:String(nickname || '월급루팡').slice(0,24),
     badge:normalized,
   });
+  chatKnownAwardIds.add(id);
   chatAwardNotices=chatAwardNotices.slice(-3);
   return true;
 }
 
-// 축하 말풍선이 너무 빨리 사라지면 사용자가 못 보고 지나친다. 90초까지 둔다.
-const CHAT_AWARD_NOTICE_TTL_MS = 90 * 1000;
-
 function chatAwardNoticeBodyHtml(notice){
   const mark=esc(notice.badge?.mark || '★');
   return `<span class="chat-award-mark" aria-hidden="true">${mark}</span>`
-    + `<b>${esc(notice.nickname)}</b>님이 추천을 여러 번 받아 별을 받으셨어요! 축하합니다 🎉`
-    + `<span class="chat-award-benefit">★ 받은 분은 채팅 전송 간격이 짧아지고 신고 한도가 2배가 됩니다.</span>`;
+    + `<b>${esc(notice.nickname)}</b>님이 추천을 여러 번 받아 별을 획득했습니다.`;
 }
 
-function chatAwardNoticesHtml(){
-  const now=Date.now();
-  chatAwardNotices=chatAwardNotices.filter((notice)=>now-Number(notice.at || 0) < CHAT_AWARD_NOTICE_TTL_MS);
-  if(!chatAwardNotices.length) return '';
-  return chatAwardNotices.map((notice)=>`<div class="chat-msg chat-award-message" role="status">
+function chatAwardNoticeHtml(notice){
+  if(!notice) return '';
+  return `<div class="chat-msg chat-award-message" role="status">
     <div class="chat-meta"><span class="chat-nick chat-award-nick">추천 ★</span><span class="chat-time">${fmtTime(new Date(notice.at).toISOString())}</span></div>
     <div class="chat-text">${chatAwardNoticeBodyHtml(notice)}</div>
-  </div>`).join('');
+  </div>`;
 }
 
-function chatAwardNoticeRowsHtml(startRow=1){
-  const now=Date.now();
-  chatAwardNotices=chatAwardNotices.filter((notice)=>now-Number(notice.at || 0) < CHAT_AWARD_NOTICE_TTL_MS);
-  if(!chatAwardNotices.length) return '';
-  return chatAwardNotices.map((notice, index)=>`<tr class="chat-excel-row chat-award-row">
-    <td class="rownum">${startRow + index}</td>
+function chatAwardNoticeRowsHtml(notice, rowNum){
+  if(!notice) return '';
+  return `<tr class="chat-excel-row chat-award-row chat-excel-meta-row">
+    <td class="rownum" rowspan="2">${rowNum}</td>
+    <td class="left chat-excel-nick chat-award-nick" colspan="2">추천 ★</td>
+    <td class="center chat-excel-time">${fmtTime(new Date(notice.at).toISOString())}</td>
+  </tr>
+  <tr class="chat-excel-row chat-award-row chat-excel-body-row">
     <td class="left chat-excel-body chat-award-excel-body" colspan="3">${chatAwardNoticeBodyHtml(notice)}</td>
-  </tr>`).join('');
+  </tr>`;
 }
 
 // === 채팅 투표 말풍선 ===
@@ -7842,15 +7874,9 @@ function currentChatPollSnapshot(){
   return poll;
 }
 
-function shouldShowChatPollBubble(){
-  const poll=currentChatPollSnapshot();
-  if(!poll) return false;
-  const now=Date.now();
-  // 이미 떠 있는 bubble이 visible 윈도우 안이면 계속 보여준다.
-  if(chatPollShownAt && now - chatPollShownAt < CHAT_POLL_BUBBLE_VISIBLE_MS) return true;
-  // 닫혔다가 다시 뜰 차례인지 확인.
-  if(chatPollLastShownAt && now - chatPollLastShownAt < CHAT_POLL_BUBBLE_INTERVAL_MS) return false;
-  return true;
+function chatPollParticipationLabel(poll){
+  const total=Math.max(0, Number(poll?.total || 0) || 0);
+  return total ? `${total.toLocaleString('ko-KR')}명 참여` : '참여 대기';
 }
 
 function chatPollBubbleBodyHtml(poll){
@@ -7864,33 +7890,101 @@ function chatPollBubbleBodyHtml(poll){
     const label=showResults ? `${option} ${pct ? `${pct.toFixed(pct % 1 ? 1 : 0)}%` : '0%'}` : option;
     return `<button class="chat-poll-choice${selected ? ' selected' : ''}" type="button" data-chat-poll-choice="${index}" ${chatPollVoteInFlight || voted ? 'disabled' : ''} aria-pressed="${selected ? 'true' : 'false'}">${esc(label)}</button>`;
   }).join('');
-  const tail=voted
-    ? `<span class="chat-poll-tail">${total.toLocaleString('ko-KR')}명 참여 · 국장 토론방과 같은 투표</span>`
-    : `<span class="chat-poll-tail">${total ? `${total.toLocaleString('ko-KR')}명 참여중` : '첫 투표 기다리는 중'} · 국장 토론방과 같은 투표</span>`;
-  return `<span class="chat-poll-kicker">${esc(poll.kicker || '오늘의 투표')}</span>`
-    + `<span class="chat-poll-question">${esc(poll.question || '시장 분위기 어때요?')}</span>`
-    + `<span class="chat-poll-options">${buttons}</span>`
-    + tail;
+  return `<span class="chat-poll-question">${esc(poll.question || '시장 분위기 어때요?')}</span>`
+    + `<span class="chat-poll-options">${buttons}</span>`;
 }
 
-function chatPollBubbleMessageHtml(){
-  if(!shouldShowChatPollBubble()) return '';
+function chatPollBubbleMessageHtml(notice){
   const poll=currentChatPollSnapshot();
   if(!poll) return '';
-  return `<div class="chat-msg chat-poll-message" role="group" aria-label="국장 토론방 일일 투표">
-    <div class="chat-meta"><span class="chat-nick chat-poll-nick">투표</span><span class="chat-time">지금</span></div>
+  return `<div class="chat-msg chat-poll-message" role="group" aria-label="채팅 투표">
+    <div class="chat-meta"><span class="chat-nick chat-poll-nick">투표</span><span class="chat-time">지금</span><span class="chat-poll-count">${esc(chatPollParticipationLabel(poll))}</span></div>
     <div class="chat-text chat-poll-body">${chatPollBubbleBodyHtml(poll)}</div>
   </div>`;
 }
 
-function chatPollBubbleRowsHtml(startRow=1){
-  if(!shouldShowChatPollBubble()) return '';
+function chatPollBubbleRowsHtml(notice, rowNum){
   const poll=currentChatPollSnapshot();
   if(!poll) return '';
-  return `<tr class="chat-excel-row chat-poll-row">
-    <td class="rownum">${startRow}</td>
+  return `<tr class="chat-excel-row chat-poll-row chat-excel-meta-row">
+    <td class="rownum" rowspan="2">${rowNum}</td>
+    <td class="left chat-excel-nick chat-poll-nick">투표</td>
+    <td class="right chat-excel-time chat-poll-excel-meta" colspan="2">지금 <span class="chat-poll-count">${esc(chatPollParticipationLabel(poll))}</span></td>
+  </tr>
+  <tr class="chat-excel-row chat-poll-row chat-excel-body-row">
     <td class="left chat-excel-body chat-poll-excel-body" colspan="3">${chatPollBubbleBodyHtml(poll)}</td>
   </tr>`;
+}
+
+function pruneChatFlowNotices(){
+  const messageIds=new Set(chatMessages.map((message)=>chatMessageKey(message)).filter(Boolean));
+  chatAwardNotices=chatAwardNotices.filter((notice)=>notice?.anchorId && messageIds.has(notice.anchorId));
+  const poll=currentChatPollSnapshot();
+  if(chatPollNotice && (!poll || String(chatPollNotice.pollId || '') !== String(poll.id || '') || !messageIds.has(chatPollNotice.anchorId))){
+    chatPollNotice=null;
+  }
+  if(chatMessages.length < CHAT_POLL_MIN_MESSAGES){
+    chatPollEligibleSince=0;
+    chatPollNotice=null;
+  }
+}
+
+function ensureChatPollFlowNotice(){
+  const poll=currentChatPollSnapshot();
+  if(!poll || chatMessages.length < CHAT_POLL_MIN_MESSAGES) return null;
+  if(chatPollNotice && String(chatPollNotice.pollId || '') === String(poll.id || '')) return chatPollNotice;
+  const now=Date.now();
+  if(chatPollLastInsertedAt && now - chatPollLastInsertedAt < CHAT_POLL_BUBBLE_INTERVAL_MS){
+    if(!chatPollEligibleSince) chatPollEligibleSince=now;
+    return null;
+  }
+  if(!chatPollEligibleSince){
+    chatPollEligibleSince=now;
+    return null;
+  }
+  if(now - chatPollEligibleSince < CHAT_POLL_INSERT_DELAY_MS) return null;
+  const anchor=randomChatNoticeAnchor();
+  const anchorId=chatMessageKey(anchor);
+  if(!anchorId) return null;
+  chatPollNotice={
+    type:'poll',
+    id:`poll:${String(poll.id || 'kr')}:${now}`,
+    pollId:String(poll.id || ''),
+    anchorId,
+    at:now,
+  };
+  chatPollLastInsertedAt=now;
+  chatPollEligibleSince=0;
+  return chatPollNotice;
+}
+
+function chatFlowNoticesByAnchor(){
+  pruneChatFlowNotices();
+  ensureChatPollFlowNotice();
+  pruneChatFlowNotices();
+  const byAnchor=new Map();
+  const add=(notice)=>{
+    if(!notice?.anchorId) return;
+    const list=byAnchor.get(notice.anchorId) || [];
+    list.push(notice);
+    byAnchor.set(notice.anchorId, list);
+  };
+  chatAwardNotices.forEach((notice)=>add({...notice, type:'award'}));
+  if(chatPollNotice) add(chatPollNotice);
+  byAnchor.forEach((list)=>list.sort((a,b)=>Number(a.at || 0) - Number(b.at || 0)));
+  return byAnchor;
+}
+
+function chatFlowItems(){
+  const byAnchor=chatFlowNoticesByAnchor();
+  const items=[];
+  chatMessages.forEach((message)=>{
+    items.push({type:'message', message});
+    const key=chatMessageKey(message);
+    const notices=key ? byAnchor.get(key) : null;
+    if(notices?.length) notices.forEach((notice)=>items.push({type:notice.type, notice}));
+  });
+  return items;
 }
 
 async function submitChatPollVote(choice){
@@ -7930,8 +8024,7 @@ async function submitChatPollVote(choice){
           }), {interaction:true});
         }catch{}
       }
-      chatPollLastShownAt=Date.now();
-      showToast('투표 완료. 국장 토론방에도 반영돼요.', 'ok');
+      showToast('투표했습니다', 'ok');
     }else if(data?.error){
       showToast('투표를 처리하지 못했습니다.', 'warn');
     }
@@ -7953,22 +8046,6 @@ function bindChatPollChoices(body){
       submitChatPollVote(choice);
     });
   });
-}
-
-function markChatPollBubbleSeen(){
-  const now=Date.now();
-  const poll=currentChatPollSnapshot();
-  if(!poll) return;
-  // bubble을 새로 띄운 순간을 기록한다. 이미 떠 있던 bubble의 visible 윈도우가 끝나면
-  // chatPollShownAt 을 0으로 돌리고 last 기준만 남겨 5분 휴식 후 재노출 트리거.
-  if(!chatPollShownAt && shouldShowChatPollBubble()){
-    chatPollShownAt=now;
-    return;
-  }
-  if(chatPollShownAt && now - chatPollShownAt >= CHAT_POLL_BUBBLE_VISIBLE_MS){
-    chatPollLastShownAt=now;
-    chatPollShownAt=0;
-  }
 }
 
 function syncChatRecommendBadgesFromMessages(options={}){
@@ -8039,8 +8116,12 @@ function renderChatMessagesExcel(body){
   const reported=chatReported();
   const recommended=chatRecommended();
   const admin=isInlineAdmin();
-  const rows=chatMessages.map((m, idx)=>{
-    const rowNum=idx + 1;
+  let rowNum=0;
+  const rows=chatFlowItems().map((item)=>{
+    rowNum += 1;
+    if(item.type === 'award') return chatAwardNoticeRowsHtml(item.notice, rowNum);
+    if(item.type === 'poll') return chatPollBubbleRowsHtml(item.notice, rowNum);
+    const m=item.message;
     if(m.moderated){
       return `<tr class="chat-excel-row moderated" data-chat-id="${esc(m.id)}">
         <td class="rownum">${rowNum}</td>
@@ -8073,7 +8154,7 @@ function renderChatMessagesExcel(body){
       <col class="chat-excel-col-body"/>
       <col class="chat-excel-col-time"/>
     </colgroup>
-    <tbody>${rows}${chatAwardNoticeRowsHtml(chatMessages.length + 1)}${chatPollBubbleRowsHtml(chatMessages.length + 1 + chatAwardNotices.length)}</tbody>
+    <tbody>${rows}</tbody>
   </table>${chatSleepNoticeHtml()}`;
 }
 
@@ -8096,7 +8177,10 @@ function renderChatMessages(options={}){
     const reported=chatReported();
     const recommended=chatRecommended();
     const inlineAdmin=isInlineAdmin();
-    body.innerHTML=chatMessages.map((m)=>{
+    body.innerHTML=chatFlowItems().map((item)=>{
+      if(item.type === 'award') return chatAwardNoticeHtml(item.notice);
+      if(item.type === 'poll') return chatPollBubbleMessageHtml(item.notice);
+      const m=item.message;
       const isOwn=m.user_id===own;
       if(m.moderated){
         return `<div class="chat-msg moderated" data-chat-id="${esc(m.id)}">
@@ -8121,7 +8205,7 @@ function renderChatMessages(options={}){
         </div>
         <div class="chat-text">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions(m, {linkUrls:true, linkPolicy:chatLinkPolicy()}))}</div>
       </div>`;
-    }).join('') + chatAwardNoticesHtml() + chatPollBubbleMessageHtml() + chatSleepNoticeHtml();
+    }).join('') + chatSleepNoticeHtml();
   }
   bindCollapsedImageToggles(body);
   flushStockMentionQueue({chat:true});
@@ -8133,7 +8217,6 @@ function renderChatMessages(options={}){
     btn.addEventListener('click',()=>recommendChatMessage(Number(btn.dataset.recommendId)));
   });
   bindChatPollChoices(body);
-  markChatPollBubbleSeen();
   body.querySelectorAll('[data-chat-admin-action]').forEach(btn=>{
     btn.addEventListener('click',(ev)=>{
       ev.preventDefault();
@@ -8340,6 +8423,7 @@ function applyChatRecommendResult(id, data={}){
   const targetUserId=String(data.targetUserId || data.target_user_id || '');
   const recommendCount=Math.max(0, Number(data.recommendCount || data.recommend_count || 0) || 0);
   const badge=data.authorBadge || data.author_badge || null;
+  const hadActiveBadge=!!(targetUserId && chatMessages.some((m)=>String(m.user_id || '') === targetUserId && chatRecommendBadge(m)));
   chatMessages=chatMessages.map((m)=>{
     const isTarget=targetUserId && String(m.user_id || '') === targetUserId;
     const isMessage=messageId && Number(m.id) === messageId;
@@ -8350,7 +8434,7 @@ function applyChatRecommendResult(id, data={}){
       ...(isTarget && badge?.active ? { recommend_badge:badge } : {}),
     };
   });
-  if(data.authorBadgeJustAwarded || data.author_badge_just_awarded){
+  if((data.authorBadgeJustAwarded || data.author_badge_just_awarded) && !hadActiveBadge){
     const awarded=chatMessages.find((m)=>targetUserId && String(m.user_id || '') === targetUserId);
     if(awarded) queueChatAwardNotice(targetUserId, awarded.nickname, badge);
   }
