@@ -6416,6 +6416,9 @@ const CHAT_POLL_BUBBLE_INTERVAL_MS = 5 * 60 * 1000;
 // 관리자가 '지금 채팅방에 게시'를 누르면 이 시간 안에 접속한 사용자에겐 타이밍 게이트를 건너뛰고 바로 띄운다.
 const CHAT_POLL_FORCE_WINDOW_MS = 30 * 60 * 1000;
 let chatPollForcedPublishAt = 0;
+// 채팅 오픈마다 /api/community 를 강제로 다시 받지 않도록, 강제 새로고침은 5분에 한 번으로 제한한다.
+const CHAT_POLL_OPEN_REFRESH_MS = 5 * 60 * 1000;
+let chatPollLastForceAt = 0;
 let chatIsOpen=false;
 let chatConnectionStatus='연결 준비 중';
 let chatIdleTimer=null;
@@ -7541,7 +7544,14 @@ function setChatOpen(open, options={}){
     try{ window.loadChatDonors?.(); }catch{}
     // 국장 토론방 일일 투표를 채팅 말풍선으로 띄울 수 있도록 한 번만 가볍게 받아둔다.
     // 이미 토론방을 방문해서 캐시가 있으면 fetch 가 즉시 캐시를 반환한다.
-    try{ fetchChatPollSnapshot({force:true}).then(()=>{ if(chatIsOpen) renderChatMessages({preserveScroll:true}); }); }catch{}
+    try{
+      // 캐시가 없으면 한 번 받고, 있으면 5분에 한 번만 강제 새로고침(관리자 '지금 게시' 반영용).
+      const pollFresh = !!communityPollsByChannel?.kr && (Date.now() - chatPollLastForceAt) < CHAT_POLL_OPEN_REFRESH_MS;
+      if(!pollFresh){
+        chatPollLastForceAt = Date.now();
+        fetchChatPollSnapshot({force:true}).then(()=>{ if(chatIsOpen) renderChatMessages({preserveScroll:true}); });
+      }
+    }catch{}
     requestAnimationFrame(()=>{
       applyChatPanelPosition({saveClamp:true});
       scrollChatToBottom();
