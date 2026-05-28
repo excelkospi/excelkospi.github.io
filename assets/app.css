@@ -1805,7 +1805,7 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
 /* 더보기 셀은 템플릿 줄바꿈 공백이 실제 줄로 보이면 안 된다. */
 .community-reply-more-cell{white-space:nowrap!important}
 /* 더보기 클릭 영역은 일반 inline 텍스트(span). 어떤 user agent 기본 스타일도 받지 않음. */
-.community-reply-more-btn{color:#107c41;font-weight:650;cursor:pointer;letter-spacing:-.1px;text-decoration:underline;text-underline-offset:2px}
+.community-reply-more-btn{border:0;background:none;padding:0;font:inherit;color:#107c41;font-weight:550;cursor:pointer;letter-spacing:-.1px;text-decoration:underline;text-underline-offset:2px}
 .community-reply-more-btn:hover{color:#0b5f32;text-decoration-thickness:1.5px}
 .community-reply-more-btn:focus-visible{outline:1px dotted #107c41;outline-offset:2px}
 .community-reply-row td:not(.rownum){background:#eef8f1}
@@ -3493,6 +3493,10 @@ body.excel-dark-mode:not(.theme-outlook) .chat-poll-choice.selected{background:#
  * 기존엔 ✦ 마크가 작아서 별인지 다이아인지 헷갈렸다. */
 .chat-recommend-badge{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;min-width:17px;padding:0;border:1px solid #e2cf8a;border-radius:999px;background:#fff8d8;color:#a8851d;font-size:11px;font-weight:800;line-height:1;white-space:nowrap;cursor:help;box-shadow:inset 0 -1px 0 rgba(120,95,40,.08),0 1px 1px rgba(168,133,29,.12);vertical-align:-2px}
 .chat-time{margin-left:auto;font-variant-numeric:tabular-nums}
+/* '루팡 중' 뱃지 — 위장을 위해 작고 무채색에 가깝게. */
+.chat-lupang-badge{font-size:10px;font-weight:600;color:#9a8f6b;white-space:nowrap;letter-spacing:-.2px}
+.chat-excel-nick .chat-lupang-badge{margin-left:5px;font-weight:500;color:#8a8470}
+body.excel-dark-mode:not(.theme-outlook) .chat-lupang-badge{color:#9a937c}
 .chat-report,.chat-recommend{border:0;background:transparent;color:#8a6d3b;cursor:pointer;font-size:10.5px;padding:0 2px;white-space:nowrap}
 .chat-recommend{color:#8a6d2a;font-weight:750}
 .chat-report:hover,.chat-recommend:hover{text-decoration:underline}

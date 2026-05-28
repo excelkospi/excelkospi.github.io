@@ -1586,7 +1586,7 @@ function renderCommunityTable(state='ready'){
           const moreLabel = item.parentId ? '대댓글' : '댓글';
           const visibleText = `${Math.min(item.visibleCount, item.total)}/${item.total}`;
           const moreTailCell = compact ? '' : '<td class="center community-action-cell flat"></td>';
-          rows.push(`<tr class="community-comment-row community-reply-more-row community-comment-depth-${item.depth}" data-community-parent="${esc(post.id)}" data-community-reply-more-parent="${esc(item.parentId)}"><td class="rownum">${rowNum++}</td><td class="center community-author flat"></td><td class="left community-comment-body community-reply-more-cell"><span class="community-reply-more-btn" role="button" tabindex="0" data-community-replies-more="${esc(moreKey)}" data-post-id="${esc(post.id)}" data-parent-comment="${esc(item.parentId)}" data-visible-count="${esc(item.visibleCount)}">${moreLabel} 더보기 (${visibleText})</span></td><td class="center time flat">-</td>${moreTailCell}</tr>`);
+          rows.push(`<tr class="community-comment-row community-reply-more-row community-comment-depth-${item.depth}" data-community-parent="${esc(post.id)}" data-community-reply-more-parent="${esc(item.parentId)}"><td class="rownum">${rowNum++}</td><td class="center community-author flat"></td><td class="left community-comment-body community-reply-more-cell"><button type="button" class="community-reply-more-btn" data-community-replies-more="${esc(moreKey)}" data-post-id="${esc(post.id)}" data-parent-comment="${esc(item.parentId)}" data-visible-count="${esc(item.visibleCount)}">${moreLabel} 더보기 (${visibleText})</button></td><td class="center time flat">-</td>${moreTailCell}</tr>`);
           return;
         }
         const { comment, depth } = item;
@@ -1905,9 +1905,6 @@ function bindCommunityTable(){
       renderCommunityTable();
     };
     btn.addEventListener('click', handler);
-    btn.addEventListener('keydown', (ev)=>{
-      if(ev.key === 'Enter' || ev.key === ' ') handler(ev);
-    });
   });
   document.querySelectorAll('[data-community-image-src]').forEach((btn)=>{
     btn.addEventListener('click', (ev)=>{

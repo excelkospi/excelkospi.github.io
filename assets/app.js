@@ -6429,6 +6429,57 @@ let chatPreviewMode=false;
 let chatPreviewPollTimer=null;
 let chatOptimisticSeq=0;
 let chatLastActivityAt=Date.now();
+// '루팡 중' 뱃지: 오늘 채팅창을 띄워둔 누적 시간을 브라우저에 기억한다. 열고 닫아도 이어서 누적되고,
+// 날짜가 바뀌면 0으로 리셋된다. 전송 시점의 누적값(10분 단위)을 메시지에 실어 모두에게 보여 준다.
+const LUPANG_KEY='excelkospi.lupangToday.v1';
+let lupangOpenStart=0;
+let lupangFlushTimer=null;
+function lupangTodayDate(){ return new Date().toISOString().slice(0,10); }
+function lupangReadMs(){
+  try{
+    const s=JSON.parse(localStorage.getItem(LUPANG_KEY)||'null');
+    if(s && s.date===lupangTodayDate()) return Math.max(0, Number(s.ms)||0);
+  }catch{}
+  return 0;
+}
+function lupangWriteMs(ms){
+  try{ localStorage.setItem(LUPANG_KEY, JSON.stringify({date:lupangTodayDate(), ms:Math.max(0, Math.round(ms))})); }catch{}
+}
+function lupangFlush(){
+  if(!lupangOpenStart) return;
+  const now=Date.now();
+  lupangWriteMs(lupangReadMs() + Math.max(0, now - lupangOpenStart));
+  lupangOpenStart=now;
+}
+function lupangStartTracking(){
+  if(lupangOpenStart) return;
+  lupangOpenStart=Date.now();
+  if(!lupangFlushTimer) lupangFlushTimer=setInterval(()=>{ if(!document.hidden) lupangFlush(); }, 60*1000);
+}
+function lupangStopTracking(){
+  lupangFlush();
+  lupangOpenStart=0;
+  if(lupangFlushTimer){ clearInterval(lupangFlushTimer); lupangFlushTimer=null; }
+}
+function lupangMinutesNow(){
+  const ms=lupangReadMs() + (lupangOpenStart ? Math.max(0, Date.now()-lupangOpenStart) : 0);
+  return Math.floor(ms / (10*60*1000)) * 10; // 10분 단위
+}
+function lupangBadgeText(minutes){
+  const m=Math.max(0, Math.floor(Number(minutes)/10)*10);
+  if(m < 10) return '';
+  if(m < 60) return `${m}분째 루팡 중`;
+  const h=Math.floor(m/60); const rem=m%60;
+  return rem ? `${h}시간 ${rem}분째 루팡 중` : `${h}시간째 루팡 중`;
+}
+function lupangBadgeHtml(message){
+  const text=lupangBadgeText(Number(message?.lupang_min));
+  return text ? `<span class="chat-lupang-badge" title="오늘 채팅창을 띄워둔 누적 시간">${esc(text)}</span>` : '';
+}
+try{
+  window.addEventListener('pagehide', lupangFlush);
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) lupangFlush(); });
+}catch{}
 let chatPanelLarge=readStringSetting(CHAT_SIZE_KEY, 'normal', new Set(['normal','large'])) === 'large';
 let chatExcelMode=readBoolSetting(CHAT_EXCEL_MODE_KEY, false);
 function chatImagePreviewEnabled(){
@@ -7473,6 +7524,7 @@ function setChatOpen(open, options={}){
     chatPollingSleeping=false;
     chatHasNewBelow=false;
     chatLastActivityAt=Date.now();
+    lupangStartTracking();
     setChatPresenceOpen(true);
     clearClosedChatPoll();
     setChatUnread(false);
@@ -7496,6 +7548,7 @@ function setChatOpen(open, options={}){
     startChatIdleSleepTimer();
   }else{
     chatPollingSleeping=false;
+    lupangStopTracking();
     setChatPresenceOpen(false);
     chatPreviewMode=false;
     clearChatPreviewPoll();
@@ -8157,7 +8210,7 @@ function renderChatMessagesExcel(body){
     const rowClass=`chat-excel-row${isOwn?' own':''}${isAdminNick?' admin':''}${m._pending?' chat-msg-pending':''}`;
     return `<tr class="${rowClass} chat-excel-meta-row" data-chat-id="${esc(m.id)}">
       <td class="rownum" rowspan="2">${rowNum}</td>
-      <td class="left chat-excel-nick${isAdminNick?' admin-nick':''}${chatRecommendBadge(m) && !isAdminNick ? ' recommended-nick' : ''}" colspan="2">${chatNickMarkup(m, {isAdminNick})}${warn}</td>
+      <td class="left chat-excel-nick${isAdminNick?' admin-nick':''}${chatRecommendBadge(m) && !isAdminNick ? ' recommended-nick' : ''}" colspan="2">${chatNickMarkup(m, {isAdminNick})}${warn}${lupangBadgeHtml(m)}</td>
       <td class="center chat-excel-time">${m._pending ? '전송 중…' : fmtTime(m.created_at)}</td>
     </tr>
     <tr class="${rowClass} chat-excel-body-row" data-chat-id="${esc(m.id)}">
@@ -8214,6 +8267,7 @@ function renderChatMessages(options={}){
       return `<div class="chat-msg${isOwn?' own':''}${isAdminNick?' admin':''}${m._pending?' chat-msg-pending':''}" data-chat-id="${esc(m.id)}">
         <div class="chat-meta">
           ${chatNickMarkup(m, {isAdminNick})}
+          ${lupangBadgeHtml(m)}
           ${m.report_count>=4 ? '<span title="신고 누적">⚠</span>' : ''}
           <span class="chat-time">${m._pending ? '전송 중…' : fmtTime(m.created_at)}</span>
           <button class="chat-recommend" type="button" data-recommend-id="${esc(m.id)}" ${recommendDisabled?'disabled':''}>${esc(chatRecommendButtonLabel(m))}</button>
@@ -8341,6 +8395,8 @@ function sendChatMessage(body){
   }
   enforceChatNicknameInput();
   chatLastSendAt=now;
+  lupangFlush();
+  const lupangMin=lupangMinutesNow();
   const tempId=`pending_${now}_${++chatOptimisticSeq}`;
   const optimistic={
     id:tempId,
@@ -8349,16 +8405,17 @@ function sendChatMessage(body){
     body:text,
     report_count:0,
     created_at:new Date(now).toISOString(),
+    lupang_min:lupangMin,
     _pending:true,
   };
   addChatMessage(optimistic, {forceBottom:true});
   const {input}=chatEls();
   if(input && String(input.value || '').trim().replace(/\s+/g,' ') === text) input.value='';
   refocusChatInput();
-  deliverChatMessage(text, tempId);
+  deliverChatMessage(text, tempId, lupangMin);
 }
 
-async function deliverChatMessage(text, tempId){
+async function deliverChatMessage(text, tempId, lupangMin=0){
   try{
     await initChat();
     await ensureChatConfig();
@@ -8386,6 +8443,7 @@ async function deliverChatMessage(text, tempId){
         user_id:chatUserId(),
         nickname:chatNickname(),
         body:text,
+        lupang_min:lupangMin,
       }),
     });
     if(!data?.message) throw new Error(data?.error || 'chat_send_failed');
