@@ -2978,8 +2978,10 @@ function renderPresenceToggled(){
     items.push(presenceState.todayMode === 'visits_30m' ? `오늘 사용자 ${count}명` : `오늘 ${count}명`);
   }
   if(Number.isFinite(presenceState.todayPageViews) && presenceState.todayPageViews > 0){
-    items.push(`오늘 페이지뷰 ${presenceState.todayPageViews.toLocaleString('ko-KR')}회`);
+    items.push(`오늘 PV ${presenceState.todayPageViews.toLocaleString('ko-KR')}회`);
   }
+  const lupang = typeof lupangStatusText === 'function' ? lupangStatusText() : '';
+  if(lupang) items.push(lupang);
   if(items.length === 0){ el.textContent = '현재 접속 -'; return; }
   el.textContent = items[presenceToggleIdx % items.length];
   presenceToggleIdx++;
@@ -6455,9 +6457,10 @@ function lupangFlush(){
   lupangOpenStart=now;
 }
 function lupangStartTracking(){
-  if(lupangOpenStart) return;
+  // 채팅창이 열려 있고, 탭이 실제로 보이는 동안에만 누적한다(백그라운드 시간 제외).
+  if(lupangOpenStart || document.hidden || !chatIsOpen) return;
   lupangOpenStart=Date.now();
-  if(!lupangFlushTimer) lupangFlushTimer=setInterval(()=>{ if(!document.hidden) lupangFlush(); }, 60*1000);
+  if(!lupangFlushTimer) lupangFlushTimer=setInterval(()=>{ if(chatIsOpen && !document.hidden) lupangFlush(); }, 60*1000);
 }
 function lupangStopTracking(){
   lupangFlush();
@@ -6467,6 +6470,12 @@ function lupangStopTracking(){
 function lupangMinutesNow(){
   const ms=lupangReadMs() + (lupangOpenStart ? Math.max(0, Date.now()-lupangOpenStart) : 0);
   return Math.floor(ms / 60000); // 분 단위
+}
+// 하단바 로테이션용: 내 오늘 누적 루팡 시간(H:MM). 1분 미만이면 표시하지 않는다.
+function lupangStatusText(){
+  const m=lupangMinutesNow();
+  if(m < 1) return '';
+  return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}째 루팡 중`;
 }
 function lupangBadgeText(minutes){
   const n=Number(minutes);
@@ -6481,8 +6490,12 @@ function lupangBadgeHtml(message){
   return text ? `<span class="chat-lupang-badge" title="오늘 채팅창을 띄워둔 누적 시간">${esc(text)}</span>` : '';
 }
 try{
-  window.addEventListener('pagehide', lupangFlush);
-  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) lupangFlush(); });
+  window.addEventListener('pagehide', lupangStopTracking);
+  // 탭이 가려지면 누적을 멈추고(보는 시간만 집계), 다시 보이고 채팅이 열려 있으면 재개한다.
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden) lupangStopTracking();
+    else if(chatIsOpen) lupangStartTracking();
+  });
 }catch{}
 let chatPanelLarge=readStringSetting(CHAT_SIZE_KEY, 'normal', new Set(['normal','large'])) === 'large';
 let chatExcelMode=readBoolSetting(CHAT_EXCEL_MODE_KEY, false);
