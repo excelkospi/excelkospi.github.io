@@ -91,7 +91,7 @@ let timelineTab = (()=>{
     return v==='community' || v==='etf' ? v : 'news';
   }catch{ return 'news'; }
 })();
-const ETF_SCRIPT_VERSION = '20260527-591';
+const ETF_SCRIPT_VERSION = '20260528-621';
 const TIMELINE_TAB_ORDER = ['news', 'community-kr', 'community-us', 'community-coin', 'community-ops', 'etf'];
 let etfModulePromise = null;
 
@@ -1984,6 +1984,7 @@ function userCardLink(c){
   }
   if(c.market==='KR'){
     if(String(c.code || '').toUpperCase() === 'JPYKRW=X') return 'https://finance.yahoo.com/quote/JPYKRW%3DX';
+    if(String(c.code || '').toUpperCase() === 'EURKRW=X') return 'https://finance.yahoo.com/quote/EURKRW%3DX';
     if(c.code==='KOSPI'||c.code==='KOSDAQ') return `https://finance.naver.com/sise/sise_index.naver?code=${esc(c.code)}`;
     return `https://finance.naver.com/item/main.naver?code=${esc(c.code)}`;
   }
@@ -6412,6 +6413,9 @@ let chatPollVoteInFlight=false;
 const CHAT_POLL_MIN_MESSAGES = 10;
 const CHAT_POLL_INSERT_DELAY_MS = 5 * 60 * 1000;
 const CHAT_POLL_BUBBLE_INTERVAL_MS = 5 * 60 * 1000;
+// 관리자가 '지금 채팅방에 게시'를 누르면 이 시간 안에 접속한 사용자에겐 타이밍 게이트를 건너뛰고 바로 띄운다.
+const CHAT_POLL_FORCE_WINDOW_MS = 30 * 60 * 1000;
+let chatPollForcedPublishAt = 0;
 let chatIsOpen=false;
 let chatConnectionStatus='연결 준비 중';
 let chatIdleTimer=null;
@@ -6423,7 +6427,7 @@ let chatOpenPollTicks=0;
 let chatLastSeenAt=null;
 let chatPreviewMode=false;
 let chatPreviewPollTimer=null;
-let chatSendInFlight=false;
+let chatOptimisticSeq=0;
 let chatLastActivityAt=Date.now();
 let chatPanelLarge=readStringSetting(CHAT_SIZE_KEY, 'normal', new Set(['normal','large'])) === 'large';
 let chatExcelMode=readBoolSetting(CHAT_EXCEL_MODE_KEY, false);
@@ -7167,9 +7171,11 @@ function readChatMessagesCache(){
 
 function writeChatMessagesCache(rows){
   try{
+    // 전송 대기(낙관적) 말풍선은 캐시에 남기지 않는다 — 새로고침 시 멈춘 '전송 중'을 막는다.
+    const persistable=(Array.isArray(rows) ? rows : []).filter((m)=>m && !m._pending);
     localStorage.setItem(CHAT_MESSAGES_CACHE_KEY, JSON.stringify({
       at:Date.now(),
-      messages:(Array.isArray(rows) ? rows : []).slice(-CHAT_INITIAL_LIMIT),
+      messages:persistable.slice(-CHAT_INITIAL_LIMIT),
     }));
   }catch{}
 }
@@ -7229,7 +7235,7 @@ function renderChatStatus(){
     : chatPresenceCount;
   const chatCount = Number.isFinite(Number(viewers)) ? Math.max(0, Number(viewers)) : 0;
   const siteOnline = Number.isFinite(Number(presenceState.online)) ? Math.max(0, Number(presenceState.online)) : null;
-  const baseText = `채팅 ${chatCount}명 · 사이트 동접 ${siteOnline == null ? '-' : siteOnline}명`;
+  const baseText = `채팅 ${chatCount}명 · 사이트 ${siteOnline == null ? '-' : siteOnline}명`;
   const showStatus = /지연|오류|실패|절전|닫힘|설정|불러오는|미리보기/.test(chatConnectionStatus || '');
   const statusText = showStatus ? `${baseText} · ${chatConnectionStatus}` : baseText;
   el.innerHTML=`<span class="chat-live-dot" aria-hidden="true"></span><span>${esc(statusText)}</span>`;
@@ -7482,7 +7488,7 @@ function setChatOpen(open, options={}){
     try{ window.loadChatDonors?.(); }catch{}
     // 국장 토론방 일일 투표를 채팅 말풍선으로 띄울 수 있도록 한 번만 가볍게 받아둔다.
     // 이미 토론방을 방문해서 캐시가 있으면 fetch 가 즉시 캐시를 반환한다.
-    try{ fetchChatPollSnapshot().then(()=>{ if(chatIsOpen) renderChatMessages({preserveScroll:true}); }); }catch{}
+    try{ fetchChatPollSnapshot({force:true}).then(()=>{ if(chatIsOpen) renderChatMessages({preserveScroll:true}); }); }catch{}
     requestAnimationFrame(()=>{
       applyChatPanelPosition({saveClamp:true});
       scrollChatToBottom();
@@ -7913,7 +7919,7 @@ function chatPollBubbleRowsHtml(notice, rowNum){
     <td class="right chat-excel-time chat-poll-excel-meta" colspan="2">지금 <span class="chat-poll-count">${esc(chatPollParticipationLabel(poll))}</span></td>
   </tr>
   <tr class="chat-excel-row chat-poll-row chat-excel-body-row">
-    <td class="left chat-excel-body chat-poll-excel-body" colspan="3">${chatPollBubbleBodyHtml(poll)}</td>
+    <td class="left chat-excel-body chat-poll-excel-body" colspan="3"><div class="chat-poll-excel-stack">${chatPollBubbleBodyHtml(poll)}</div></td>
   </tr>`;
 }
 
@@ -7932,18 +7938,27 @@ function pruneChatFlowNotices(){
 
 function ensureChatPollFlowNotice(){
   const poll=currentChatPollSnapshot();
-  if(!poll || chatMessages.length < CHAT_POLL_MIN_MESSAGES) return null;
-  if(chatPollNotice && String(chatPollNotice.pollId || '') === String(poll.id || '')) return chatPollNotice;
+  if(!poll) return null;
+  const publishAt=Date.parse(poll.chatPublishAt || '') || 0;
+  const sincePublish=publishAt ? Date.now() - publishAt : Infinity;
+  const forced=publishAt > 0 && sincePublish >= 0 && sincePublish < CHAT_POLL_FORCE_WINDOW_MS && chatPollForcedPublishAt !== publishAt;
+  if(!forced && chatMessages.length < CHAT_POLL_MIN_MESSAGES) return null;
+  if(chatPollNotice && String(chatPollNotice.pollId || '') === String(poll.id || '')){
+    if(forced) chatPollForcedPublishAt=publishAt;
+    return chatPollNotice;
+  }
   const now=Date.now();
-  if(chatPollLastInsertedAt && now - chatPollLastInsertedAt < CHAT_POLL_BUBBLE_INTERVAL_MS){
-    if(!chatPollEligibleSince) chatPollEligibleSince=now;
-    return null;
+  if(!forced){
+    if(chatPollLastInsertedAt && now - chatPollLastInsertedAt < CHAT_POLL_BUBBLE_INTERVAL_MS){
+      if(!chatPollEligibleSince) chatPollEligibleSince=now;
+      return null;
+    }
+    if(!chatPollEligibleSince){
+      chatPollEligibleSince=now;
+      return null;
+    }
+    if(now - chatPollEligibleSince < CHAT_POLL_INSERT_DELAY_MS) return null;
   }
-  if(!chatPollEligibleSince){
-    chatPollEligibleSince=now;
-    return null;
-  }
-  if(now - chatPollEligibleSince < CHAT_POLL_INSERT_DELAY_MS) return null;
   const anchor=randomChatNoticeAnchor();
   const anchorId=chatMessageKey(anchor);
   if(!anchorId) return null;
@@ -7956,6 +7971,7 @@ function ensureChatPollFlowNotice(){
   };
   chatPollLastInsertedAt=now;
   chatPollEligibleSince=0;
+  if(forced) chatPollForcedPublishAt=publishAt;
   return chatPollNotice;
 }
 
@@ -8138,11 +8154,11 @@ function renderChatMessagesExcel(body){
       <button class="chat-admin-action" type="button" data-chat-admin-action="ban" data-user-id="${esc(m.user_id)}">1시간</button>
     </span>` : '';
     const warn=m.report_count>=4 ? ' <span class="chat-excel-warn" title="신고 누적">⚠</span>' : '';
-    const rowClass=`chat-excel-row${isOwn?' own':''}${isAdminNick?' admin':''}`;
+    const rowClass=`chat-excel-row${isOwn?' own':''}${isAdminNick?' admin':''}${m._pending?' chat-msg-pending':''}`;
     return `<tr class="${rowClass} chat-excel-meta-row" data-chat-id="${esc(m.id)}">
       <td class="rownum" rowspan="2">${rowNum}</td>
       <td class="left chat-excel-nick${isAdminNick?' admin-nick':''}${chatRecommendBadge(m) && !isAdminNick ? ' recommended-nick' : ''}" colspan="2">${chatNickMarkup(m, {isAdminNick})}${warn}</td>
-      <td class="center chat-excel-time">${fmtTime(m.created_at)}</td>
+      <td class="center chat-excel-time">${m._pending ? '전송 중…' : fmtTime(m.created_at)}</td>
     </tr>
     <tr class="${rowClass} chat-excel-body-row" data-chat-id="${esc(m.id)}">
       <td class="left chat-excel-body" colspan="3">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions(m, {linkUrls:true, linkPolicy:chatLinkPolicy()}))}<span class="chat-excel-row-actions"><button class="chat-recommend chat-excel-recommend" type="button" data-recommend-id="${esc(m.id)}" ${recommendDisabled?'disabled':''}>${esc(chatRecommendButtonLabel(m))}</button><button class="chat-report chat-excel-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>${adminActions}</span></td>
@@ -8195,11 +8211,11 @@ function renderChatMessages(options={}){
         <button class="chat-admin-action admin-action-danger" type="button" data-chat-admin-action="delete" data-message-id="${esc(m.id)}">삭제</button>
         <button class="chat-admin-action" type="button" data-chat-admin-action="ban" data-user-id="${esc(m.user_id)}">1시간</button>
       </span>` : '';
-      return `<div class="chat-msg${isOwn?' own':''}${isAdminNick?' admin':''}" data-chat-id="${esc(m.id)}">
+      return `<div class="chat-msg${isOwn?' own':''}${isAdminNick?' admin':''}${m._pending?' chat-msg-pending':''}" data-chat-id="${esc(m.id)}">
         <div class="chat-meta">
           ${chatNickMarkup(m, {isAdminNick})}
           ${m.report_count>=4 ? '<span title="신고 누적">⚠</span>' : ''}
-          <span class="chat-time">${fmtTime(m.created_at)}</span>
+          <span class="chat-time">${m._pending ? '전송 중…' : fmtTime(m.created_at)}</span>
           <button class="chat-recommend" type="button" data-recommend-id="${esc(m.id)}" ${recommendDisabled?'disabled':''}>${esc(chatRecommendButtonLabel(m))}</button>
           <button class="chat-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>
           ${adminActions}
@@ -8311,36 +8327,58 @@ async function guardChatMessage(text, label='채팅'){
   }
 }
 
-async function sendChatMessage(body){
-  if(chatSendInFlight) return;
+// 낙관적 전송: 사용자에게는 즉시 보낸 것처럼 말풍선을 띄우고 입력창을 바로 비운다.
+// 실제 전송(검사·POST)은 백그라운드에서 진행하고, 실패하면 말풍선을 거두고 토스트로 알린다.
+function sendChatMessage(body){
   const text=String(body || '').trim().replace(/\s+/g,' ');
   if(!text) return;
   if(text.length>280){ showToast('채팅은 280자까지 가능합니다', 'warn'); return; }
+  const now=Date.now();
+  const gapMs=chatSendGapMs();
+  if(now-chatLastSendAt<gapMs){
+    showToast(`채팅은 ${Math.ceil(gapMs/1000)}초에 한 번만 보낼 수 있어요`, 'warn');
+    return;
+  }
   enforceChatNicknameInput();
-  chatSendInFlight=true;
-  setChatSending(true);
+  chatLastSendAt=now;
+  const tempId=`pending_${now}_${++chatOptimisticSeq}`;
+  const optimistic={
+    id:tempId,
+    user_id:chatUserId(),
+    nickname:chatNickname(),
+    body:text,
+    report_count:0,
+    created_at:new Date(now).toISOString(),
+    _pending:true,
+  };
+  addChatMessage(optimistic, {forceBottom:true});
+  const {input}=chatEls();
+  if(input && String(input.value || '').trim().replace(/\s+/g,' ') === text) input.value='';
+  refocusChatInput();
+  deliverChatMessage(text, tempId);
+}
+
+async function deliverChatMessage(text, tempId){
   try{
     await initChat();
     await ensureChatConfig();
     if(!chatConfig?.enabled){
+      removeOptimisticChatMessage(tempId);
       showToast('채팅 저장소 연결이 필요합니다', 'warn');
       return;
     }
     const chatBan=await checkChatBan();
     if(chatBan?.until && chatBan.until>Date.now()){
+      removeOptimisticChatMessage(tempId);
       const reason=chatBan.reason==='blocked_term_attempts' ? '금지 표현 반복 시도로' : '신고 누적으로';
       showToast(`${reason} ${fmtTime(chatBan.until.toISOString())}까지 채팅 제한`, 'err');
       return;
     }
-    if(!(await guardChatMessage(text))) return;
-    const now=Date.now();
-    const gapMs=chatSendGapMs();
-    if(now-chatLastSendAt<gapMs){
-      showToast(`채팅은 ${Math.ceil(gapMs/1000)}초에 한 번만 보낼 수 있어요`, 'warn');
+    if(!(await guardChatMessage(text))){
+      // guardChatMessage 가 사유 토스트를 이미 띄운다.
+      removeOptimisticChatMessage(tempId);
       return;
     }
-    chatLastSendAt=now;
-    const {input}=chatEls();
     const data=await fetchJsonClient('/api/chat-messages', 6000, {
       method:'POST',
       headers:isInlineAdmin() ? adminAuthHeaders({'content-type':'application/json'}) : {'content-type':'application/json'},
@@ -8351,10 +8389,10 @@ async function sendChatMessage(body){
       }),
     });
     if(!data?.message) throw new Error(data?.error || 'chat_send_failed');
-    addChatMessage(data.message);
+    replaceOptimisticChatMessage(tempId, data.message);
     startOpenChatPoll({immediate:false});
-    if(input && String(input.value || '').trim().replace(/\s+/g,' ') === text) input.value='';
   }catch(e){
+    removeOptimisticChatMessage(tempId);
     const msg=String(e.message || e);
     if(msg.includes('rate_limited')){
       const seconds=Number(e?.payload?.sendGapSeconds || e?.payload?.retryAfter || 0);
@@ -8362,11 +8400,38 @@ async function sendChatMessage(body){
     }else{
       showToast(msg.includes('row-level') || msg.includes('policy') ? '채팅 제한 중이거나 너무 빠르게 보냈습니다' : `채팅 전송 실패: ${msg}`, 'err');
     }
-  }finally{
-    chatSendInFlight=false;
-    setChatSending(false);
-    refocusChatInput();
   }
+}
+
+function removeOptimisticChatMessage(tempId){
+  const key=String(tempId || '');
+  if(!key) return;
+  const before=chatMessages.length;
+  chatMessages=chatMessages.filter((m)=>String(m?.id) !== key);
+  if(chatMessages.length !== before){
+    writeChatMessagesCache(chatMessages);
+    renderChatMessages({preserveScroll:true});
+  }
+}
+
+function replaceOptimisticChatMessage(tempId, message){
+  if(!message){ removeOptimisticChatMessage(tempId); return; }
+  const key=String(tempId || '');
+  const idx=chatMessages.findIndex((m)=>String(m?.id) === key);
+  const realIdx=chatMessages.findIndex((m)=>m && String(m.id) !== key && m.id===message.id);
+  if(idx === -1){
+    // 낙관적 말풍선이 이미 사라졌다면(폴링이 먼저 받았을 수 있음) 중복만 피한다.
+    if(realIdx === -1) addChatMessage(message, {forceBottom:false});
+    return;
+  }
+  if(realIdx !== -1){
+    chatMessages.splice(idx, 1);
+  }else{
+    chatMessages[idx]=message;
+  }
+  syncChatRecommendBadgesFromMessages({announce:true});
+  writeChatMessagesCache(chatMessages);
+  renderChatMessages({preserveScroll:true});
 }
 
 async function reportChatMessage(id){
@@ -8856,18 +8921,24 @@ function persistDb(){
   });
 }
 async function persistSet(key, value){
+  let db=null;
   try{
-    const db=await persistDb();
+    db=await persistDb();
     const tx=db.transaction('kv','readwrite');
     tx.objectStore('kv').put(value, key);
+    await txDone(tx);
   }catch{}
+  finally{ try{ db?.close?.(); }catch{} }
 }
 async function persistRemove(key){
+  let db=null;
   try{
-    const db=await persistDb();
+    db=await persistDb();
     const tx=db.transaction('kv','readwrite');
     tx.objectStore('kv').delete(key);
+    await txDone(tx);
   }catch{}
+  finally{ try{ db?.close?.(); }catch{} }
 }
 function txDone(tx){
   return new Promise(resolve=>{
@@ -8939,6 +9010,12 @@ async function restorePersistentSettings(){
     applyChatPanelSize();
     applyReadabilityMode();
     syncUpdatesBadge();
+    // 복원으로 관심종목이 되살아났는데 시세표가 이미 비어 있는 채로 그려졌다면 다시 그린다.
+    try{
+      if(restoredAny && lastSnapshot && wlLoad().length && typeof rerenderCardsTableFromCurrentState === 'function'){
+        rerenderCardsTableFromCurrentState();
+      }
+    }catch{}
     await persistAllSettings();
   }catch{}
   finally{
@@ -9290,7 +9367,7 @@ async function addWatchlistItem(rawCode, market){
   }
   const selectedSheet = String(currentRenderedMarket || selected || '').toUpperCase();
   const quoteCode = String(q.code || '').toUpperCase();
-  const itemMarket = quoteCode === 'JPYKRW=X' && (selectedSheet === 'KR' || selectedSheet === 'US')
+  const itemMarket = (quoteCode === 'JPYKRW=X' || quoteCode === 'EURKRW=X') && (selectedSheet === 'KR' || selectedSheet === 'US')
     ? selectedSheet
     : q.market;
   if(list.find(x=>wlSame(x.code, q.code) && String(x.market||'').toUpperCase()===String(itemMarket||'').toUpperCase())){

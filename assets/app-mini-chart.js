@@ -144,6 +144,38 @@ function miniChartFootPriceText(card, data){
   return `${currency || ''}${quotePriceNumberText(last, currency, displayPriceUnit(card), card?.priceUnit)}`;
 }
 
+function miniChartUsdMarketCapText(value){
+  const n=Number(value);
+  if(!Number.isFinite(n) || n <= 0) return '';
+  if(n >= 1e12) return `$${(n / 1e12).toFixed(n >= 10e12 ? 0 : 1)}T`;
+  if(n >= 1e9) return `$${(n / 1e9).toFixed(n >= 100e9 ? 0 : 1)}B`;
+  if(n >= 1e6) return `$${(n / 1e6).toFixed(n >= 100e6 ? 0 : 1)}M`;
+  return `$${numUsd(n)}`;
+}
+
+function miniChartKrwMarketCapText(value){
+  const n=Number(value);
+  if(!Number.isFinite(n) || n <= 0) return '';
+  const eok=n / 100000000;
+  if(eok >= 10000){
+    const jo=Math.floor(eok / 10000);
+    const rest=Math.round(eok % 10000);
+    return rest ? `${num(jo)}조 ${num(rest)}억` : `${num(jo)}조`;
+  }
+  return `${num(Math.round(eok))}억`;
+}
+
+function miniChartMarketCapText(data){
+  const cap=data?.marketCap;
+  const value=Number(cap?.value);
+  if(!Number.isFinite(value) || value <= 0) return '';
+  const currency=String(cap?.currency || '').toUpperCase();
+  const text = currency === 'KRW'
+    ? miniChartKrwMarketCapText(value)
+    : miniChartUsdMarketCapText(value);
+  return text ? `시총 ${text}` : '';
+}
+
 function renderMiniChartSvg(data, baseline=null, displayChange=null){
   const points=Array.isArray(data?.points) ? data.points : [];
   if(points.length < 2) return '<div class="mini-chart-empty">차트 데이터 없음</div>';
@@ -172,11 +204,15 @@ function renderMiniChart(row, token, data){
   const change=miniChartDisplayChange(card, data);
   const klass=cls(change);
   const baseline=miniChartBaseline(card, data, change);
-  const source=[data.source, data.range, fmtDt(data.asOf)].filter(Boolean).join(' · ');
+  const amountText=card ? changeAmountDisplayText(card, change) : '';
+  const pctText=pct(change);
+  const changeParts=[pctText !== '-' ? pctText : '', amountText].filter(Boolean);
+  const changeText=changeParts.length ? changeParts.join(' · ') : pctText;
+  const source=[data.source, data.range, miniChartMarketCapText(data), fmtDt(data.asOf)].filter(Boolean).join(' · ');
   miniChartEl.innerHTML=`
     <div class="mini-chart-head">
       <span class="mini-chart-title"><strong>${esc(label)}</strong></span>
-      <span class="${klass}">${pct(change)}</span>
+      <span class="${klass}">${esc(changeText)}</span>
       ${miniChartCloseButton()}
     </div>
     ${renderMiniChartSvg(data, baseline, change)}

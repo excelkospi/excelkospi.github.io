@@ -280,7 +280,7 @@ let adRotationTimer = null;
 let adCreativeTimer = null;
 const textAdSelections = {};
 const textAdSlotSelections = {};
-const AD_CREATIVE_ROTATION_MS = 5000;
+const AD_CREATIVE_ROTATION_MS = 7000;
 
 function normalizeTextAdWeight(value){
   const n = Number(value);
@@ -416,7 +416,8 @@ function textAdForPlacementSlot(placement, slotKey, options={}){
   }
   if(!rawAds.length) return null;
   const current = textAdById(textAdSlotSelections[key]?.id);
-  if(current && (!excludeIds.has(String(current.id || '')) || rawAds.length <= excludeIds.size + 1)) return current;
+  const currentAllowed = current && rawAds.some((ad)=>String(ad?.id || '') === String(current.id || ''));
+  if(currentAllowed && (!excludeIds.has(String(current.id || '')) || rawAds.length <= excludeIds.size + 1)) return current;
   const pickList = excludeIds.size ? rawAds.filter((ad)=>!excludeIds.has(String(ad?.id || ''))) : rawAds;
   const ad = weightedRandomTextAd(pickList.length ? pickList : rawAds);
   textAdSlotSelections[key] = { id:String(ad?.id || '') };
@@ -1646,7 +1647,10 @@ function renderCommunityTable(state='ready'){
   const pagination = communityPaginationRow(rowNum, dataCols);
   if(pagination) rowNum++;
   const usedRows = rowNum - 1;
-  const emptyCount = Math.max(0, TARGET - usedRows);
+  // 모바일에서는 페이지네이션 아래에 빈 행을 최소 5개 깔아, 떠 있는 시세알림·채팅 버튼에
+  // 페이지네이션이 가려지지 않도록 스크롤 여백을 확보한다. (버튼 위치는 그대로 둔다.)
+  const minTrailingRows = compact ? 5 : 0;
+  const emptyCount = Math.max(minTrailingRows, TARGET - usedRows);
   const empties = makeEmptyRows(rowNum, emptyCount, dataCols);
   table.innerHTML = communityTableHeader(compact, compose) +
     rows.join('') +
@@ -1879,12 +1883,6 @@ function bindCommunityTable(){
   document.querySelectorAll('[data-community-poll-choice]').forEach((btn)=>{
     btn.addEventListener('click', ()=>voteCommunityPoll(Number(btn.dataset.communityPollChoice)));
   });
-  body?.addEventListener('keydown', (ev)=>{
-    if(ev.key==='Enter' && !ev.shiftKey){
-      ev.preventDefault();
-      createCommunityPost();
-    }
-  });
   document.querySelectorAll('[data-community-report]').forEach((btn)=>{
     btn.addEventListener('click', ()=>reportCommunityPost(btn.dataset.communityReport));
   });
@@ -2012,10 +2010,7 @@ function bindCommunityTable(){
     communityDraftReplyBody = replyBody.value || '';
   });
   replyBody?.addEventListener('keydown', (ev)=>{
-    if(ev.key==='Enter' && !ev.shiftKey){
-      ev.preventDefault();
-      createCommunityComment(communityReplyPostId);
-    }else if(ev.key==='Escape'){
+    if(ev.key==='Escape'){
       ev.preventDefault();
       communityReplyPostId = '';
       communityReplyParentCommentId = '';

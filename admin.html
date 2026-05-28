@@ -179,6 +179,16 @@
     .report-card-note.ok{color:var(--green);background:var(--green-soft);border-color:#bfe1cd}
     .report-card-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
     .report-card-actions .btn{flex:1 1 auto;min-width:70px}
+    .poll-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+    .poll-card{display:flex;flex-direction:column;gap:8px;min-width:0;border:1px solid var(--line);border-radius:var(--radius);background:#fff;padding:12px 14px}
+    .poll-card.is-managed{border-color:#bfe1cd;background:#fbfffc}
+    .poll-card.is-disabled{opacity:.72;background:#fafbfc}
+    .poll-card-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+    .poll-card-title{font-size:13px;font-weight:800;color:var(--text);line-height:1.35}
+    .poll-card-question{font-size:13px;line-height:1.45;color:var(--muted-strong);word-break:break-word}
+    .poll-card-options{display:flex;flex-wrap:wrap;gap:5px}
+    .poll-card-meta{display:flex;flex-wrap:wrap;gap:5px;color:var(--muted);font-size:11.5px}
+    .poll-card-actions{display:flex;flex-wrap:wrap;gap:5px}
     /* === Stat strip === */
     .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
     .stat-tile{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;text-align:left;transition:border-color .12s,background-color .12s}
@@ -229,7 +239,7 @@
     @media(max-width:480px){
       .form-grid{grid-template-columns:1fr}
       .field.col-2,.field.col-3{grid-column:span 1}
-      .card-grid,.report-grid{grid-template-columns:1fr}
+      .card-grid,.report-grid,.poll-grid{grid-template-columns:1fr}
       .badge.hide-tight{display:none}
     }
   </style>
@@ -269,6 +279,7 @@
       <div class="tabbar" role="tablist">
         <button type="button" data-tab="moderation" class="active" role="tab" aria-selected="true">메시지·추방 <span class="tab-count" id="cntModeration">0</span></button>
         <button type="button" data-tab="terms" role="tab" aria-selected="false">차단 키워드 <span class="tab-count" id="cntTerms">0</span></button>
+        <button type="button" data-tab="polls" role="tab" aria-selected="false">투표 <span class="tab-count" id="cntPolls">0</span></button>
         <button type="button" data-tab="donors" role="tab" aria-selected="false">후원자 <span class="tab-count" id="cntDonors">0</span></button>
         <button type="button" data-tab="ads" role="tab" aria-selected="false">광고·리포트 <span class="tab-count" id="cntAds">0</span></button>
       </div>
@@ -398,6 +409,58 @@
             <summary>기본 내장 키워드 (수정 불가)</summary>
             <div class="builtin-groups" id="builtinGroups"></div>
           </details>
+        </section>
+      </div>
+
+      <!-- Tab: Polls -->
+      <div class="panel" data-panel="polls" role="tabpanel">
+        <section>
+          <h2>투표 관리 <span class="hint">종토방과 채팅 말풍선이 같은 집계를 사용</span></h2>
+          <p class="lead">채널별 질문과 선택지를 저장하면 해당 채널의 일일 투표에 바로 반영됩니다. 질문이나 선택지를 바꾸면 새 버전으로 집계되어 기존 표와 섞이지 않습니다.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="pollChannel">채널</label>
+              <select id="pollChannel">
+                <option value="kr">국내주식토론</option>
+                <option value="us">해외주식토론</option>
+                <option value="coin">코인토론</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>상태</label>
+              <label class="field-check" style="width:max-content"><input id="pollEnabled" type="checkbox" checked> 투표 노출</label>
+            </div>
+            <div class="field col-2">
+              <label for="pollQuestion">질문 *</label>
+              <input id="pollQuestion" type="text" maxlength="100" placeholder="예: 내일 장은 어떻게 보세요?">
+            </div>
+            <div class="field col-2">
+              <label for="pollOptions">선택지 * <span style="color:var(--muted);font-weight:500;font-size:11px">2~4개, 줄바꿈 또는 쉼표 구분</span></label>
+              <textarea id="pollOptions" rows="3" maxlength="140" placeholder="상승&#10;하락&#10;보합"></textarea>
+            </div>
+            <div class="field">
+              <label for="pollKicker">종토방 배지 문구</label>
+              <input id="pollKicker" type="text" maxlength="24" placeholder="비우면 자동">
+            </div>
+            <div class="field">
+              <label for="pollTimeLabel">종토방 시간 라벨</label>
+              <input id="pollTimeLabel" type="text" maxlength="16" placeholder="비우면 자동">
+            </div>
+          </div>
+          <div class="field-actions">
+            <button class="btn primary" id="pollSaveBtn" type="button">투표 저장</button>
+            <button class="btn" id="pollPublishChatBtn" type="button" title="국내주식 투표를 지금 채팅방 말풍선으로 띄웁니다">지금 채팅방에 띄우기</button>
+            <button class="btn" id="pollResetConfigBtn" type="button">이 채널 기본값 복원</button>
+            <button class="btn" id="pollRefreshBtn" type="button">투표 새로고침</button>
+            <span class="inline-status" id="pollStatus"></span>
+          </div>
+        </section>
+
+        <section>
+          <h2>현재 투표</h2>
+          <div class="poll-grid" id="pollRows">
+            <div class="ad-empty">불러오면 표시됩니다.</div>
+          </div>
         </section>
       </div>
 
@@ -649,6 +712,7 @@
     let latestAdReports=[];
     let latestCustomTerms=[];
     let latestChatLinkPolicy=null;
+    let latestPolls=[];
     let editingAdId='';
     let editingReportId='';
     let generatedReportLinkState=null;
@@ -1128,6 +1192,161 @@
         renderCustomTerms(data.custom || []);
         showToast('키워드를 제거했습니다.');
       }catch(e){ handleAdminError(e); }
+    });
+
+    // ========== Polls ==========
+    function pollChannelLabel(channel){
+      return channel==='us' ? '해외주식토론' : (channel==='coin' ? '코인토론' : '국내주식토론');
+    }
+    function pollOptionsFromInput(){
+      return String($('pollOptions')?.value || '')
+        .split(/[\n,]+/)
+        .map((item)=>item.trim())
+        .filter(Boolean)
+        .slice(0,4);
+    }
+    function setPollStatus(text='', ok=false){
+      const el=$('pollStatus');
+      if(!el) return;
+      el.textContent=text;
+      el.className='inline-status' + (ok ? ' ok' : '');
+    }
+    function activePollForChannel(channel){
+      return latestPolls.find((item)=>item.channel===channel) || null;
+    }
+    function setPollFormFromItem(item){
+      const poll=item?.poll || item?.defaultPoll || {};
+      const config=item?.config || null;
+      $('pollChannel').value=item?.channel || poll.channel || 'kr';
+      $('pollEnabled').checked=poll.enabled !== false;
+      $('pollQuestion').value=config?.question || poll.question || '';
+      $('pollOptions').value=(config?.options?.length ? config.options : (poll.options || ['상승','하락','보합'])).join('\n');
+      $('pollKicker').value=config?.kicker || '';
+      $('pollTimeLabel').value=config?.timeLabel || '';
+      setPollStatus(config ? `관리자 설정 적용 중 · ${time(config.updatedAt)}` : '기본 자동 투표 사용 중', !!config);
+    }
+    function renderPolls(items=[]){
+      latestPolls=Array.isArray(items) ? items : [];
+      const rows=$('pollRows');
+      const activeCount=latestPolls.filter((item)=>item.poll?.enabled !== false).length;
+      $('cntPolls').textContent=String(activeCount);
+      if(!latestPolls.length){
+        rows.innerHTML='<div class="ad-empty">등록된 투표 정보가 없습니다.</div>';
+        return;
+      }
+      rows.innerHTML=latestPolls.map((item)=>{
+        const poll=item.poll || {};
+        const config=item.config || null;
+        const classes=['poll-card'];
+        if(config) classes.push('is-managed');
+        if(poll.enabled===false) classes.push('is-disabled');
+        const total=Number(poll.total || 0) || 0;
+        const options=(poll.options || []).map((option, index)=>{
+          const pct=Number(poll.percentages?.[index] || 0);
+          const label=total ? `${option} ${pct ? pct.toFixed(pct % 1 ? 1 : 0) : 0}%` : option;
+          return `<span class="pill">${esc(label)}</span>`;
+        }).join('');
+        const status=poll.enabled===false ? '<span class="pill bad">비활성</span>' : '<span class="pill ok">노출중</span>';
+        const managed=config ? '<span class="pill ok">관리자 설정</span>' : '<span class="pill">자동 생성</span>';
+        return `<article class="${classes.join(' ')}" data-poll-channel="${esc(item.channel)}">
+          <div class="poll-card-head">
+            <div class="poll-card-title">${esc(pollChannelLabel(item.channel))}</div>
+            <div>${status}${managed}</div>
+          </div>
+          <div class="poll-card-question">${esc(poll.question || '질문 없음')}</div>
+          <div class="poll-card-options">${options}</div>
+          <div class="poll-card-meta">
+            <span>참여 ${formatNumber(total)}명</span>
+            <span>ID <code>${esc(poll.id || '-')}</code></span>
+            ${config?.updatedAt ? `<span>수정 ${esc(time(config.updatedAt))}</span>` : ''}
+          </div>
+          <div class="poll-card-actions">
+            <button class="btn sm" type="button" data-poll-action="edit" data-poll-channel="${esc(item.channel)}">수정</button>
+            <button class="btn sm danger" type="button" data-poll-action="reset" data-poll-channel="${esc(item.channel)}" ${config ? '' : 'disabled'}>기본값</button>
+          </div>
+        </article>`;
+      }).join('');
+      const selected=activePollForChannel($('pollChannel')?.value || 'kr') || latestPolls[0];
+      if(selected && document.activeElement?.closest?.('[data-panel="polls"]') == null) setPollFormFromItem(selected);
+    }
+    async function loadPolls(options={}){
+      const data=await api('/api/community-admin?action=polls');
+      renderPolls(data.polls || []);
+      if(!options.silent) showToast('투표 정보를 새로고침했습니다.');
+      return data;
+    }
+    async function savePollConfig(){
+      const channel=$('pollChannel').value || 'kr';
+      const enabled=!!$('pollEnabled').checked;
+      const question=$('pollQuestion').value.trim();
+      const options=pollOptionsFromInput();
+      if(enabled && question.length<4){ showToast('질문을 4자 이상 입력해 주세요.', 'bad'); return; }
+      if(enabled && options.length<2){ showToast('선택지는 2개 이상 필요합니다.', 'bad'); return; }
+      setPollStatus('저장 중...');
+      const data=await api('/api/community-admin', {
+        method:'POST',
+        body:JSON.stringify({
+          action:'save_poll_config',
+          channel,
+          enabled,
+          question,
+          options,
+          kicker:$('pollKicker').value.trim(),
+          timeLabel:$('pollTimeLabel').value.trim(),
+        }),
+      });
+      await loadPolls({silent:true});
+      setPollFormFromItem(activePollForChannel(channel));
+      setPollStatus('저장됨', true);
+      showToast('투표 설정을 저장했습니다.');
+      return data;
+    }
+    async function resetPollConfig(channel=$('pollChannel')?.value || 'kr'){
+      if(!confirm(`${pollChannelLabel(channel)} 투표를 기본 자동값으로 되돌릴까요?`)) return null;
+      const data=await api('/api/community-admin', {
+        method:'POST',
+        body:JSON.stringify({action:'reset_poll_config', channel}),
+      });
+      await loadPolls({silent:true});
+      setPollFormFromItem(activePollForChannel(channel));
+      showToast('투표 설정을 기본값으로 복원했습니다.');
+      return data;
+    }
+    async function publishPollToChat(channel=$('pollChannel')?.value || 'kr'){
+      if(!confirm(`${pollChannelLabel(channel)} 투표를 지금 채팅방 말풍선으로 띄울까요?`)) return null;
+      setPollStatus('채팅방에 게시 중...');
+      const data=await api('/api/community-admin', {
+        method:'POST',
+        body:JSON.stringify({action:'publish_poll_to_chat', channel}),
+      });
+      await loadPolls({silent:true});
+      setPollFormFromItem(activePollForChannel(channel));
+      setPollStatus('채팅방에 게시됨', true);
+      if(channel==='kr'){
+        showToast('국내주식 투표를 채팅방에 띄웠습니다. 접속자가 채팅을 열면 바로 노출됩니다.');
+      }else{
+        showToast(`${pollChannelLabel(channel)} 게시 시각을 기록했지만, 채팅 말풍선은 현재 국내주식 투표만 표시합니다.`, 'bad');
+      }
+      return data;
+    }
+    $('pollChannel').addEventListener('change',()=>{
+      const item=activePollForChannel($('pollChannel').value);
+      if(item) setPollFormFromItem(item);
+    });
+    $('pollSaveBtn').addEventListener('click',()=>savePollConfig().catch(handleAdminError));
+    $('pollPublishChatBtn').addEventListener('click',()=>publishPollToChat().catch(handleAdminError));
+    $('pollResetConfigBtn').addEventListener('click',()=>resetPollConfig().catch(handleAdminError));
+    $('pollRefreshBtn').addEventListener('click',()=>loadPolls().catch(handleAdminError));
+    document.addEventListener('click',(ev)=>{
+      const btn=ev.target.closest('[data-poll-action]');
+      if(!btn) return;
+      const channel=btn.dataset.pollChannel || 'kr';
+      if(btn.dataset.pollAction==='edit'){
+        setPollFormFromItem(activePollForChannel(channel));
+        document.querySelector('[data-tab="polls"]')?.click();
+      }else if(btn.dataset.pollAction==='reset'){
+        resetPollConfig(channel).catch(handleAdminError);
+      }
     });
 
     // ========== Donors ==========
@@ -1859,7 +2078,7 @@
     }
     async function load(){
       setStatus('불러오는 중...');
-      const results=await Promise.allSettled([loadChat(), loadCommunityBans({silent:true}), loadChatLinkPolicy({silent:true}), loadBlockedTerms(), loadDonors(), loadAds(), loadAdReports()]);
+      const results=await Promise.allSettled([loadChat(), loadCommunityBans({silent:true}), loadChatLinkPolicy({silent:true}), loadBlockedTerms(), loadPolls({silent:true}), loadDonors(), loadAds(), loadAdReports()]);
       const failed=results.filter((r)=>r.status==='rejected');
       if(failed.length){
         const first=failed[0].reason;

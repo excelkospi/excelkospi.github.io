@@ -5,6 +5,7 @@
 :root{
   /* M365 Excel palette */
   --excel:#107c41; --excel-dark:#0e6b39; --excel-accent:#185c37;
+  --btn-submit:#2c7d50; --btn-submit-hover:#246a43;
   --titlebar-bg:var(--excel); --titlebar-fg:#fff; --titlebar-muted:rgba(255,255,255,.78);
   --titlebar-hover:rgba(255,255,255,.18); --titlebar-active:rgba(255,255,255,.28); --titlebar-sep:rgba(255,255,255,.32);
   --statusbar-bg:var(--excel); --statusbar-fg:#fff; --statusbar-button-bg:rgba(255,255,255,.12); --statusbar-button-border:rgba(255,255,255,.42);
@@ -43,6 +44,7 @@ body.excel-theme-classic{
 }
 body.excel-theme-deep{
   --excel:#0f6b3f; --excel-dark:#0a4f2d; --excel-accent:#073d25;
+  --btn-submit:#27714a; --btn-submit-hover:#1d5c3b;
   --titlebar-bg:#06452b; --titlebar-fg:#f7fff9; --titlebar-muted:rgba(247,255,249,.78);
   --titlebar-hover:rgba(247,255,249,.16); --titlebar-active:rgba(247,255,249,.24); --titlebar-sep:rgba(247,255,249,.28);
   --statusbar-bg:#06452b; --statusbar-fg:#f7fff9; --statusbar-button-bg:rgba(247,255,249,.12); --statusbar-button-border:rgba(247,255,249,.40);
@@ -51,6 +53,7 @@ body.excel-theme-deep{
 }
 body.excel-dark-mode{
   --excel:#21a366; --excel-dark:#7cd6a2; --excel-accent:#9de8bb;
+  --btn-submit:#479a6e; --btn-submit-hover:#3b8460;
   --titlebar-bg:#101418; --titlebar-fg:#f4f7f8; --titlebar-muted:#aeb7bf;
   --titlebar-hover:rgba(244,247,248,.12); --titlebar-active:rgba(244,247,248,.20); --titlebar-sep:rgba(244,247,248,.22);
   --statusbar-bg:#0b5a36; --statusbar-fg:#f8fff9; --statusbar-button-bg:rgba(248,255,249,.12); --statusbar-button-border:rgba(248,255,249,.38);
@@ -1685,7 +1688,8 @@ tr.news-row.personal-news-pulse > td{animation:personal-news-pulse 1.7s ease-out
 .community-main-compose .community-post-input{height:100%;min-height:54px;padding:8px 10px;border-right:1px solid #e3edea}
 .community-main-compose .community-attach{height:100%;min-height:54px;width:100%;border:0;border-right:1px solid #e3edea;border-radius:0;background:#f7faf8;color:#586069;align-self:stretch;display:flex;align-items:center;justify-content:center}
 .community-main-compose .community-attach:hover{background:#eaf4ef;color:#107c41}
-.community-main-compose .community-compose-submit{position:static;width:100%;height:100%;min-height:54px;border-radius:0;border:0;align-self:stretch;padding:0;background:var(--excel);display:flex;align-items:center;justify-content:center}
+.community-main-compose .community-compose-submit{position:static;width:100%;height:100%;min-height:54px;border-radius:0;border:0;align-self:stretch;padding:0;background:var(--btn-submit);display:flex;align-items:center;justify-content:center}
+.community-cell-button.community-compose-submit{background:var(--btn-submit);border-color:var(--btn-submit)}
 :is(#timelineTable,.timeline-swipe-table).community-table .community-post-input{display:block;width:100%;height:42px;min-height:42px;border:0;background:transparent;resize:none;outline:none;overflow:hidden;scrollbar-width:none;-ms-overflow-style:none;padding:2px 0;font:400 12.5px/1.35 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#252423;box-sizing:border-box;-webkit-appearance:none;appearance:none}
 :is(#timelineTable,.timeline-swipe-table).community-table .community-post-input::-webkit-scrollbar{display:none}
 :is(#timelineTable,.timeline-swipe-table).community-table .community-main-compose .community-post-input{height:100%;min-height:54px;padding:8px 10px}
@@ -3247,8 +3251,8 @@ button.notice-card{cursor:pointer}
 
 /* === Floating Telegram CTA === */
 .tg-cta{position:fixed;right:18px;bottom:calc(64px + env(safe-area-inset-bottom));display:inline-flex;align-items:center;gap:9px;padding:11px 16px 11px 14px;background:linear-gradient(135deg,#37aee2,#179cde);color:#fff;border-radius:999px;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 8px 22px rgba(23,156,222,.42),0 2px 6px rgba(0,0,0,.12);z-index:60;letter-spacing:.1px;transition:transform 120ms ease,box-shadow 120ms ease}
-.tg-cta:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(23,156,222,.5),0 3px 8px rgba(0,0,0,.14)}
-.tg-cta:active{transform:translateY(0)}
+.tg-cta:hover{transform:scale(.97);box-shadow:0 12px 28px rgba(23,156,222,.5),0 3px 8px rgba(0,0,0,.14)}
+.tg-cta:active{transform:scale(.95)}
 .tg-cta svg{width:18px;height:18px;flex-shrink:0}
 .tg-cta .tg-pulse{position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#ff5252;border:2px solid #fff;animation:tgpulse 1.6s ease-in-out infinite}
 @keyframes tgpulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.25);opacity:.7}}
@@ -3263,7 +3267,7 @@ button.notice-card{cursor:pointer}
 .float-wrap.is-hidden{display:none}
 .floating-actions .tg-cta{position:relative;right:auto;bottom:auto}
 .chat-cta{position:relative;display:inline-flex;align-items:center;gap:8px;padding:11px 15px;background:linear-gradient(135deg,#107c41,#0b6a36);color:#fff;border:0;border-radius:999px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 8px 22px rgba(16,124,65,.36),0 2px 6px rgba(0,0,0,.12);transition:transform 120ms ease,box-shadow 120ms ease,background 120ms ease;overflow:visible}
-.chat-cta:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(16,124,65,.44),0 3px 8px rgba(0,0,0,.14)}
+.chat-cta:hover{transform:scale(.97);box-shadow:0 12px 28px rgba(16,124,65,.44),0 3px 8px rgba(0,0,0,.14)}
 .chat-cta.has-unread{background:linear-gradient(135deg,#d83b01,#a4262c);box-shadow:0 8px 22px rgba(216,59,1,.34),0 2px 6px rgba(0,0,0,.12)}
 .chat-cta svg{width:18px;height:18px;flex-shrink:0}
 .chat-new-badge{position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#ff5252;border:2px solid #fff;display:inline-block;font-size:0;line-height:0;color:transparent;animation:tgpulse 1.6s ease-in-out infinite}
@@ -3322,10 +3326,10 @@ body.excel-dark-mode:not(.theme-outlook) .chat-cta .chat-dot{background:#ff7272;
 .chat-excel-row.own td:not(.rownum){background:#f7fbf8}
 .chat-excel-row.admin td:not(.rownum){background:#fbfcfb}
 .chat-excel-row.moderated td{color:#9aa0a6;background:#f6f7f8}
-.chat-excel-table td.chat-excel-nick{color:#3f6b52;font-weight:650;font-size:10.6px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
-.chat-excel-row.own .chat-excel-nick{color:#0c5b30}
+.chat-excel-table td.chat-excel-nick{color:#647269;font-weight:600;font-size:10.6px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+.chat-excel-row.own .chat-excel-nick{color:#52685b}
 .chat-nick.admin-nick{display:inline-flex;align-items:center;justify-content:center;max-width:100%;height:17px;padding:0 6px;border-radius:3px;background:#107c41;color:#fff!important;border:1px solid #0b6a36;font-weight:800;line-height:1;vertical-align:middle;box-shadow:inset 0 -1px 0 rgba(0,0,0,.12)}
-.chat-excel-table td.chat-excel-nick.admin-nick{color:#3f6b52!important;font-weight:700}
+.chat-excel-table td.chat-excel-nick.admin-nick{color:#586f63!important;font-weight:650}
 .chat-excel-table td.chat-excel-time{color:#797775;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:10.5px;vertical-align:middle}
 .chat-excel-body{position:relative;white-space:pre-wrap;line-height:1.42;min-width:0;max-width:100%;padding:4px 88px 5px 5px!important;color:#333b44}
 .chat-excel-body .message-image-list{max-width:100%;overflow:hidden}
@@ -3348,7 +3352,7 @@ body.excel-dark-mode:not(.theme-outlook) .chat-excel-body-row td:not(.rownum){ba
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-row.own td:not(.rownum){background:#18251f}
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-row.admin td:not(.rownum){background:#19201d}
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-row.moderated td{background:#1c2026;color:#9aa0a6}
-body.excel-dark-mode:not(.theme-outlook) .chat-excel-nick{color:#9de8bb}
+body.excel-dark-mode:not(.theme-outlook) .chat-excel-nick{color:#9fb3a8}
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-nick.admin-nick,
 body.excel-dark-mode:not(.theme-outlook) .chat-nick.admin-nick{background:#21a366;color:#06180f!important;border-color:#6ee7a2}
 body.excel-dark-mode:not(.theme-outlook) .chat-excel-nick.admin-nick{background:#19201d!important;color:#a6c8b5!important;border-color:var(--grid)!important}
@@ -3448,7 +3452,7 @@ body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#423c25;col
 .chat-poll-message .chat-meta{margin-bottom:2px}
 .chat-poll-nick{color:#107c41;font-weight:700}
 .chat-poll-count{margin-left:0;color:#758077;font-size:10.3px;font-weight:650;white-space:nowrap}
-.chat-poll-body,.chat-poll-excel-body{display:flex;flex-direction:column;gap:4px;font-size:11.2px;line-height:1.32;color:#3d5343}
+.chat-poll-body,.chat-poll-excel-stack{display:flex;flex-direction:column;gap:4px;font-size:11.2px;line-height:1.32;color:#3d5343}
 .chat-poll-excel-body{padding-right:5px!important;white-space:normal}
 .chat-poll-excel-meta{text-align:right}
 .chat-poll-row td:not(.rownum){background:#f7fbf8!important;color:#3d5343}
@@ -3458,10 +3462,15 @@ body.excel-dark-mode:not(.theme-outlook) .chat-award-mark{background:#423c25;col
 .chat-poll-choice:hover:not(:disabled){background:#eaf4ef;border-color:#a7cdb4;color:#107c41}
 .chat-poll-choice.selected{background:#107c41;border-color:#107c41;color:#fff}
 .chat-poll-choice:disabled{cursor:default;opacity:.86}
+/* 엑셀 모드에서는 위장을 위해 투표 강조색도 무채색에 가깝게 낮춘다. */
+.chat-excel-table .chat-poll-nick{color:#5f7268;font-weight:650}
+.chat-excel-table .chat-poll-question{color:#525d57}
+.chat-excel-table .chat-poll-choice:hover:not(:disabled){background:#eef2f0;border-color:#b9c8bf;color:#4a6357}
+.chat-excel-table .chat-poll-choice.selected{background:#6f8d7e;border-color:#6f8d7e;color:#fff}
 body.excel-dark-mode:not(.theme-outlook) .chat-poll-message{background:#17211b;border-color:#3a554a;color:#bdd2c3;box-shadow:0 1px 2px rgba(0,0,0,.25)}
 body.excel-dark-mode:not(.theme-outlook) .chat-poll-row td:not(.rownum){background:#17211b!important;color:#bdd2c3}
 body.excel-dark-mode:not(.theme-outlook) .chat-poll-body,
-body.excel-dark-mode:not(.theme-outlook) .chat-poll-excel-body{color:#bdd2c3}
+body.excel-dark-mode:not(.theme-outlook) .chat-poll-excel-stack{color:#bdd2c3}
 body.excel-dark-mode:not(.theme-outlook) .chat-poll-nick{color:#7cd6a2}
 body.excel-dark-mode:not(.theme-outlook) .chat-poll-count{color:#93a39a}
 body.excel-dark-mode:not(.theme-outlook) .chat-poll-question{color:#d6e6dc}
@@ -3520,10 +3529,14 @@ body.excel-dark-mode:not(.theme-outlook) .chat-poll-choice.selected{background:#
 .chat-nickname:disabled,.chat-input:disabled{opacity:1;background:#f3f6f4;color:#52606c;-webkit-text-fill-color:#52606c;cursor:progress}
 .xk-reply-fallback-active [data-xk-reply-name]:disabled,
 .xk-reply-fallback-active [data-xk-reply-text]:disabled{opacity:1;background:#f3f6f4;color:#52606c;-webkit-text-fill-color:#52606c;cursor:progress}
-.chat-send{display:inline-flex;align-items:center;justify-content:center;width:100%;min-width:0;height:34px;border:0;border-radius:8px;background:#107c41;color:#fff;padding:0 8px;font:inherit;font-weight:800;white-space:nowrap;cursor:pointer}
+.chat-send{display:inline-flex;align-items:center;justify-content:center;width:100%;min-width:0;height:34px;border:0;border-radius:8px;background:var(--btn-submit);color:#fff;padding:0 8px;font:inherit;font-weight:800;white-space:nowrap;cursor:pointer}
+.chat-send:hover:not(:disabled){background:var(--btn-submit-hover)}
 [data-xk-reply-submit]{display:inline-flex;align-items:center;justify-content:center;width:100%;min-width:0;height:34px;border:0;border-radius:8px;background:#107c41;color:#fff;padding:0 8px;font:inherit;font-weight:800;white-space:nowrap;cursor:pointer}
 .chat-send:disabled,[data-xk-reply-submit]:disabled{opacity:.45;cursor:default}
 .chat-composer.is-sending .chat-send:disabled{opacity:.78;cursor:progress;font-size:11px;padding:0 6px}
+/* 낙관적 전송 대기 말풍선은 살짝 흐리게 — 전송 완료 시 정상 농도로 바뀐다. */
+.chat-msg.chat-msg-pending{opacity:.6}
+.chat-excel-row.chat-msg-pending td:not(.rownum){opacity:.6}
 .chat-footnote{grid-column:1 / -1;margin:2px -8px -8px;color:#8a8f98;font-size:10.5px;line-height:1.3}
 .chat-footnote[hidden]{display:none!important}
 body.excel-dark-mode:not(.theme-outlook) .message-image-preview{background:#11161b;border-color:#3a424a}

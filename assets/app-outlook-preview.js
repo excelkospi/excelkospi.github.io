@@ -24,7 +24,9 @@ function shouldUseOutlookSessionTag(card){
 function outlookPreviewHtml(card, changeValue){
   let preview = '';
   const priceText = outlookPriceText(card);
-  if(card._momentum !== undefined && card._momentum !== null){
+  if(card?._cashRow){
+    preview = `${card.key} 보유 현금 항목입니다.`;
+  } else if(card._momentum !== undefined && card._momentum !== null){
     preview = `${changeHeaderLabel()} 기준 ${outlookChangePhrase(card._momentum)}입니다.`;
   } else if(card.sign && card.priceUnit){
     preview = `${card.key} 수급은 ${priceText || '확인 중'}으로 집계됐습니다.`;

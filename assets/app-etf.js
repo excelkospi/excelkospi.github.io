@@ -820,7 +820,12 @@ async function loadEtfData(options={}){
       applyEtfCsvText(stale.text, stale.at);
       etfError='';
     }else{
-      etfError='ETF 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.';
+      // 회사·기관 방화벽이 Google Sheets 를 막으면 fetch 자체가 네트워크 오류(TypeError)로 실패한다.
+      const msg=String(e?.message || e || '');
+      const looksBlocked = (e instanceof TypeError) || /Failed to fetch|NetworkError|load failed|ERR_/i.test(msg);
+      etfError = looksBlocked
+        ? '회사·기관 네트워크에서 Google Sheets 접속이 막히면 ETF 표를 불러올 수 없어요. 휴대폰 데이터(LTE·5G)나 다른 네트워크에서 다시 시도해 주세요.'
+        : 'ETF 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
     }
   }finally{
     etfLoading=false;

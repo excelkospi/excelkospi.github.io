@@ -215,7 +215,6 @@ const CHAT_HEADER_ICONS = {
   collapse:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M20 15h-5v5M4 15h5v5"/><path d="M9 9 4 4M15 9l5-5M15 15l5 5M9 15l-5 5"/></svg>',
   dock:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M14 5v14M16.8 9.2l2.2 2.8-2.2 2.8"/></svg>',
   undock:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M14 5v14M19 9l-4 3 4 3"/></svg>',
-  popout:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="8" width="11" height="11" rx="2"/><path d="M13 5h6v6M12 12l7-7"/></svg>',
   close:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
 };
 let chatDockLastActive = false;
@@ -347,28 +346,18 @@ function setChatDockMode(on, options={}){
 }
 
 function closeChatPanel(){
-  // 도킹 상태 -> 창모드 전환만 (숨기지 않음). 창모드 -> 숨기기 (기존 동작).
-  if(chatDockActive()){
-    setChatDockMode(false, {toast:true});
-    return;
-  }
+  // 도킹/팝업 어느 상태든 닫기 버튼은 채팅을 완전히 닫고 호버 버튼을 노출한다.
+  // (도킹 해제는 별도의 도킹 토글 버튼이 담당한다.)
   setChatOpen(false);
 }
 
 function updateChatCloseButton(){
   const {close}=chatEls();
   if(!close) return;
-  const docked=chatDockActive();
-  close.classList.toggle('is-undock', docked);
-  if(docked){
-    close.innerHTML=CHAT_HEADER_ICONS.popout;
-    close.setAttribute('aria-label','작은 창으로 띄우기');
-    close.title='작은 창으로 띄우기';
-  }else{
-    close.innerHTML=CHAT_HEADER_ICONS.close;
-    close.setAttribute('aria-label','채팅 닫기');
-    close.title='채팅 닫기';
-  }
+  close.classList.remove('is-undock');
+  close.innerHTML=CHAT_HEADER_ICONS.close;
+  close.setAttribute('aria-label','채팅 닫기');
+  close.title='채팅 닫기';
 }
 
 function readChatPanelPosition(){
