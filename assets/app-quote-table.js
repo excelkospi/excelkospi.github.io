@@ -84,6 +84,53 @@ function renderHoldingsEmptyRow(rowNo){
     </tr>`;
 }
 
+function renderCashEditRow(card, rowNo){
+  const id = String(card.cashId || '');
+  const market = normalizeCashPositionMarket(card.market);
+  const currency = normalizeCashPositionCurrency(card.cashCurrency, market);
+  const amountValue = Number(card.cashAmount) > 0 ? cashAmountText(card.cashAmount, currency) : '';
+  const labelValue = normalizeCashLabel(card.key) || cashPositionDefaultLabel({ market, currency });
+  return `
+    <tr class="holding-row cash-row cash-edit-row" data-cash-id="${esc(id)}" title="현금 정보 입력">
+      <td class="rownum">${rowNo}</td>
+      <td class="left holding-cell" colspan="3">
+        <div class="holding-inline cash-inline" data-cash-id="${esc(id)}">
+          <input data-cash-label type="text" autocomplete="off" placeholder="현금" value="${esc(labelValue)}" aria-label="현금 이름" />
+          <input data-cash-amount type="text" inputmode="decimal" autocomplete="off" placeholder="금액" value="${esc(amountValue)}" aria-label="현금 금액" />
+          <select data-cash-currency aria-label="통화">
+            <option value="KRW"${currency === 'KRW' ? ' selected' : ''}>KRW</option>
+            <option value="USD"${currency === 'USD' ? ' selected' : ''}>USD</option>
+          </select>
+          <button type="button" data-action="save-cash-inline" data-cash-id="${esc(id)}">저장</button>
+          <button type="button" class="inline-cancel" data-action="cancel-cash-inline" title="취소" aria-label="취소">×</button>
+        </div>
+      </td>
+    </tr>`;
+}
+
+function renderCashDisplayRow(c, rowNo, index, firstMovableRow, lastMovableRow, manualOrdering){
+  const id = String(c.cashId || '');
+  if(cashInputState && cashInputState.id === id) return renderCashEditRow(c, rowNo);
+  const orderId = quoteRowOrderId(c);
+  const rowDragAttrs = manualOrdering ? ` data-row-order-id="${esc(orderId)}"` : '';
+  const rowNumAttrs = manualOrdering
+    ? ` class="rownum quote-row-handle" data-row-order-id="${esc(orderId)}" title="행번호를 끌어서 순서 변경" aria-label="${esc(c.key)} 순서 변경"`
+    : ' class="rownum"';
+  const moveBtns = manualOrdering ? `<button class="row-move" data-action="move-default" data-dir="up" data-order-id="${esc(orderId)}" title="${esc(c.key)} 위로 이동" aria-label="위로 이동" ${index===firstMovableRow?'disabled':''}>▲</button><button class="row-move" data-action="move-default" data-dir="down" data-order-id="${esc(orderId)}" title="${esc(c.key)} 아래로 이동" aria-label="아래로 이동" ${index===lastMovableRow?'disabled':''}>▼</button>` : '';
+  const editBtn = `<button class="row-holding is-set" data-action="edit-cash-row" data-cash-id="${esc(id)}" title="${esc(c.key)} 현금 수정" aria-label="현금 수정">₩</button>`;
+  const removeBtn = `<button class="row-x" data-action="remove-cash-row" data-cash-id="${esc(id)}" title="${esc(c.key)} 삭제" aria-label="삭제">×</button>`;
+  const actions = `<span class="row-actions">${editBtn}${moveBtns}${removeBtn}</span>`;
+  const currency = normalizeCashPositionCurrency(c.cashCurrency, c.market);
+  const title = `${esc(c.market || '')} · ${esc(currency)} 현금 · ${fmtDt(c.asOf)}`;
+  return `
+    <tr class="cash-row"${rowDragAttrs} data-cash-id="${esc(id)}" data-outlook-badge="" data-outlook-tone="" title="${title}">
+      <td${rowNumAttrs}>${rowNo}</td>
+      <td class="left"><div class="metric-cell"><span class="metric-label">${esc(c.key)}</span><span class="metric-trail quote-action-trail">${actions}${sourcePillHtml(c)}</span></div></td>
+      <td class="right quote-price-cell">${cashAmountHtml(c.cashAmount, currency)}</td>
+      <td class="right flat quote-change-cell"><span class="flat">-</span></td>
+    </tr>`;
+}
+
 function shouldRenderUsDayQuoteNotice(cards, session){
   if(!sessionHas(session, 'US_DAY')) return false;
   const renderedMarket = String(typeof currentRenderedMarket === 'string' ? currentRenderedMarket : '').toUpperCase();
@@ -147,7 +194,7 @@ function renderCardsTable(cards, session){
       <th class="subhead">지표</th><th class="subhead">현재가</th><th class="subhead">${changeHeaderLabel()}</th>
     </tr>`;
   // mood 영역(수급/15분/30분 변동) 은 삭제 불가 — 복원 방법이 직관적이지 않아서.
-  const defaultRowIndexes = cards.map((x,idx)=>(!x._noteRow && !x.userAdded && !MOOD_PROTECTED_KEYS.has(x.key)) ? idx : -1).filter(idx=>idx>=0);
+  const defaultRowIndexes = cards.map((x,idx)=>(!x._noteRow && !x._cashRow && !x.userAdded && !MOOD_PROTECTED_KEYS.has(x.key)) ? idx : -1).filter(idx=>idx>=0);
   const movableRowIndexes = cards.map((x,idx)=>(!x._noteRow && !MOOD_PROTECTED_KEYS.has(x.key)) ? idx : -1).filter(idx=>idx>=0);
   const firstMovableRow = movableRowIndexes[0];
   const lastMovableRow = movableRowIndexes[movableRowIndexes.length - 1];
@@ -181,6 +228,9 @@ function renderCardsTable(cards, session){
         </div>
       </td>
     </tr>`;
+      }
+      if(c._cashRow){
+        return renderCashDisplayRow(c, currentRowNo, i, firstMovableRow, lastMovableRow, manualOrdering);
       }
       const isUser = !!c.userAdded;
       const errCls = (isUser && c.error) ? ' error' : '';

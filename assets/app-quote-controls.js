@@ -34,6 +34,18 @@ function bindCardsTableControls(){
       removeQuoteNoteRow(btn.dataset.noteId);
     });
   });
+  document.querySelectorAll('button[data-action=edit-cash-row]').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.preventDefault(); ev.stopPropagation();
+      openCashInline({ id:btn.dataset.cashId, isNew:false });
+    });
+  });
+  document.querySelectorAll('button[data-action=remove-cash-row]').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.preventDefault(); ev.stopPropagation();
+      removeCashPosition(btn.dataset.cashId);
+    });
+  });
   document.querySelectorAll('button[data-action=edit-holding]').forEach(btn=>{
     btn.addEventListener('click', (ev)=>{
       ev.preventDefault(); ev.stopPropagation();
@@ -111,7 +123,33 @@ function bindCardsTableControls(){
       closeHoldingInline();
     });
   });
-  document.querySelectorAll('.holding-inline input').forEach(input=>{
+  document.querySelectorAll('button[data-action=save-cash-inline]').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.preventDefault(); ev.stopPropagation();
+      const box=btn.closest('.cash-inline');
+      saveCashInline(btn.dataset.cashId, box);
+    });
+  });
+  document.querySelectorAll('button[data-action=cancel-cash-inline]').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.preventDefault(); ev.stopPropagation();
+      closeCashInline();
+    });
+  });
+  document.querySelectorAll('.cash-inline input, .cash-inline select').forEach(input=>{
+    input.addEventListener('keydown', (ev)=>{
+      if(ev.key==='Escape'){
+        ev.preventDefault();
+        closeCashInline();
+      }
+      if(ev.key==='Enter'){
+        ev.preventDefault();
+        const box=input.closest('.cash-inline');
+        saveCashInline(box?.dataset.cashId, box);
+      }
+    });
+  });
+  document.querySelectorAll('.holding-inline:not(.cash-inline) input').forEach(input=>{
     input.addEventListener('keydown', (ev)=>{
       if(ev.key==='Escape'){
         ev.preventDefault();

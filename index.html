@@ -53,7 +53,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="excelkospi" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="build-id" content="20260528-616-chat-placeholder" />
+  <meta name="build-id" content="20260528-618-chat-flow-notices" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -171,7 +171,7 @@
     .tool.big .ic svg{width:26px;height:26px}
     .seo-heading{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   </style>
-  <link rel="stylesheet" href="/assets/app.css?v=20260527-615" />
+  <link rel="stylesheet" href="/assets/app.css?v=20260528-618" />
 </head>
 <body>
 <h1 class="seo-heading">excelkospi - 엑셀 보는 척 주식 보기</h1>
@@ -481,9 +481,10 @@
           <svg aria-hidden="true"><use href="#i-phone"/></svg>
         </button>
         <button id="watchlistMore" class="watchlist-more" type="button" title="시세창 보조 기능" aria-label="시세창 보조 기능" aria-haspopup="menu" aria-expanded="false">⋯</button>
-        <div id="watchlistMoreMenu" class="watchlist-more-menu" role="menu" hidden>
-          <button type="button" role="menuitem" data-watchlist-action="note">＋ 빈 행 추가</button>
-          <button type="button" role="menuitemradio" data-watchlist-action="holding-pnl-total" data-holding-pnl-menu="total" aria-checked="true">✓ 보유손익 누적 보기</button>
+	        <div id="watchlistMoreMenu" class="watchlist-more-menu" role="menu" hidden>
+	          <button type="button" role="menuitem" data-watchlist-action="note">＋ 빈 행 추가</button>
+	          <button type="button" role="menuitem" data-watchlist-action="cash">＋ 현금 추가</button>
+	          <button type="button" role="menuitemradio" data-watchlist-action="holding-pnl-total" data-holding-pnl-menu="total" aria-checked="true">✓ 보유손익 누적 보기</button>
           <button type="button" role="menuitemradio" data-watchlist-action="holding-pnl-daily" data-holding-pnl-menu="daily" aria-checked="false">　 보유손익 일간 보기</button>
           <button type="button" role="menuitem" data-watchlist-action="phone">
             <svg aria-hidden="true"><use href="#i-phone"/></svg>
@@ -993,7 +994,7 @@
   <span id="loadingText">시장 데이터를 불러오는 중...</span>
 </div>
 
-  <script src="/assets/app-config.js?v=20260527-609"></script>
+  <script src="/assets/app-config.js?v=20260528-617"></script>
   <script>
     (() => {
       if (typeof GA_MEASUREMENT_ID !== 'string' || !GA_MEASUREMENT_ID) return;
@@ -1085,14 +1086,14 @@
   <script src="/assets/app-personal-feed.js?v=20260525-492"></script>
   <script src="/assets/app-outlook.js?v=20260527-591"></script>
   <script src="/assets/app-outlook-preview.js?v=20260526-544"></script>
-  <script src="/assets/app-watchlist-share.js?v=20260526-523"></script>
+  <script src="/assets/app-watchlist-share.js?v=20260528-617"></script>
   <script src="/assets/app-cell-selection.js?v=20260526-575"></script>
-  <script src="/assets/app-quote-table.js?v=20260526-583"></script>
+  <script src="/assets/app-quote-table.js?v=20260528-617"></script>
   <script src="/assets/app-quote-drag.js?v=20260525-496"></script>
-  <script src="/assets/app-quote-controls.js?v=20260526-559"></script>
+  <script src="/assets/app-quote-controls.js?v=20260528-617"></script>
   <script src="/assets/app-mini-chart.js?v=20260526-583"></script>
   <script src="/assets/app-tradingview.js?v=20260527-609"></script>
   <script src="/assets/app-chat-ui.js?v=20260528-616"></script>
-  <script src="/assets/app.js?v=20260527-615"></script>
+  <script src="/assets/app.js?v=20260528-618"></script>
 </body>
 </html>

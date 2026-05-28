@@ -1806,6 +1806,7 @@ function defaultOrderSave(order){ const value=JSON.stringify(order); localStorag
 function cardOrderId(card){ return `${card.market||''}:${card.key}`; }
 function quoteRowOrderId(card){
   if(card?._noteRow) return quoteNoteOrderId(card);
+  if(card?._cashRow) return cashPositionOrderId(card);
   if(card?.userAdded){
     const market=String(card.market||'').toUpperCase();
     const code=String(card.code||card.key||'').toUpperCase();
@@ -1820,6 +1821,7 @@ function defaultCardRank(card, fallbackIndex){
 const HOLDING_EXCLUDED_KEYS = new Set(['수급','김프(%)','코스피야선','코스피','코스닥','나스닥 선물','나스닥','S&P500','다우','국고채 10년','미국채 10년']);
 const HOLDING_EXCLUDED_CODES = new Set(['KOSPI','KOSDAQ','NQ=F','^IXIC','^GSPC','^DJI']);
 function isIndexLikeCard(card){
+  if(card?._cashRow) return true;
   const key=String(card?.key||'').trim();
   const code=String(card?.code||'').trim().toUpperCase();
   return HOLDING_EXCLUDED_KEYS.has(key) || HOLDING_EXCLUDED_CODES.has(code);
@@ -2009,6 +2011,126 @@ function isAlwaysLiveCard(card){
 
 function holdingsLoad(){ try{ return JSON.parse(localStorage.getItem(HOLDINGS_KEY)||'{}'); }catch{ return {}; } }
 function holdingsSave(map){ const value=JSON.stringify(map); localStorage.setItem(HOLDINGS_KEY, value); persistSet(HOLDINGS_KEY, value); }
+const CASH_POSITION_MARKETS = new Set(['KR','US','COIN']);
+const CASH_POSITION_CURRENCIES = new Set(['KRW','USD']);
+function newCashPositionId(){
+  return `cash_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+function normalizeCashPositionMarket(value){
+  const market = String(value || '').toUpperCase();
+  return CASH_POSITION_MARKETS.has(market) ? market : 'KR';
+}
+function defaultCashCurrencyForMarket(market){
+  return String(market || '').toUpperCase() === 'US' ? 'USD' : 'KRW';
+}
+function normalizeCashPositionCurrency(value, market='KR'){
+  const currency = String(value || '').toUpperCase();
+  return CASH_POSITION_CURRENCIES.has(currency) ? currency : defaultCashCurrencyForMarket(market);
+}
+function normalizeCashLabel(value){
+  return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 32);
+}
+function parseCashAmountInput(value){
+  const n = Number(String(value || '').replace(/[^\d.-]/g, '').trim());
+  return Number.isFinite(n) ? n : NaN;
+}
+function normalizeCashAmount(value){
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+function cashPositionDefaultLabel(position){
+  return normalizeCashPositionCurrency(position?.currency, position?.market) === 'USD' ? '달러 현금' : '현금';
+}
+function normalizeCashPositions(input){
+  if(!Array.isArray(input)) return [];
+  const seen = new Set();
+  const limit = (typeof CASH_POSITION_LIMIT === 'number' && Number.isFinite(CASH_POSITION_LIMIT)) ? CASH_POSITION_LIMIT : 20;
+  return input.slice(0, limit).map((raw)=>{
+    if(Array.isArray(raw)){
+      raw = {
+        id: raw[0],
+        market: raw[1],
+        currency: raw[2],
+        amount: raw[3],
+        label: raw[4],
+        createdAt: raw[5],
+        updatedAt: raw[6],
+      };
+    }
+    if(!raw || typeof raw !== 'object') return null;
+    let id = String(raw.id || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48);
+    if(!id) id = newCashPositionId();
+    if(seen.has(id)) id = newCashPositionId();
+    seen.add(id);
+    const market = normalizeCashPositionMarket(raw.market || raw.m);
+    const currency = normalizeCashPositionCurrency(raw.currency || raw.c, market);
+    const amount = normalizeCashAmount(raw.amount ?? raw.a);
+    const createdAt = Number(raw.createdAt || raw.t || Date.now());
+    const updatedAt = Number(raw.updatedAt || raw.u || createdAt || Date.now());
+    return {
+      id,
+      market,
+      currency,
+      amount,
+      label: normalizeCashLabel(raw.label || raw.l),
+      createdAt: Number.isFinite(createdAt) ? createdAt : Date.now(),
+      updatedAt: Number.isFinite(updatedAt) ? updatedAt : Date.now(),
+    };
+  }).filter(Boolean);
+}
+function cashPositionsLoad(){ try{ return normalizeCashPositions(JSON.parse(localStorage.getItem(CASH_POSITIONS_KEY)||'[]')); }catch{ return []; } }
+function cashPositionsSave(positions){ const value=JSON.stringify(normalizeCashPositions(positions)); localStorage.setItem(CASH_POSITIONS_KEY, value); persistSet(CASH_POSITIONS_KEY, value); }
+function cashPositionOrderId(position){
+  return `C:${normalizeCashPositionMarket(position?.market)}:${String(position?.cashId || position?.id || '').trim()}`;
+}
+function cashPositionCard(position){
+  const market = normalizeCashPositionMarket(position?.market);
+  const currency = normalizeCashPositionCurrency(position?.currency, market);
+  const amount = normalizeCashAmount(position?.amount);
+  return {
+    _cashRow: true,
+    cashId: position.id,
+    market,
+    key: normalizeCashLabel(position.label) || cashPositionDefaultLabel({ ...position, market, currency }),
+    price: amount || null,
+    cashAmount: amount,
+    cashCurrency: currency,
+    priceUnit: currency === 'KRW' ? '원' : '',
+    changePct: null,
+    asOf: new Date(Number(position.updatedAt) || Date.now()).toISOString(),
+    source: '직접 입력',
+    userAdded: false,
+  };
+}
+function cashPositionsForMarket(market){
+  const m = String(market || '').toUpperCase();
+  return cashPositionsLoad()
+    .filter((position)=>{
+      const itemMarket = normalizeCashPositionMarket(position.market);
+      if(m === 'HOLDINGS' || m === 'ALL') return true;
+      return itemMarket === m;
+    })
+    .map(cashPositionCard);
+}
+function cashPositionById(id){
+  const target = String(id || '');
+  return cashPositionsLoad().find((position)=>position.id === target) || null;
+}
+function cashAmountText(amount, currency='KRW'){
+  return normalizeCashPositionCurrency(currency) === 'USD' ? numUsd(amount) : numKrw(amount);
+}
+function cashSummaryMoneyText(amount, currency='KRW'){
+  const n = Number(amount);
+  if(!Number.isFinite(n)) return '-';
+  const cur = normalizeCashPositionCurrency(currency);
+  return `${cur === 'USD' ? '$' : '₩'}${cashAmountText(Math.abs(n), cur)}`;
+}
+function cashAmountHtml(amount, currency='KRW'){
+  const cur = normalizeCashPositionCurrency(currency);
+  if(!Number.isFinite(Number(amount)) || Number(amount) <= 0) return '<span class="flat">금액 입력</span>';
+  const mark = cur === 'USD' ? '$' : '₩';
+  return `<span class="quote-price-currency" aria-hidden="true">${mark}</span><span>${esc(cashAmountText(amount, cur))}</span>`;
+}
 function holdingId(card){ return card.userAdded ? `${card.market||''}:${card.code||card.key}` : cardOrderId(card); }
 function isRateOnlyCard(key){ return ['김프(%)','코스피야선'].includes(key); }
 function canHoldCard(card){ return !isIndexLikeCard(card) && !isMomentumAggregateKey(card.key); }
@@ -2216,6 +2338,13 @@ function holdingSummaryCurrency(card, fx){
   }
   return { currency:'KRW', factor:1, converted:false };
 }
+function cashHoldingSummaryCurrency(card, fx){
+  const currency = normalizeCashPositionCurrency(card?.cashCurrency, card?.market);
+  if(currency === 'KRW') return { currency:'KRW', factor:1, converted:false };
+  return Number.isFinite(Number(fx)) && Number(fx) > 0
+    ? { currency:'KRW', factor:Number(fx), converted:true }
+    : { currency:'USD', factor:1, converted:false };
+}
 function holdingSummary(cards){
   const fx = usdKrwRate();
   const currencies = new Set();
@@ -2227,6 +2356,18 @@ function holdingSummary(cards){
   let dayCount = 0;
   let converted = 0;
   (cards || []).forEach((card)=>{
+    if(card?._cashRow){
+      const amount = normalizeCashAmount(card.cashAmount ?? card.price);
+      if(amount <= 0) return;
+      const currency = cashHoldingSummaryCurrency(card, fx);
+      count += 1;
+      invested += amount * currency.factor;
+      value += amount * currency.factor;
+      dayBaseValue += amount * currency.factor;
+      if(currency.converted) converted += 1;
+      currencies.add(currency.currency);
+      return;
+    }
     const lots = holdingLotsFor(card);
     lots.forEach((lot)=>{
       const calc = holdingCalc(card, lot);
@@ -2342,7 +2483,7 @@ function cacheRuntimeQuote(token, coinSource, quote, at=Date.now()){
 }
 
 function quoteTokenForCard(card){
-  if(!card || card._flows || card._momentum !== undefined || (card.sign && card.priceUnit)) return '';
+  if(!card || card._cashRow || card._flows || card._momentum !== undefined || (card.sign && card.priceUnit)) return '';
   if(isRateOnlyCard(card.key)) return '';
   const token = card.userAdded && card.code
     ? `${card.code}:${card.market || ''}`
@@ -3383,13 +3524,14 @@ let lastRenderedCards=[];
 let fastQuoteTimer=null;
 let fastQuoteInFlight=false;
 let pendingQuoteNoteFocusId = '';
+let cashInputState = null;
 const DEFAULT_FEATURE_FLAGS_CLIENT={fastQuote:true, chart:true, community:true, news:true, degraded:false};
 let featureFlags={...DEFAULT_FEATURE_FLAGS_CLIENT};
 let pollHint={};
 let serverStatusState=null;
 let serverStatusExpanded=false;
 const HIDDEN_KEYS_STORE = 'kg_hidden_default_v1';
-const PERSIST_KEYS = [WATCHLIST_KEY, QUOTE_NOTES_KEY, HOLDINGS_KEY, HOLDING_PNL_MODE_KEY, HIDDEN_KEYS_STORE, DEFAULT_ORDER_STORE, QUOTE_SORT_KEY, CHANGE_WINDOW_KEY, TIMELINE_TAB_KEY, COMMUNITY_CHANNEL_KEY, COMMUNITY_READ_STATE_KEY, COMMUNITY_POLL_VOTES_KEY, VIEW_KEY, FLOATING_HIDDEN_KEY, CHAT_NICK_KEY, COMMUNITY_NICK_KEY, CHAT_SIZE_KEY, CHAT_POSITION_KEY, CHAT_OPACITY_KEY, CHAT_IMAGE_PREVIEW_KEY, CHAT_DOCK_KEY, VISITOR_ID_KEY, FIRST_VISIT_KEY, HOLDING_TIP_KEY, CHANGE_WINDOW_TIP_KEY, CHART_TIP_KEY, TV_CHART_HEIGHT_KEY, SHEET_SPLIT_KEY, PANEL_ORDER_KEY, READABILITY_KEY, RIBBON_COLLAPSED_KEY, EXCEL_THEME_KEY, EXCEL_DARK_MODE_KEY, SHEET_MONOCHROME_KEY, US_SHEET_KRW_KEY, COIN_QUOTE_SOURCE_KEY, UPDATES_SEEN_KEY, SETTINGS_WAKELOCK_KEY, SETTINGS_REMEMBER_MARKET_KEY];
+const PERSIST_KEYS = [WATCHLIST_KEY, QUOTE_NOTES_KEY, HOLDINGS_KEY, CASH_POSITIONS_KEY, HOLDING_PNL_MODE_KEY, HIDDEN_KEYS_STORE, DEFAULT_ORDER_STORE, QUOTE_SORT_KEY, CHANGE_WINDOW_KEY, TIMELINE_TAB_KEY, COMMUNITY_CHANNEL_KEY, COMMUNITY_READ_STATE_KEY, COMMUNITY_POLL_VOTES_KEY, VIEW_KEY, FLOATING_HIDDEN_KEY, CHAT_NICK_KEY, COMMUNITY_NICK_KEY, CHAT_SIZE_KEY, CHAT_POSITION_KEY, CHAT_OPACITY_KEY, CHAT_IMAGE_PREVIEW_KEY, CHAT_DOCK_KEY, VISITOR_ID_KEY, FIRST_VISIT_KEY, HOLDING_TIP_KEY, CHANGE_WINDOW_TIP_KEY, CHART_TIP_KEY, TV_CHART_HEIGHT_KEY, SHEET_SPLIT_KEY, PANEL_ORDER_KEY, READABILITY_KEY, RIBBON_COLLAPSED_KEY, EXCEL_THEME_KEY, EXCEL_DARK_MODE_KEY, SHEET_MONOCHROME_KEY, US_SHEET_KRW_KEY, COIN_QUOTE_SOURCE_KEY, UPDATES_SEEN_KEY, SETTINGS_WAKELOCK_KEY, SETTINGS_REMEMBER_MARKET_KEY];
 const newsAccumulated=[];               // 평탄화된 누적 뉴스 (newest first)
 const newsSeenKeys=new Set();           // url 또는 title 기준 dedup (KR/US 중복도 하나로 합침)
 
@@ -8549,9 +8691,9 @@ function quoteNotesForMarket(market){
 }
 
 function withQuoteNoteRows(cards, market=currentRenderedMarket){
-  const base = (Array.isArray(cards) ? cards : []).filter((card)=>!card?._noteRow);
-  if(String(market || '').toUpperCase() === 'HOLDINGS') return base;
-  return base.concat(quoteNotesForMarket(market));
+  const base = (Array.isArray(cards) ? cards : []).filter((card)=>!card?._noteRow && !card?._cashRow);
+  if(String(market || '').toUpperCase() === 'HOLDINGS') return base.concat(cashPositionsForMarket(market));
+  return base.concat(cashPositionsForMarket(market), quoteNotesForMarket(market));
 }
 
 function currentQuoteNoteMarket(){
@@ -8796,6 +8938,124 @@ function toggleHoldingPnlMode(){
   setHoldingPnlMode(holdingPnlDisplayMode() === 'daily' ? 'total' : 'daily');
 }
 
+function currentCashPositionMarket(){
+  const rendered = String(currentRenderedMarket || selected || '').toUpperCase();
+  if(CASH_POSITION_MARKETS.has(rendered)) return rendered;
+  const selectedMarket = String(document.getElementById('watchlistMarket')?.value || '').toUpperCase();
+  if(CASH_POSITION_MARKETS.has(selectedMarket)) return selectedMarket;
+  return 'KR';
+}
+
+function refreshQuoteTableAfterLocalRowChange(){
+  if(lastRenderedCards.length){
+    rerenderCardsTableFromCurrentState();
+  }else if(lastSnapshot){
+    renderSnapshot(lastSnapshot);
+  }else{
+    loadSnapshot();
+  }
+}
+
+function removeCashPositionFromOrder(position){
+  if(!String(position?.cashId || position?.id || '').trim()) return;
+  const orderId = cashPositionOrderId(position || {});
+  if(!orderId) return;
+  defaultOrderSave(defaultOrderLoad().filter((id)=>id !== orderId));
+}
+
+function closeCashInline(options={}){
+  const state = cashInputState;
+  cashInputState = null;
+  if(state?.isNew && state.id){
+    const positions = cashPositionsLoad();
+    const target = positions.find((position)=>position.id === state.id);
+    if(!target || normalizeCashAmount(target.amount) <= 0){
+      cashPositionsSave(positions.filter((position)=>position.id !== state.id));
+      removeCashPositionFromOrder({ id:state.id, market:target?.market || currentCashPositionMarket() });
+    }
+  }
+  if(options.render !== false) refreshQuoteTableAfterLocalRowChange();
+}
+
+function openCashInline(info){
+  if(!info || !info.id) return;
+  cashInputState = info;
+  refreshQuoteTableAfterLocalRowChange();
+  setTimeout(()=>{
+    const row=Array.from(document.querySelectorAll('.cash-inline')).find(el=>el.dataset.cashId===info.id);
+    row?.querySelector('[data-cash-amount]')?.focus();
+  }, 0);
+}
+
+function saveCashInline(id, box){
+  if(!id || !box) return;
+  const positions = cashPositionsLoad();
+  const index = positions.findIndex((position)=>position.id === id);
+  if(index < 0){
+    cashInputState = null;
+    refreshQuoteTableAfterLocalRowChange();
+    showToast('현금 행을 찾지 못했습니다', 'warn');
+    return;
+  }
+  const amount = parseCashAmountInput(box.querySelector('[data-cash-amount]')?.value);
+  if(!Number.isFinite(amount) || amount <= 0){
+    showToast('현금 금액을 입력하세요', 'warn');
+    box.querySelector('[data-cash-amount]')?.focus();
+    return;
+  }
+  const market = normalizeCashPositionMarket(positions[index].market);
+  const currency = normalizeCashPositionCurrency(box.querySelector('[data-cash-currency]')?.value, market);
+  const label = normalizeCashLabel(box.querySelector('[data-cash-label]')?.value) || cashPositionDefaultLabel({ market, currency });
+  positions[index] = {
+    ...positions[index],
+    market,
+    currency,
+    label,
+    amount,
+    updatedAt:Date.now(),
+  };
+  cashPositionsSave(positions);
+  cashInputState = null;
+  refreshQuoteTableAfterLocalRowChange();
+  showToast(`${label} 저장됨`, 'info');
+}
+
+function removeCashPosition(id){
+  const targetId = String(id || '');
+  if(!targetId) return;
+  const positions = cashPositionsLoad();
+  const target = positions.find((position)=>position.id === targetId);
+  cashPositionsSave(positions.filter((position)=>position.id !== targetId));
+  removeCashPositionFromOrder(target || { id:targetId, market:currentCashPositionMarket() });
+  if(cashInputState?.id === targetId) cashInputState = null;
+  refreshQuoteTableAfterLocalRowChange();
+  showToast(`${target?.label || '현금'} 삭제됨`, 'info');
+}
+
+async function addCashPositionRow(){
+  const positions = cashPositionsLoad();
+  const limit = (typeof CASH_POSITION_LIMIT === 'number' && Number.isFinite(CASH_POSITION_LIMIT)) ? CASH_POSITION_LIMIT : 20;
+  if(positions.length >= limit){
+    showToast(`현금 행은 최대 ${limit}개까지 추가할 수 있습니다`, 'warn');
+    return;
+  }
+  const market = currentCashPositionMarket();
+  const currency = defaultCashCurrencyForMarket(market);
+  const position = {
+    id:newCashPositionId(),
+    market,
+    currency,
+    amount:0,
+    label:cashPositionDefaultLabel({ market, currency }),
+    createdAt:Date.now(),
+    updatedAt:Date.now(),
+  };
+  cashPositionsSave(positions.concat(position));
+  saveQuoteRowOrder(quoteRowOrderVisibleIds().concat(cashPositionOrderId(position)));
+  openCashInline({ id:position.id, isNew:true });
+  showToast('현금 금액을 입력하세요', 'info');
+}
+
 function closeHoldingInline(options={}){
   holdingInputState = null;
   if(options.render !== false && lastSnapshot) renderSnapshot(lastSnapshot);
@@ -8938,16 +9198,22 @@ async function addWatchlistItem(rawCode, market){
   if(q.market==='COIN' && selected!=='COIN'){
     showToast('코인 추가는 코인 시트에서만 가능합니다', 'warn'); return false;
   }
-  if(list.find(x=>wlSame(x.code, q.code) && String(x.market||'').toUpperCase()===String(q.market||'').toUpperCase())){
+  const selectedSheet = String(currentRenderedMarket || selected || '').toUpperCase();
+  const quoteCode = String(q.code || '').toUpperCase();
+  const itemMarket = quoteCode === 'JPYKRW=X' && (selectedSheet === 'KR' || selectedSheet === 'US')
+    ? selectedSheet
+    : q.market;
+  if(list.find(x=>wlSame(x.code, q.code) && String(x.market||'').toUpperCase()===String(itemMarket||'').toUpperCase())){
     showToast('이미 추가된 종목입니다', 'warn'); return false;
   }
-  const item={ code:q.code, market:q.market, name:q.name||q.code, addedAt:Date.now() };
-  cacheRuntimeQuote(watchlistQuoteToken(item), coinSourceForMarket(item.market), q);
+  const item={ code:q.code, market:itemMarket, name:q.name||q.code, addedAt:Date.now() };
+  const quoteForItem = itemMarket !== q.market ? { ...q, market:itemMarket } : q;
+  cacheRuntimeQuote(watchlistQuoteToken(item), coinSourceForMarket(item.market), quoteForItem);
   postRuntimeMessage('quotes', {
     items:[{
       token:watchlistQuoteToken(item),
       coinSource:coinSourceForMarket(item.market),
-      quote:q,
+      quote:quoteForItem,
     }],
   });
   const limitHit=watchlistLimitHitForItem(list, item);
@@ -8959,8 +9225,8 @@ async function addWatchlistItem(rawCode, market){
   list.push(item);
   wlSave(list);
   await loadSnapshot({force:true});
-  const where = marketDisplayName(q.market);
-  showToast(`${where} 시트에 추가되었습니다!`, q.market.toLowerCase());
+  const where = marketDisplayName(itemMarket);
+  showToast(`${where} 시트에 추가되었습니다!`, String(itemMarket || q.market || '').toLowerCase());
   return true;
 }
 
@@ -9191,6 +9457,9 @@ document.getElementById('watchlistMoreMenu')?.addEventListener('click', (ev)=>{
   if(action === 'note'){
     closeWatchlistMoreMenu();
     addQuoteNoteRow();
+  }else if(action === 'cash'){
+    closeWatchlistMoreMenu();
+    addCashPositionRow();
   }else if(action === 'holding-pnl-total' || action === 'holding-pnl-daily'){
     setHoldingPnlMode(action === 'holding-pnl-daily' ? 'daily' : 'total');
     closeWatchlistMoreMenu();

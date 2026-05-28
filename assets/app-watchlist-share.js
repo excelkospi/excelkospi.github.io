@@ -94,6 +94,18 @@ function compactSharedHoldingsForShare(input){
   return out;
 }
 
+function compactCashPositionsForShare(input){
+  return normalizeCashPositions(input).map((position)=>[
+    position.id,
+    position.market,
+    position.currency,
+    position.amount,
+    position.label,
+    position.createdAt,
+    position.updatedAt,
+  ]);
+}
+
 function normalizeSharedDefaultOrder(input){
   if(!Array.isArray(input)) return [];
   const limit = (typeof WATCHLIST_SHARE_STATE_LIMIT === 'number' && Number.isFinite(WATCHLIST_SHARE_STATE_LIMIT)) ? WATCHLIST_SHARE_STATE_LIMIT : 320;
@@ -131,11 +143,13 @@ function currentWatchlistSharePayload(){
   const holdings = compactSharedHoldingsForShare(holdingsLoad());
   const order = normalizeSharedDefaultOrder(defaultOrderLoad());
   const notes = compactQuoteNotesForShare(quoteNotesLoad());
+  const cash = compactCashPositionsForShare(cashPositionsLoad());
   const hidden = normalizeSharedHiddenDefaults(Array.from(hiddenLoad()));
   if(watchlist.length) payload.w = watchlist;
   if(Object.keys(holdings).length) payload.h = holdings;
   if(order.length) payload.o = order;
   if(notes.length) payload.n = notes;
+  if(cash.length) payload.c = cash;
   if(hidden.length) payload.x = hidden;
   return payload;
 }
@@ -162,15 +176,18 @@ function sharedWatchlistPayloadFromPath(){
     const hasHiddenDefaults = Object.prototype.hasOwnProperty.call(raw, 'x')
       || Object.prototype.hasOwnProperty.call(raw, 'hiddenDefaults')
       || Object.prototype.hasOwnProperty.call(raw, 'hidden');
+    const hasCash = Object.prototype.hasOwnProperty.call(raw, 'c')
+      || Object.prototype.hasOwnProperty.call(raw, 'cash');
     const payload = {
       v: 1,
       w: compactWatchlistForShare(raw.w || raw.watchlist || []),
       h: normalizeSharedHoldings(raw.h || raw.holdings || {}),
       o: normalizeSharedDefaultOrder(raw.o || raw.defaultOrder || []),
       n: compactQuoteNotesForShare(raw.n || raw.notes || []),
+      c: compactCashPositionsForShare(raw.c || raw.cash || []),
     };
     if(hasHiddenDefaults) payload.x = normalizeSharedHiddenDefaults(raw.x || raw.hiddenDefaults || raw.hidden || []);
-    if(!payload.w.length && !Object.keys(payload.h).length && !payload.o.length && !payload.n.length && !payload.x?.length && !hasHiddenDefaults) return { error:'empty' };
+    if(!payload.w.length && !Object.keys(payload.h).length && !payload.o.length && !payload.n.length && !payload.c.length && !payload.x?.length && !hasHiddenDefaults && !hasCash) return { error:'empty' };
     return payload;
   }catch{
     return { error:'invalid' };
@@ -185,6 +202,7 @@ function clearSharedWatchlistPath(){
 function hasExistingWatchlistState(){
   return wlLoad().length > 0
     || Object.keys(holdingsLoad()).length > 0
+    || cashPositionsLoad().length > 0
     || defaultOrderLoad().length > 0
     || quoteNotesLoad().length > 0
     || hiddenLoad().size > 0;
@@ -202,6 +220,7 @@ async function applySharedWatchlistPayload(payload){
     }));
   wlSave(watchlist);
   holdingsSave(normalizeSharedHoldings(payload.h));
+  cashPositionsSave(payload.c || []);
   defaultOrderSave(normalizeSharedDefaultOrder(payload.o));
   quoteNotesSave(payload.n || []);
   if(Object.prototype.hasOwnProperty.call(payload, 'x')){
@@ -223,15 +242,17 @@ async function maybeImportSharedWatchlistFromUrl(){
   const count = payload.w.length;
   const holdingCount = Object.keys(payload.h).length;
   const noteCount = (payload.n || []).length;
+  const cashCount = (payload.c || []).length;
   const hiddenCount = Object.prototype.hasOwnProperty.call(payload, 'x') ? normalizeSharedHiddenDefaults(payload.x).length : null;
   if(hasExistingWatchlistState()){
     const hiddenText = hiddenCount == null ? '' : `, 숨김 ${hiddenCount}개`;
+    const cashText = cashCount ? `, 현금 ${cashCount}개` : '';
     const overwriteText = hiddenCount == null
-      ? '이미 저장된 나만의 종목 리스트와 평단가 정보는 이 자료로 덮어씌워집니다.'
-      : '이미 저장된 나만의 종목 리스트, 평단가 정보, 숨김 설정은 이 자료로 덮어씌워집니다.';
+      ? '이미 저장된 나만의 종목 리스트, 평단가 정보, 현금 행은 이 자료로 덮어씌워집니다.'
+      : '이미 저장된 나만의 종목 리스트, 평단가 정보, 현금 행, 숨김 설정은 이 자료로 덮어씌워집니다.';
     const ok = window.confirm(
       `공유된 종목 목록을 불러올까요?\n\n` +
-      `종목 ${count}개, 평단가/수량 정보 ${holdingCount}개, 빈 행 메모 ${noteCount}개${hiddenText}가 포함되어 있습니다.\n` +
+      `종목 ${count}개, 평단가/수량 정보 ${holdingCount}개, 빈 행 메모 ${noteCount}개${cashText}${hiddenText}가 포함되어 있습니다.\n` +
       overwriteText
     );
     if(!ok){
@@ -250,9 +271,10 @@ function shouldUseNativeShare(){
 
 function watchlistShareConfirmText(count, holdingCount, nativeShare=false){
   const noteCount = quoteNotesLoad().length;
+  const cashCount = cashPositionsLoad().length;
   return (
     `현재 저장된 종목 목록을 공유 주소로 내보냅니다.\n\n` +
-    `이 주소로 방문하면 종목 ${count}개, 순서, 평단가/수량 정보 ${holdingCount}개, 빈 행 메모 ${noteCount}개가 이 브라우저에 복원됩니다.\n` +
+    `이 주소로 방문하면 종목 ${count}개, 순서, 평단가/수량 정보 ${holdingCount}개, 빈 행 메모 ${noteCount}개, 현금 ${cashCount}개가 이 브라우저에 복원됩니다.\n` +
     `평단가와 수량도 주소 안에 포함되니 공개 채팅방에 올릴 때는 주의해 주세요.` +
     (nativeShare ? `\n\n확인을 누르면 휴대폰 공유창이 열립니다.` : '')
   );
@@ -279,6 +301,7 @@ function watchlistShareSummary(payload=currentWatchlistSharePayload()){
     count: (payload.w || []).length,
     holdingCount: Object.keys(payload.h || {}).length,
     noteCount: (payload.n || []).length,
+    cashCount: (payload.c || []).length,
     hiddenCount: (payload.x || []).length,
   };
 }
@@ -368,8 +391,8 @@ function openWatchlistPhoneShareModal(){
 function openWatchlistShareModal(mode='phone'){
   const payload = currentWatchlistSharePayload();
   const summary = watchlistShareSummary(payload);
-  if(!summary.count && !summary.holdingCount && !(payload.o || []).length && !summary.noteCount && !summary.hiddenCount){
-    showToast(mode === 'phone' ? '휴대폰으로 옮길 종목이나 평단가 정보가 없습니다' : '내보낼 종목이나 평단가 정보가 없습니다', 'warn');
+  if(!summary.count && !summary.holdingCount && !(payload.o || []).length && !summary.noteCount && !summary.cashCount && !summary.hiddenCount){
+    showToast(mode === 'phone' ? '휴대폰으로 옮길 종목이나 평단가, 현금 정보가 없습니다' : '내보낼 종목이나 평단가, 현금 정보가 없습니다', 'warn');
     return;
   }
   closeWatchlistMoreMenu();
@@ -378,7 +401,7 @@ function openWatchlistShareModal(mode='phone'){
   const isPhone = mode === 'phone';
   const title = isPhone ? '목록 휴대폰으로 보내기' : '내보내기 / 공유';
   const icon = isPhone ? 'i-phone' : 'i-ios-share';
-  const subtitle = `종목 ${summary.count}개 · 평단가/수량 ${summary.holdingCount}개 · 빈 행 ${summary.noteCount}개`;
+  const subtitle = `종목 ${summary.count}개 · 평단가/수량 ${summary.holdingCount}개 · 현금 ${summary.cashCount}개 · 빈 행 ${summary.noteCount}개`;
   const initialUrl = watchlistShareUrl(payload);
   const modal = document.createElement('div');
   modal.className = 'watchlist-phone-modal';
@@ -405,7 +428,7 @@ function openWatchlistShareModal(mode='phone'){
         ${isPhone ? `<div class="watchlist-phone-qr-wrap">
           <div class="watchlist-phone-qr" id="watchlistPhoneQr"><div class="watchlist-phone-loading">QR 코드 만드는 중...</div></div>
         </div>` : `<div class="watchlist-share-explain">
-          선택한 주소로 열면 저장한 종목, 순서, 평단가/수량, 빈 행 메모가 그대로 복원됩니다.
+          선택한 주소로 열면 저장한 종목, 순서, 평단가/수량, 현금, 빈 행 메모가 그대로 복원됩니다.
         </div>`}
         ${isPhone ? `<div class="watchlist-phone-underqr">
           <span>QR 인식이 잘 안되면 <button type="button" data-watchlist-phone-copy>주소를 복사</button>하세요.</span>
@@ -413,7 +436,7 @@ function openWatchlistShareModal(mode='phone'){
         </div>` : ''}
         <div class="watchlist-phone-copy">
           <strong>${isPhone ? '휴대폰에서 이 코드를 스캔하시면 저장한 목록 그대로 볼 수 있습니다.' : '이 주소를 저장하면 목록 백업처럼 다시 불러올 수 있습니다.'}</strong>
-          <span>주소 안에 종목 순서, 평단가/수량, 빈 행 메모가 함께 들어갑니다. 공개된 곳에 올릴 때는 주의해 주세요.</span>
+          <span>주소 안에 종목 순서, 평단가/수량, 현금, 빈 행 메모가 함께 들어갑니다. 공개된 곳에 올릴 때는 주의해 주세요.</span>
           <span class="watchlist-phone-url" data-watchlist-share-url>${esc(initialUrl)}</span>
         </div>
         <div class="watchlist-phone-actions">
@@ -437,11 +460,11 @@ function openWatchlistShareModal(mode='phone'){
   modal.querySelector('[data-watchlist-phone-native]')?.addEventListener('click', async ()=>{
     try{
       const url = currentWatchlistShareModalUrl(modal, payload);
-      await navigator.share({
-        title:'excelkospi 종목 목록',
-        text:`이 주소로 열면 종목 ${summary.count}개와 순서${summary.holdingCount ? `, 평단가/수량 정보 ${summary.holdingCount}개` : ''}${summary.noteCount ? `, 빈 행 메모 ${summary.noteCount}개` : ''}가 불러와집니다.`,
-        url,
-      });
+	        await navigator.share({
+	          title:'excelkospi 종목 목록',
+	        text:`이 주소로 열면 종목 ${summary.count}개와 순서${summary.holdingCount ? `, 평단가/수량 정보 ${summary.holdingCount}개` : ''}${summary.cashCount ? `, 현금 ${summary.cashCount}개` : ''}${summary.noteCount ? `, 빈 행 메모 ${summary.noteCount}개` : ''}가 불러와집니다.`,
+	          url,
+	        });
     }catch(e){
       if(String(e?.name || '').toLowerCase() !== 'aborterror') showToast('공유창을 열지 못했습니다. 주소 복사를 사용해 주세요', 'warn');
     }
