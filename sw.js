@@ -1,5 +1,5 @@
-const CACHE_NAME = 'excelkospi-static-20260527-615';
-const API_CACHE_NAME = 'excelkospi-api-20260527-615';
+const CACHE_NAME = 'excelkospi-static-20260528-616';
+const API_CACHE_NAME = 'excelkospi-api-20260528-616';
 const API_ORIGINS = new Set([
   location.origin,
   'https://excelkospi-api.alaala3.workers.dev',
@@ -28,7 +28,7 @@ const APP_SHELL = [
   '/assets/app-quote-controls.js?v=20260526-559',
   '/assets/app-mini-chart.js?v=20260526-583',
   '/assets/app-tradingview.js?v=20260527-609',
-  '/assets/app-chat-ui.js?v=20260526-546',
+  '/assets/app-chat-ui.js?v=20260528-616',
   '/assets/app.js?v=20260527-615',
   '/assets/favicon.svg?v=20260526-522',
   '/assets/favicon-32.png?v=20260526-522',

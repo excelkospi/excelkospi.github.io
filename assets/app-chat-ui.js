@@ -94,7 +94,7 @@ function ensureChatComposerFallback(){
   form.setAttribute('aria-label', '메시지 입력');
   form.innerHTML = `
     <input data-xk-reply-name="1" id="xkReplyName" type="text" maxlength="24" autocomplete="nickname" placeholder="월급루팡_123" />
-    <input data-xk-reply-text="1" id="xkReplyText" type="text" maxlength="280" autocomplete="off" placeholder="채팅 입력 / 신고 4회 : 30분 차단" />
+    <input data-xk-reply-text="1" id="xkReplyText" type="text" maxlength="280" autocomplete="off" placeholder="@종목명으로 태그 가능" />
     <button data-xk-reply-file="1" id="xkReplyFile" type="button" title="이미지 첨부(외부 링크)" aria-label="이미지 첨부"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5L19 18H5l3.5-4.5zM8 9.5A1.5 1.5 0 1 1 6.5 8 1.5 1.5 0 0 1 8 9.5z"/></svg></button>
     <button data-xk-reply-submit="1" type="submit">전송</button>
   `;
