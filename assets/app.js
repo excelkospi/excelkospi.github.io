@@ -6457,10 +6457,10 @@ function lupangFlush(){
   lupangOpenStart=now;
 }
 function lupangStartTracking(){
-  // 채팅창이 열려 있고, 탭이 실제로 보이는 동안에만 누적한다(백그라운드 시간 제외).
-  if(lupangOpenStart || document.hidden || !chatIsOpen) return;
+  // 채팅 열림 여부와 무관하게, 탭이 실제로 보이는 동안 누적한다(백그라운드 시간만 제외).
+  if(lupangOpenStart || document.hidden) return;
   lupangOpenStart=Date.now();
-  if(!lupangFlushTimer) lupangFlushTimer=setInterval(()=>{ if(chatIsOpen && !document.hidden) lupangFlush(); }, 60*1000);
+  if(!lupangFlushTimer) lupangFlushTimer=setInterval(()=>{ if(!document.hidden) lupangFlush(); }, 60*1000);
 }
 function lupangStopTracking(){
   lupangFlush();
@@ -6471,19 +6471,21 @@ function lupangMinutesNow(){
   const ms=lupangReadMs() + (lupangOpenStart ? Math.max(0, Date.now()-lupangOpenStart) : 0);
   return Math.floor(ms / 60000); // 분 단위
 }
-// 하단바 로테이션용: 내 오늘 누적 루팡 시간(H:MM). 1분 미만이면 표시하지 않는다.
+const LUPANG_MIN_VISIBLE = 15; // 15분을 넘어야 표시
+function lupangFormat(minutes){
+  const m=Math.max(0, Math.floor(Number(minutes) || 0));
+  if(m < 60) return `${m}분째 루팡 중`;
+  return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}째 루팡 중`;
+}
+// 하단바 로테이션용: 내 오늘 누적 루팡 시간. 15분 이하이면 표시하지 않는다.
 function lupangStatusText(){
   const m=lupangMinutesNow();
-  if(m < 1) return '';
-  return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}째 루팡 중`;
+  return m > LUPANG_MIN_VISIBLE ? lupangFormat(m) : '';
 }
 function lupangBadgeText(minutes){
   const n=Number(minutes);
-  // 값이 없거나(기존 메시지) 20분 미만이면 표시하지 않는다. NaN 방어 포함.
-  if(!Number.isFinite(n) || n < 20) return '';
-  const m=Math.floor(n);
-  if(m < 60) return `${m}분째 루팡중`;
-  return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}째 루팡중`;
+  if(!Number.isFinite(n) || n <= LUPANG_MIN_VISIBLE) return ''; // 값 없음(기존 메시지)·15분 이하 미표시
+  return lupangFormat(n);
 }
 function lupangBadgeHtml(message){
   const text=lupangBadgeText(message?.lupang_min);
@@ -6491,11 +6493,12 @@ function lupangBadgeHtml(message){
 }
 try{
   window.addEventListener('pagehide', lupangStopTracking);
-  // 탭이 가려지면 누적을 멈추고(보는 시간만 집계), 다시 보이고 채팅이 열려 있으면 재개한다.
+  // 탭이 가려지면 누적을 멈추고(보는 시간만 집계), 다시 보이면 재개한다(채팅 닫혀 있어도 집계).
   document.addEventListener('visibilitychange', ()=>{
     if(document.hidden) lupangStopTracking();
-    else if(chatIsOpen) lupangStartTracking();
+    else lupangStartTracking();
   });
+  lupangStartTracking(); // 페이지 진입 시 보이는 상태면 바로 집계 시작
 }catch{}
 let chatPanelLarge=readStringSetting(CHAT_SIZE_KEY, 'normal', new Set(['normal','large'])) === 'large';
 let chatExcelMode=readBoolSetting(CHAT_EXCEL_MODE_KEY, false);
@@ -7541,7 +7544,6 @@ function setChatOpen(open, options={}){
     chatPollingSleeping=false;
     chatHasNewBelow=false;
     chatLastActivityAt=Date.now();
-    lupangStartTracking();
     setChatPresenceOpen(true);
     clearClosedChatPoll();
     setChatUnread(false);
@@ -7572,7 +7574,6 @@ function setChatOpen(open, options={}){
     startChatIdleSleepTimer();
   }else{
     chatPollingSleeping=false;
-    lupangStopTracking();
     setChatPresenceOpen(false);
     chatPreviewMode=false;
     clearChatPreviewPoll();
