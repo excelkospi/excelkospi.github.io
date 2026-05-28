@@ -6463,17 +6463,18 @@ function lupangStopTracking(){
 }
 function lupangMinutesNow(){
   const ms=lupangReadMs() + (lupangOpenStart ? Math.max(0, Date.now()-lupangOpenStart) : 0);
-  return Math.floor(ms / (10*60*1000)) * 10; // 10분 단위
+  return Math.floor(ms / 60000); // 분 단위
 }
 function lupangBadgeText(minutes){
-  const m=Math.max(0, Math.floor(Number(minutes)/10)*10);
-  if(m < 10) return '';
-  if(m < 60) return `${m}분째 루팡 중`;
-  const h=Math.floor(m/60); const rem=m%60;
-  return rem ? `${h}시간 ${rem}분째 루팡 중` : `${h}시간째 루팡 중`;
+  const n=Number(minutes);
+  // 값이 없거나(기존 메시지) 20분 미만이면 표시하지 않는다. NaN 방어 포함.
+  if(!Number.isFinite(n) || n < 20) return '';
+  const m=Math.floor(n);
+  if(m < 60) return `${m}분째 루팡중`;
+  return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}째 루팡중`;
 }
 function lupangBadgeHtml(message){
-  const text=lupangBadgeText(Number(message?.lupang_min));
+  const text=lupangBadgeText(message?.lupang_min);
   return text ? `<span class="chat-lupang-badge" title="오늘 채팅창을 띄워둔 누적 시간">${esc(text)}</span>` : '';
 }
 try{
@@ -8267,8 +8268,8 @@ function renderChatMessages(options={}){
       return `<div class="chat-msg${isOwn?' own':''}${isAdminNick?' admin':''}${m._pending?' chat-msg-pending':''}" data-chat-id="${esc(m.id)}">
         <div class="chat-meta">
           ${chatNickMarkup(m, {isAdminNick})}
-          ${lupangBadgeHtml(m)}
           ${m.report_count>=4 ? '<span title="신고 누적">⚠</span>' : ''}
+          ${lupangBadgeHtml(m)}
           <span class="chat-time">${m._pending ? '전송 중…' : fmtTime(m.created_at)}</span>
           <button class="chat-recommend" type="button" data-recommend-id="${esc(m.id)}" ${recommendDisabled?'disabled':''}>${esc(chatRecommendButtonLabel(m))}</button>
           <button class="chat-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>
