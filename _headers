@@ -1,6 +1,8 @@
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: object-src 'none'; base-uri 'self'; frame-ancestors 'none'
 
 /og.png
   Cache-Control: public, max-age=3600
