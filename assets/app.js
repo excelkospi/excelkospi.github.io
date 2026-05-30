@@ -7472,7 +7472,10 @@ function newestChatCreatedAt(){
   }, null);
 }
 
-function sharedChatMessagesPayload(limit, maxAgeMs=Math.max(6500, chatMessagesIntervalMs())){
+// maxAgeMs: 어댑티브(15s) 상태에서도 chatMessagesIntervalMs()는 15000을 반환해
+// 탭 간 공유 캐시 허용 창이 15초로 늘어나 지연을 증폭시킨다. 폴링 주기가 아닌
+// 현재 티어의 기본 pollMs(4~6초)를 기준으로 삼아 최대 9초로 제한한다.
+function sharedChatMessagesPayload(limit, maxAgeMs=Math.max(6500, chatPollTier().pollMs * 1.5)){
   const item=runtimeShared.chatMessages;
   if(!item || !Array.isArray(item.data?.messages)) return null;
   if(Number(item.limit || 0) < Number(limit || 0)) return null;
@@ -7959,7 +7962,7 @@ async function loadChatMessages(options={}){
     if(!data){
       try{
         data=await fetchJsonClient(query, 6000, {
-          cache:options.force ? 'reload' : 'default',
+          cache:options.force ? 'reload' : 'no-store',
         });
         if(data?.ok && Array.isArray(data.messages)){
           runtimeShared.chatMessages={at:Date.now(), limit, data};

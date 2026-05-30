@@ -101,9 +101,9 @@ const CHAT_POLL_TIERS = [
   { maxChatOnline: Infinity, pollMs: 6 * 1000, ttlSec: 6 },
 ];
 const CHAT_POLL_DEFAULT_TIER_INDEX = 1; // chatOnline 미상일 때 기본 = 보통(5초/TTL5)
-// 어댑티브 폴링: 단계별 슬립 임계(chatIdleSleepMs)의 이 비율을 지나면(=60%)
+// 어댑티브 폴링: 단계별 슬립 임계(chatIdleSleepMs)의 이 비율을 지나면(=50%)
 // 완전 절전 전에 폴링 주기를 늘려 비용을 줄인다. 활동 감지 시 즉시 기본 주기로 복귀.
-const CHAT_ADAPTIVE_POLL_FRACTION = 0.6;
+const CHAT_ADAPTIVE_POLL_FRACTION = 0.5;
 const CHAT_ADAPTIVE_OPEN_POLL_MS = 15 * 1000;
 const CHAT_SEND_GAP_MS = 4 * 1000;
 const CHAT_RECOMMENDED_SEND_GAP_MS = 2 * 1000;
