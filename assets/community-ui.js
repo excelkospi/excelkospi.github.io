@@ -1546,7 +1546,7 @@ function communityReplyComposeRow(rowNum, postId, dataCols, currentNick, nickAtt
       <td class="rownum">${rowNum}</td>
       <td colspan="${dataCols}" class="community-compose-cell community-reply-compose-cell">
         <div class="community-compose-box community-reply-box">
-          <input class="community-nick-input community-reply-nick-input" id="communityReplyNick" type="text" maxlength="24" autocomplete="nickname" placeholder="닉네임" value="${esc(currentNick)}" ${nickAttrs} />
+          <input class="community-nick-input community-reply-nick-input" id="communityReplyNick" type="text" maxlength="10" autocomplete="nickname" placeholder="닉네임" value="${esc(currentNick)}" ${nickAttrs} />
           <textarea class="community-post-input community-reply-input" id="communityReplyBody" maxlength="${COMMUNITY_COMMENT_LIMIT}" autocomplete="off" rows="2" placeholder="${replyPlaceholderAttr}">${esc(currentReplyBody)}</textarea>
           <button class="community-attach" type="button" data-community-attach="communityReplyBody" title="이미지 첨부(외부 링크)" aria-label="이미지 첨부"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5L19 18H5l3.5-4.5zM8 9.5A1.5 1.5 0 1 1 6.5 8 1.5 1.5 0 0 1 8 9.5z"/></svg></button>
           <button class="community-reply-cancel" type="button" data-community-reply-cancel>취소</button>
@@ -1603,7 +1603,7 @@ function renderCommunityTable(state='ready'){
       <td class="rownum"></td>
       <td colspan="${dataCols}" class="community-compose-cell">
         <div class="community-compose-box community-main-compose">
-          <input class="community-nick-input" id="communityNick" type="text" maxlength="24" autocomplete="nickname" placeholder="닉네임" value="${esc(currentNick)}" ${nickAttrs} />
+          <input class="community-nick-input" id="communityNick" type="text" maxlength="10" autocomplete="nickname" placeholder="닉네임" value="${esc(currentNick)}" ${nickAttrs} />
           <textarea class="community-post-input" id="communityBody" maxlength="${COMMUNITY_BODY_LIMIT}" autocomplete="off" rows="2" placeholder="${composePlaceholderAttr}">${esc(currentBody)}</textarea>
           <button class="community-attach" type="button" data-community-attach="communityBody" title="이미지 첨부(외부 링크)" aria-label="이미지 첨부"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5L19 18H5l3.5-4.5zM8 9.5A1.5 1.5 0 1 1 6.5 8 1.5 1.5 0 0 1 8 9.5z"/></svg></button>
           <button class="community-cell-button community-compose-submit" id="communitySubmit" type="button">등록</button>
