@@ -2728,9 +2728,11 @@ function liveBadgeHtml(card, session){
 function compactSourceLabel(card){
   const market=String(card.market || '').toUpperCase();
   const src=String(card.source || '-').trim();
+  // 데이터 출처 vendor명(Naver)은 화면에 노출하지 않는다. market 값과 무관하게 먼저 정규화한다.
+  // 넥스트레이드 애프터 시세 → 'NXT', 채권 → '국채', 그 외 정규장 시세 → '정규장'.
+  if(src.includes('NXT')) return 'NXT';
+  if(src.includes('Naver')) return src.includes('Bond') ? '국채' : '정규장';
   if(market==='KR'){
-    if(src.includes('NXT')) return 'NXT';
-    if(src.includes('Naver')) return 'Naver';
     return src.replace(/^KR\s*[·-]\s*/i, '') || '-';
   }
   if(market==='US'){
@@ -2748,8 +2750,9 @@ function compactSourceLabel(card){
   return src || '-';
 }
 function sourcePillHtml(card){
-  const title=`${card.market||''} ${card.source||'-'} · ${fmtDt(card.asOf)}`.trim();
-  return `<span class="source-pill" title="${esc(title)}">${esc(compactSourceLabel(card))}</span>`;
+  const label=compactSourceLabel(card);
+  const title=`${label} · ${fmtDt(card.asOf)}`.trim();
+  return `<span class="source-pill" title="${esc(title)}">${esc(label)}</span>`;
 }
 
 const US_KRW_DISPLAY_EXCLUDED_KEYS = new Set([
@@ -7823,11 +7826,6 @@ function setChatOpen(open, options={}){
       applyChatPanelPosition({saveClamp:true});
       scrollChatToBottom();
     });
-    // 채팅창을 처음 열 때 한 번만, 새 채팅 애니메이션을 설정에서 끌 수 있음을 알린다.
-    if(chatAnimSettingEnabled() && !oneTimeTipSeen(CHAT_ANIM_TIP_KEY)){
-      markOneTimeTipSeen(CHAT_ANIM_TIP_KEY);
-      setTimeout(()=>{ if(chatIsOpen) showToast('새 채팅이 부드럽게 올라옵니다. 설정에서 끌 수 있어요.', 'info'); }, 800);
-    }
     startChatIdleSleepTimer();
   }else{
     chatPollingSleeping=false;
@@ -9718,18 +9716,6 @@ function todayKstKey(){
   }
 }
 
-function maybeShowMobileDesktopNotice(){
-  if(!matchMedia('(max-width: 760px)').matches) return;
-  const today = todayKstKey();
-  try{
-    if(localStorage.getItem(MOBILE_DESKTOP_NOTICE_KEY) === today) return;
-    localStorage.setItem(MOBILE_DESKTOP_NOTICE_KEY, today);
-  }catch{}
-  setTimeout(()=>{
-    showToast('데스크탑에서 보셔야 진짜 엑셀 같아요.\n오늘 하루 업무도 화이팅입니다.', 'info desktop-notice');
-  }, 900);
-}
-
 async function fetchQuote(code, market){
   const u=new URL(apiUrl('/api/quote'), location.href);
   u.searchParams.set('code', code);
@@ -10064,7 +10050,6 @@ syncWatchlistAddMode();
 updateQuoteSortUi();
 applyRibbonCollapsed();
 setupRibbonFontPicker();
-maybeShowMobileDesktopNotice();
 setupPwaInstallPrompt();
 setupBookmarkPrompt();
 startTextAds();

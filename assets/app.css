@@ -1193,10 +1193,10 @@ body.excel-dark-mode:not(.theme-outlook) tr.news-row.is-new > td:nth-child(2)::b
 table{border-collapse:collapse;width:100%;min-width:780px}
 .sheet.summary table{min-width:0;table-layout:fixed}
 .sheet.summary th.rownum,.sheet.summary td.rownum{width:32px}
-.sheet.summary th:nth-child(3),.sheet.summary td:nth-child(3){width:110px}
-.sheet.summary th:nth-child(4),.sheet.summary td:nth-child(4){width:66px}
+.sheet.summary th:nth-child(3),.sheet.summary td:nth-child(3){width:var(--xkw-q-price,110px)}
+.sheet.summary th:nth-child(4),.sheet.summary td:nth-child(4){width:var(--xkw-q-change,66px)}
 body.readability-mode .sheet.summary th:nth-child(4),
-body.readability-mode .sheet.summary td:nth-child(4){width:92px}
+body.readability-mode .sheet.summary td:nth-child(4){width:var(--xkw-q-change,92px)}
 .sheet.summary td.right{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* 현재가 셀 좌측에 통화 부호 고정 ($/₩). 본문은 우측 정렬 유지. */
 .sheet.summary .quote-price-cell{position:relative}
@@ -1510,11 +1510,20 @@ body.quote-sort-auto #cardsTable .quote-row-handle{cursor:default}
 :is(#timelineTable,.timeline-swipe-table).community-table .community-colhead-row th:first-child{box-shadow:inset 1px 0 0 var(--grid),inset 0 1px 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
 :is(#timelineTable,.timeline-swipe-table).community-table .community-subhead-row th:first-child{box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
 :is(#timelineTable,.timeline-swipe-table) col.community-rownum-col{width:34px}
-:is(#timelineTable,.timeline-swipe-table) col.community-author-col{width:88px}
-:is(#timelineTable,.timeline-swipe-table) col.community-time-col{width:78px}
-:is(#timelineTable,.timeline-swipe-table) col.community-report-col{width:116px}
+:is(#timelineTable,.timeline-swipe-table) col.community-author-col{width:var(--xkw-c-author,88px)}
+:is(#timelineTable,.timeline-swipe-table) col.community-time-col{width:var(--xkw-c-time,78px)}
+:is(#timelineTable,.timeline-swipe-table) col.community-report-col{width:var(--xkw-c-report,116px)}
 body.inline-admin-mode :is(#timelineTable,.timeline-swipe-table) col.community-report-col{width:168px}
 :is(#timelineTable,.timeline-swipe-table) col.community-body-col{width:auto}
+
+/* 열 너비 조절 핸들 (app-col-resize.js). 열 머리 오른쪽 경계에 얹는 얇은 grab 영역. */
+.xk-col-resizer{position:absolute;top:0;right:-3px;width:7px;height:100%;cursor:col-resize;z-index:9;touch-action:none}
+.xk-col-resizer:hover{background:rgba(33,115,70,.35)}
+.xk-col-resizer:active{background:rgba(33,115,70,.55)}
+body.xk-col-resizing{cursor:col-resize}
+body.xk-col-resizing,body.xk-col-resizing *{user-select:none !important}
+body.xk-col-resizing *{cursor:col-resize !important}
+@media (max-width:700px){.xk-col-resizer{display:none}}
 body.readability-mode :is(#timelineTable,.timeline-swipe-table).community-table{min-width:0!important;width:100%;table-layout:fixed}
 body.readability-mode :is(#timelineTable,.timeline-swipe-table) col.community-rownum-col{width:34px}
 body.readability-mode :is(#timelineTable,.timeline-swipe-table) col.community-author-col{width:78px}
