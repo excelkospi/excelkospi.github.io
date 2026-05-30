@@ -35,8 +35,8 @@
     button{font:inherit}
     input,select,textarea{font:inherit;color:inherit}
     /* === Top bar === */
-    .topbar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 1px 0 rgba(15,23,42,.03)}
-    .topbar-inner{max-width:1200px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .topbar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 1px 0 rgba(15,23,42,.03);padding-top:env(safe-area-inset-top,0px)}
+    .topbar-inner{max-width:1200px;margin:0 auto;padding:10px calc(16px + env(safe-area-inset-right,0px)) 10px calc(16px + env(safe-area-inset-left,0px));display:flex;align-items:center;gap:12px;flex-wrap:wrap}
     .brand{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--green);font-size:15px}
     .brand-dot{width:8px;height:8px;border-radius:2px;background:var(--green)}
     .brand small{color:var(--muted);font-weight:600;font-size:12px}
@@ -47,7 +47,7 @@
     .badge.bad{color:var(--danger);background:var(--danger-soft);border-color:#f0c4c4}
     .home-link{color:var(--muted);font-size:13px}
     /* === Layout === */
-    main{max-width:1200px;margin:0 auto;padding:14px 16px 56px}
+    main{max-width:1200px;margin:0 auto;padding:14px calc(16px + env(safe-area-inset-right,0px)) calc(56px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px))}
     section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-top:12px;box-shadow:var(--shadow)}
     section h2{margin:0 0 10px;font-size:16px;display:flex;align-items:center;gap:8px;font-weight:700}
     section h2 .hint{color:var(--muted);font-size:12px;font-weight:500}

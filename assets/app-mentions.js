@@ -177,6 +177,20 @@ function renderTextWithStockMentions(text, snapshots=null){
   return html;
 }
 
+function communityMentionMarket(){
+  // 채팅/운영게시판은 AUTO, 종목토론방은 방 시장으로 우선 검색.
+  try{
+    if(typeof timelineIsCommunity === 'function' && timelineIsCommunity() && typeof communityActiveChannel === 'function'){
+      switch(communityActiveChannel()){
+        case 'kr': return 'KR';
+        case 'us': return 'US';
+        case 'coin': return 'COIN';
+      }
+    }
+  }catch{}
+  return 'AUTO';
+}
+
 async function flushStockMentionQueue(options={}){
   const communityActive = options.community === true || (typeof timelineIsCommunity === 'function' && timelineIsCommunity());
   const chatActive = options.chat === true;
@@ -187,7 +201,8 @@ async function flushStockMentionQueue(options={}){
   terms.forEach((term)=>stockMentionResolving.add(stockMentionKey(term)));
   stockMentionInFlight = true;
   try{
-    const url = `/api/resolve-mentions?terms=${encodeURIComponent(terms.join(','))}&market=AUTO`;
+    const market = (communityActive && !chatActive) ? communityMentionMarket() : 'AUTO';
+    const url = `/api/resolve-mentions?terms=${encodeURIComponent(terms.join(','))}&market=${market}`;
     const data = await fetchJsonClient(url, 6000);
     const cache = readStockMentionCache();
     const returned = new Set();

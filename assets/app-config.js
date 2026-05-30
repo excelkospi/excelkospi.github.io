@@ -58,6 +58,7 @@ const EXCEL_THEME_KEY = 'kg_excel_theme_v1';
 const EXCEL_DARK_MODE_KEY = 'kg_excel_dark_mode_v1';
 const SHEET_MONOCHROME_KEY = 'kg_sheet_monochrome_v1';
 const US_SHEET_KRW_KEY = 'kg_us_sheet_krw_v1';
+const QUOTE_FLASH_KEY = 'kg_quote_flash_v1';
 const COIN_QUOTE_SOURCE_KEY = 'kg_coin_quote_source_v1';
 const UPDATES_SEEN_KEY = 'kg_updates_seen_v1';
 const CHAT_OPEN_KEY = 'kg_chat_open_v1';
@@ -73,28 +74,45 @@ const CHAT_OPACITY_KEY = 'kg_chat_opacity_v1';
 const CHAT_IMAGE_PREVIEW_KEY = 'kg_chat_image_preview_v1';
 const CHAT_DOCK_KEY = 'kg_chat_dock_v1';
 const CHAT_EXCEL_MODE_KEY = 'kg_chat_excel_mode_v1';
+const CHAT_ANIM_KEY = 'kg_chat_anim_v1';
+const CHAT_ANIM_TIP_KEY = 'kg_chat_anim_tip_v1';
 const CHAT_REPORTED_KEY = 'kg_chat_reported_v1';
 const CHAT_RECOMMENDED_KEY = 'kg_chat_recommended_v1';
 const CHAT_RECOMMEND_BADGE_KEY = 'kg_chat_recommend_badge_v1';
 const CHAT_LAST_SEEN_KEY = 'kg_chat_last_seen_v1';
-// Chat idle sleep — 동접자 수에 따라 부드럽게 단계별 변경. 트래픽이 적을 때는
-// 오래 켜두고, 폭증 시점에 짧게 줄여 비용을 보호한다.
-const CHAT_IDLE_SLEEP_CALM_MS = 40 * 60 * 1000;  // ~100명 미만
-const CHAT_IDLE_SLEEP_LOW_MS  = 30 * 60 * 1000;  // ~500명 미만
-const CHAT_IDLE_SLEEP_MID_MS  = 22 * 60 * 1000;  // ~1500명 미만
-const CHAT_IDLE_SLEEP_HIGH_MS = 15 * 60 * 1000;  // ~3000명 미만
-const CHAT_IDLE_SLEEP_PEAK_MS = 10 * 60 * 1000;  // 3000명+ 폭증 구간
+// Chat idle sleep — 채팅 동접자 수(chatOnline)에 따라 부드럽게 단계별 변경.
+// 트래픽이 적을 때는 오래 켜두고, 폭증 시점에 짧게 줄여 비용을 보호한다.
+const CHAT_IDLE_SLEEP_CALM_MS = 20 * 60 * 1000;  // 채팅 ~40명 미만
+const CHAT_IDLE_SLEEP_LOW_MS  = 18 * 60 * 1000;  // 채팅 ~100명 미만
+const CHAT_IDLE_SLEEP_MID_MS  = 15 * 60 * 1000;  // 채팅 ~250명 미만
+const CHAT_IDLE_SLEEP_HIGH_MS = 12 * 60 * 1000;  // 채팅 ~400명 미만
+const CHAT_IDLE_SLEEP_PEAK_MS =  8 * 60 * 1000;  // 채팅 400명+ 폭증 구간
+// 숨김 탭 전용 조기 슬립: 탭을 가린 지 이 시간이 지나면(데이터의 3분 grace와
+// 정합) 가시 슬립 창보다 먼저 완전 절전. 복귀 시 즉시 깨운다.
+const CHAT_HIDDEN_IDLE_SLEEP_MS = 5 * 60 * 1000;
 const CHAT_CLOSED_POLL_MS = 60 * 1000;
 const CHAT_OPEN_POLL_MS = 5 * 1000;
+// 채팅 폴링 주기 ↔ 서버 캐시 TTL 동조 티어. 기준 = chatOnline(채팅 동시접속).
+// 한산할수록 빠르게(4초/TTL3), 혼잡할수록 느리게(6초/TTL6) — 폴링 주기보다
+// 캐시 신선도가 길면 더 빠른 폴링이 무의미하므로 둘을 같은 단계로 묶는다.
+const CHAT_POLL_TIERS = [
+  { maxChatOnline:  80, pollMs: 4 * 1000, ttlSec: 3 },
+  { maxChatOnline: 300, pollMs: 5 * 1000, ttlSec: 5 },
+  { maxChatOnline: Infinity, pollMs: 6 * 1000, ttlSec: 6 },
+];
+const CHAT_POLL_DEFAULT_TIER_INDEX = 1; // chatOnline 미상일 때 기본 = 보통(5초/TTL5)
+// 어댑티브 폴링: 단계별 슬립 임계(chatIdleSleepMs)의 이 비율을 지나면(=40%)
+// 완전 절전 전에 폴링 주기를 늘려 비용을 줄인다. 활동 감지 시 즉시 기본 주기로 복귀.
+const CHAT_ADAPTIVE_POLL_FRACTION = 0.4;
+const CHAT_ADAPTIVE_OPEN_POLL_MS = 15 * 1000;
 const CHAT_SEND_GAP_MS = 4 * 1000;
 const CHAT_RECOMMENDED_SEND_GAP_MS = 2 * 1000;
 const CHAT_BUSY_POLL_ONLINE_THRESHOLD = 350;
-const CHAT_BUSY_OPEN_POLL_MS = 5 * 1000;
 const CHAT_PRESENCE_POLL_MS = 45 * 1000;
 const CHAT_PRESENCE_BUSY_POLL_MS = 60 * 1000;
 const CHAT_PRESENCE_PEAK_POLL_MS = 60 * 1000;
 const DATA_HIDDEN_GRACE_MS = 3 * 60 * 1000;
-const CHAT_HIDDEN_OPEN_POLL_MS = 30 * 1000;
+const CHAT_HIDDEN_OPEN_POLL_MS = 60 * 1000;
 const CHAT_HIDDEN_CLOSED_POLL_MS = 2 * 60 * 1000;
 const CHAT_HIDDEN_PREVIEW_POLL_MS = 60 * 1000;
 const CHAT_INITIAL_LIMIT = 50;
@@ -147,7 +165,9 @@ const COMMUNITY_REPLY_PAGE_SIZE = 5;
 const COMMUNITY_MAX_VISUAL_REPLY_DEPTH = 2;
 const COMMUNITY_BODY_LIMIT = 400;
 const COMMUNITY_HIDE_REPORTS = 8;
-const COMMUNITY_RECOMMEND_THRESHOLD = 7;
+const COMMUNITY_RECOMMEND_THRESHOLD = 5;
+// 채팅 추천 ★ 배지: 이 횟수 이상 추천받으면 별 두 개(★★)로 표시.
+const CHAT_DOUBLE_STAR_THRESHOLD = 15;
 const COMMUNITY_REPORT_LIMIT_PER_HOUR = 4;
 const COMMUNITY_REFRESH_MS = 2 * 60 * 1000;
 const COMMUNITY_SUMMARY_REFRESH_MS = 5 * 60 * 1000;
@@ -166,6 +186,6 @@ const AD_ROTATION_MS = 5 * 60 * 1000;
 const SERVER_STATUS_PEAK_KEY = 'kg_server_status_peak_v1';
 const SHARED_POLL_LOCK_PREFIX = 'kg_shared_poll_lock_v1:';
 const CHAT_DONORS_CACHE_KEY = 'kg_chat_donors_v1';
-const PATCH_NOTES_URL = '/patch-notes.md?v=20260527-614';
+const PATCH_NOTES_URL = '/patch-notes.md?v=20260530-005';
 const MARKET_LABELS = { AUTO: '자동', KR: '국장', US: '미장', COIN: '코인', ALL: '주식 전체', HOLDINGS: '보유' };
 const STOCK_MARKETS = new Set(['KR', 'US']);

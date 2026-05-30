@@ -1,6 +1,10 @@
 // Lightweight hover/tap mini charts for quote rows and stock mentions.
 
 const miniChartCache=new Map();
+// 같은 토큰에 대한 동시 fetch 를 하나로 합친다. hover on/off 를 빠르게 반복해도
+// /api/chart Worker invocation 이 토큰당 1건으로 묶인다.
+const miniChartInflight=new Map();
+const MINI_CHART_CACHE_MAX=120;
 let miniChartEl=null;
 let miniChartTimer=null;
 let miniChartToken='';
@@ -224,6 +228,20 @@ function renderMiniChart(row, token, data){
   positionMiniChart(row);
 }
 
+function pruneMiniChartCache(){
+  const now=Date.now();
+  for(const [key, value] of miniChartCache){
+    if(now - Number(value?.at || 0) >= MINI_CHART_CACHE_TTL_MS) miniChartCache.delete(key);
+  }
+  if(miniChartCache.size > MINI_CHART_CACHE_MAX){
+    let drop=miniChartCache.size - MINI_CHART_CACHE_MAX;
+    for(const key of miniChartCache.keys()){
+      if(drop-- <= 0) break;
+      miniChartCache.delete(key);
+    }
+  }
+}
+
 async function loadMiniChart(row, token){
   if(!featureEnabled('chart')){
     if(Date.now() - Number(window.__chartDisabledToastAt || 0) > 5000){
@@ -242,9 +260,16 @@ async function loadMiniChart(row, token){
     return;
   }
   try{
-    const data=await fetchJsonClient('/api/chart?token=' + encodeURIComponent(token), 5000);
+    let pending=miniChartInflight.get(token);
+    if(!pending){
+      pending=fetchJsonClient('/api/chart?token=' + encodeURIComponent(token), 5000)
+        .finally(()=>{ miniChartInflight.delete(token); });
+      miniChartInflight.set(token, pending);
+    }
+    const data=await pending;
     if(!data?.ok) throw new Error(data?.error || 'chart_failed');
     miniChartCache.set(token, {at:Date.now(), data});
+    pruneMiniChartCache();
     renderMiniChart(row, token, data);
   }catch(_){
     if(miniChartEl && miniChartToken===token){

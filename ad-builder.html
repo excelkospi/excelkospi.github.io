@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>excelkospi 광고 제안서 · 광고주별 링크 생성기</title>
+<meta name="robots" content="noindex,nofollow" />
+<meta name="theme-color" content="#107c41" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<style>
+:root{
+  --green:#107c41; --green-ink:#0c5d34; --green-soft:#eaf4ee; --green-line:#cfe6d8;
+  --ink:#17211c; --muted:#5d6d64; --faint:#7a887f;
+  --line:#dce5df; --line-strong:#bccabf; --paper:#fff; --page:#eef2ee;
+  --shadow:0 8px 22px rgba(32,54,42,.08);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Segoe UI",Roboto,Arial,sans-serif;
+  color:var(--ink); background:var(--page);
+}
+*{box-sizing:border-box}
+body{margin:0;padding:calc(20px + env(safe-area-inset-top,0px)) 16px 60px;background:var(--page)}
+.wrap{max-width:760px;margin:0 auto}
+.head{display:flex;align-items:center;gap:10px;margin:6px 0 4px}
+.head .mark{width:30px;height:30px;border-radius:7px;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px}
+.head h1{font-size:20px;font-weight:800;margin:0}
+.sub{color:var(--muted);font-size:14px;margin:0 0 20px;line-height:1.6}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:var(--shadow);margin-bottom:18px}
+.card h2{font-size:15px;font-weight:800;margin:0 0 4px;color:var(--green-ink)}
+.card .hint{font-size:12.5px;color:var(--faint);margin:0 0 16px}
+.field{margin-bottom:15px}
+.field:last-child{margin-bottom:0}
+label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+label .opt{color:var(--faint);font-weight:500;font-size:12px;margin-left:6px}
+input,textarea{width:100%;border:1px solid var(--line-strong);border-radius:9px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff}
+input:focus,textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(16,124,65,.12)}
+textarea{min-height:96px;resize:vertical;line-height:1.6}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.out{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(238,242,238,0),var(--page) 22px);padding-top:22px}
+.out .card{margin-bottom:0;border-color:var(--green-line);background:var(--green-soft)}
+.linkbox{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+#link{flex:1 1 320px;min-width:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:#fff;color:var(--green-ink)}
+.btn{border:1px solid var(--line-strong);background:#fff;color:var(--green-ink);border-radius:9px;padding:10px 16px;font-size:13px;font-weight:750;cursor:pointer;white-space:nowrap}
+.btn.primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn:active{transform:translateY(1px)}
+.note{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.6}
+@media (max-width:560px){ .row,.row3{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><span class="mark">X</span><h1>광고주별 제안서 링크 생성기</h1></div>
+  <p class="sub">광고주마다 인사말·단가·맞춤 메모를 다르게 채워 전용 링크를 만드세요. 서버 저장 없이 링크 안에 정보가 담깁니다. 빈 칸은 기본값(제안서 원본)이 그대로 쓰입니다.</p>
+
+  <div class="card">
+    <h2>광고주 정보</h2>
+    <p class="hint">상단에 “○○님께 드리는 광고 제안” 배너로 노출됩니다.</p>
+    <div class="field">
+      <label>광고주명 / 회사명 <span class="opt">예: (주)플리드</span></label>
+      <input id="name" type="text" placeholder="비우면 배너 미표시" />
+    </div>
+    <div class="field">
+      <label>인사말 직접 입력 <span class="opt">선택 · 비우면 “○○님께 드리는 광고 제안”</span></label>
+      <input id="greeting" type="text" placeholder="예: 플리드 마케팅팀께 드리는 텍스트 광고 제안" />
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>단가 · 조건</h2>
+    <p class="hint">비운 항목은 제안서 기본값을 사용합니다. (기본: 40만원 / 2주 / CPC 170~230원 / 최대 3광고주)</p>
+    <div class="row">
+      <div class="field">
+        <label>제안 금액(원) <span class="opt">숫자만</span></label>
+        <input id="price" type="number" inputmode="numeric" placeholder="400000" />
+      </div>
+      <div class="field">
+        <label>게재 기간 표기</label>
+        <input id="period" type="text" placeholder="2주" />
+      </div>
+    </div>
+    <div class="row3">
+      <div class="field">
+        <label>CPC 하한(원)</label>
+        <input id="cpcLow" type="number" inputmode="numeric" placeholder="170" />
+      </div>
+      <div class="field">
+        <label>CPC 상한(원)</label>
+        <input id="cpcHigh" type="number" inputmode="numeric" placeholder="230" />
+      </div>
+      <div class="field">
+        <label>동시 광고주 수</label>
+        <input id="maxAdv" type="number" inputmode="numeric" placeholder="3" />
+      </div>
+    </div>
+    <div class="field">
+      <label>VAT / 결제 문구</label>
+      <input id="vat" type="text" placeholder="VAT 별도 · 현금영수증 발행 가능" />
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>맞춤 메모 / 제안 문단</h2>
+    <p class="hint">해당 광고주에게만 보일 강조 박스입니다. 비우면 표시되지 않습니다. 줄바꿈 그대로 유지됩니다.</p>
+    <div class="field">
+      <textarea id="memo" placeholder="예: 개인회생·신용 관련 업종 광고주께 — 종목토론방 첫 인피드 슬롯 우선 배정과 2주 단독 노출(로테이션 1회전 고정) 조건으로 제안드립니다."></textarea>
+    </div>
+  </div>
+
+  <div class="out">
+    <div class="card">
+      <h2 style="margin-bottom:10px">전용 링크</h2>
+      <div class="linkbox">
+        <input id="link" type="text" readonly />
+        <button class="btn primary" id="copyBtn">링크 복사</button>
+        <button class="btn" id="openBtn">미리보기 열기</button>
+      </div>
+      <p class="note" id="noteLen"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var ids = ['name','greeting','price','period','cpcLow','cpcHigh','maxAdv','vat','memo'];
+  var els = {};
+  ids.forEach(function(k){ els[k] = document.getElementById(k); });
+  var linkEl = document.getElementById('link');
+  var noteLen = document.getElementById('noteLen');
+
+  function b64urlEncode(obj){
+    var json = JSON.stringify(obj);
+    var bytes = new TextEncoder().encode(json), bin = '';
+    for(var i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+
+  function collect(){
+    var o = {};
+    var name = els.name.value.trim();        if(name) o.name = name;
+    var greeting = els.greeting.value.trim(); if(greeting) o.greeting = greeting;
+    var price = els.price.value.trim();      if(price !== '') o.price = Number(price);
+    var period = els.period.value.trim();    if(period) o.period = period;
+    var cpcLow = els.cpcLow.value.trim();    if(cpcLow !== '') o.cpcLow = Number(cpcLow);
+    var cpcHigh = els.cpcHigh.value.trim();  if(cpcHigh !== '') o.cpcHigh = Number(cpcHigh);
+    var maxAdv = els.maxAdv.value.trim();    if(maxAdv !== '') o.maxAdv = Number(maxAdv);
+    var vat = els.vat.value.trim();          if(vat) o.vat = vat;
+    var memo = els.memo.value.replace(/\s+$/,''); if(memo.trim()) o.memo = memo;
+    return o;
+  }
+
+  function build(){
+    var o = collect();
+    var base = location.origin + '/ad';
+    var url;
+    if(Object.keys(o).length === 0){
+      url = base;
+      noteLen.textContent = '※ 아직 입력값이 없어 원본 제안서 링크입니다.';
+    } else {
+      url = base + '?c=' + b64urlEncode(o);
+      noteLen.textContent = '링크 길이 ' + url.length + '자 · 채워진 항목만 담깁니다.';
+    }
+    linkEl.value = url;
+    return url;
+  }
+
+  ids.forEach(function(k){ els[k].addEventListener('input', build); });
+
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    var btn = this; build();
+    var done = function(){ var t=btn.textContent; btn.textContent='복사됨 ✓'; setTimeout(function(){btn.textContent=t;},1400); };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(linkEl.value).then(done, function(){ linkEl.select(); document.execCommand('copy'); done(); });
+    } else { linkEl.select(); document.execCommand('copy'); done(); }
+  });
+
+  document.getElementById('openBtn').addEventListener('click', function(){
+    window.open(build(), '_blank', 'noopener');
+  });
+
+  build();
+})();
+</script>
+</body>
+</html>

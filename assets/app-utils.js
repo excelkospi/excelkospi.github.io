@@ -565,7 +565,11 @@ function renderPatchMarkdown(md){
   const lines=stripMarkdownComments(md).split(/\r?\n/);
   let html='';
   let inList=false;
+  let inCard=false;
+  const toc=[];
+  let secIdx=0;
   const closeList=()=>{ if(inList){ html+='</ul>'; inList=false; } };
+  const closeCard=()=>{ closeList(); if(inCard){ html+='</section>'; inCard=false; } };
   for(let i=0; i<lines.length; i+=1){
     const line=lines[i];
     const raw=line.trim();
@@ -578,8 +582,19 @@ function renderPatchMarkdown(md){
       continue;
     }
     if(raw.startsWith('### ')){ closeList(); html+=`<h3>${mdInline(raw.slice(4))}</h3>`; continue; }
-    if(raw.startsWith('## ')){ closeList(); html+=`<h2>${mdInline(raw.slice(3))}</h2>`; continue; }
-    if(raw.startsWith('# ')){ closeList(); html+=`<h1>${mdInline(raw.slice(2))}</h1>`; continue; }
+    if(raw.startsWith('## ')){
+      closeCard();
+      secIdx+=1;
+      const id=`patch-sec-${secIdx}`;
+      const display=mdInline(raw.slice(3));
+      toc.push({ id, text: display.replace(/<[^>]*>/g, '') });
+      const newest=secIdx===1;
+      html+=`<section class="patch-card${newest ? ' is-newest' : ''}" id="${id}">`;
+      inCard=true;
+      html+=`<h2 class="patch-card-title">${newest ? '<span class="patch-new">NEW</span>' : ''}${display}</h2>`;
+      continue;
+    }
+    if(raw.startsWith('# ')){ closeCard(); html+=`<h1>${mdInline(raw.slice(2))}</h1>`; continue; }
     if(raw.startsWith('- ')){
       if(!inList){ html+='<ul>'; inList=true; }
       html+=`<li>${mdInline(raw.slice(2))}</li>`;
@@ -588,6 +603,13 @@ function renderPatchMarkdown(md){
     closeList();
     html+=`<p>${mdInline(raw)}</p>`;
   }
-  closeList();
-  return html || '<p>표시할 공지사항이 없습니다.</p>';
+  closeCard();
+  const body=html || '<p>표시할 공지사항이 없습니다.</p>';
+  if(toc.length < 3) return body;
+  // 목차는 "공지사항" 제목·소개 문단 바로 아래, 첫 패치 카드 앞에 끼워 넣는다.
+  const tocHtml=`<details class="patch-toc"><summary class="patch-toc-title"><span class="patch-toc-icon" aria-hidden="true">☰</span>목차<span class="patch-toc-count">${toc.length}</span></summary><ul>${
+    toc.map(t=>`<li><a href="#${t.id}" data-patch-toc>${t.text}</a></li>`).join('')
+  }</ul></details>`;
+  const anchor='<section class="patch-card';
+  return body.includes(anchor) ? body.replace(anchor, tocHtml + anchor) : tocHtml + body;
 }

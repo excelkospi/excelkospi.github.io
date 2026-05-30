@@ -10,7 +10,7 @@
   --titlebar-hover:rgba(255,255,255,.18); --titlebar-active:rgba(255,255,255,.28); --titlebar-sep:rgba(255,255,255,.32);
   --statusbar-bg:var(--excel); --statusbar-fg:#fff; --statusbar-button-bg:rgba(255,255,255,.12); --statusbar-button-border:rgba(255,255,255,.42);
   --hover:#f2f8f4; --hover-border:#cfe7d7; --pressed:#e2efe4;
-  --grid:#d0d7de; --head:#f3f6f4; --bg:#fff; --txt:#252423; --muted:#605e5c;
+  --grid:#dcdedd; --head:#f3f6f4; --bg:#fff; --txt:#252423; --muted:#605e5c;
   --up:#a34d4d; --down:#3f6f9f; --flat:#605e5c;
   --sep:#e1dfdd; --tab-bg:#f3f2f1; --top-tab-bg:#fbfbfb; --sheet-tab-bg:#f3f2f1; --ribbon-bg:#fff; --formula-bg:#fff;
   --panel-bg:#fff; --soft-bg:#f8f8f8; --control-bg:#fff; --control-border:#c8c6c4;
@@ -29,9 +29,17 @@
   --app-font-family:'Aptos','Segoe UI Variable','Segoe UI',-apple-system,BlinkMacSystemFont,system-ui,'Apple SD Gothic Neo','Noto Sans KR',Calibri,Arial,sans-serif;
 }
 body.excel-theme-silver{
-  --titlebar-bg:#f3f2f1; --titlebar-fg:#242424; --titlebar-muted:#605e5c;
-  --titlebar-hover:rgba(0,0,0,.075); --titlebar-active:rgba(0,0,0,.12); --titlebar-sep:rgba(0,0,0,.18);
-  --statusbar-bg:#e7e9ed; --statusbar-fg:#242424; --statusbar-button-bg:rgba(0,0,0,.055); --statusbar-button-border:rgba(0,0,0,.16);
+  --titlebar-bg:#f6f7f9; --titlebar-fg:#242424; --titlebar-muted:#5b6066;
+  --titlebar-hover:rgba(0,0,0,.06); --titlebar-active:rgba(0,0,0,.11); --titlebar-sep:rgba(0,0,0,.16);
+  --statusbar-bg:#eef0f3; --statusbar-fg:#242424; --statusbar-button-bg:rgba(0,0,0,.05); --statusbar-button-border:rgba(0,0,0,.15);
+  --hover:#eef6f1; --hover-border:#bed9c9; --pressed:#dfeee5;
+  --top-tab-bg:#fcfdfe; --sheet-tab-bg:#f2f4f7; --head:#f4f6f8; --soft-bg:#f7f9fb;
+  --chat-head-bg:var(--titlebar-bg);
+}
+body.excel-theme-graphite{
+  --titlebar-bg:#494b4f; --titlebar-fg:#fff; --titlebar-muted:rgba(255,255,255,.74);
+  --titlebar-hover:rgba(255,255,255,.14); --titlebar-active:rgba(255,255,255,.22); --titlebar-sep:rgba(255,255,255,.26);
+  --statusbar-bg:#494b4f; --statusbar-fg:#fff; --statusbar-button-bg:rgba(255,255,255,.12); --statusbar-button-border:rgba(255,255,255,.40);
   --hover:#eef6f1; --hover-border:#bed9c9; --pressed:#dfeee5;
   --top-tab-bg:#fbfbfb; --sheet-tab-bg:#f3f2f1; --head:#f4f6f4; --soft-bg:#f7f8f7;
   --chat-head-bg:var(--titlebar-bg);
@@ -332,12 +340,6 @@ body.theme-outlook .chat-system{background:#fafafa;color:#3b3a3f;border-radius:6
 body.theme-outlook .chat-list-empty{color:#605e5c}
 body.theme-outlook .chat-cta .lbl::before{content:none}
 .updates-beta{margin:0 0 14px;padding:12px;border:1px solid #bad6ef;border-left:4px solid #0f6cbd;border-radius:8px;background:#f3f9ff;display:flex;align-items:center;justify-content:space-between;gap:12px}
-/* Ootlook beta notice — sits directly under the server status card */
-/* 옛 .outlook-beta-banner 스타일은 .notice-card 통합 카드로 대체됨.
- * data-accent="outlook" 으로 색만 따로 줌. 클래스 자체는 호환을 위해 남겨두지만
- * 별도 스타일은 더 이상 필요 없음. */
-.updates-beta strong{display:block;color:#0f4c81;font-size:13px;margin-bottom:2px}
-.updates-beta span{display:block;color:#4b5563;font-size:11.5px}
 .updates-beta button{height:30px;border:0;border-radius:5px;background:#0f6cbd;color:#fff;font:inherit;font-weight:750;font-size:12px;padding:0 12px;cursor:pointer;white-space:nowrap}
 .updates-beta button:hover{background:#0b5ca8}
 @media(max-width:1180px){
@@ -346,7 +348,7 @@ body.theme-outlook .chat-cta .lbl::before{content:none}
 }
 @media(max-width:760px){
   body.theme-outlook{overflow:hidden}
-  body.theme-outlook .outlook-app{grid-template-rows:48px 38px 112px minmax(0,1fr)}
+  body.theme-outlook .outlook-app{grid-template-rows:48px 38px var(--ook-rib,112px) minmax(0,1fr)}
   .outlook-topbar{height:48px;grid-template-columns:32px 92px minmax(140px,1fr) auto;gap:6px;padding:0 8px}
   .outlook-brand{font-size:16px}
   .outlook-search{grid-column:3;height:32px;padding:0 8px}
@@ -372,7 +374,7 @@ body.theme-outlook .chat-cta .lbl::before{content:none}
 }
 
 /* Outlook beta v2: screenshot-faithful shell, no ad column, market data as mail. */
-body.theme-outlook .outlook-app{grid-template-rows:54px 42px 104px minmax(0,1fr);min-width:0;overflow:hidden}
+body.theme-outlook .outlook-app{grid-template-rows:54px 42px var(--ook-rib,104px) minmax(0,1fr);min-width:0;overflow:hidden}
 .outlook-symbols{position:absolute;width:0;height:0;overflow:hidden}
 .outlook-top-actions{grid-column:5;justify-self:end;margin-left:auto}
 .outlook-top-actions span:not(.outlook-profile){width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center}
@@ -382,7 +384,11 @@ body.theme-outlook .outlook-app{grid-template-rows:54px 42px 104px minmax(0,1fr)
 .outlook-list-tools svg,
 .outlook-brief-actions svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
 .outlook-top-actions svg{color:#fff}
-.outlook-tabbar{height:42px;background:#f3f2f1;border-bottom:1px solid #e1dfdd;display:flex;align-items:center;padding:0 12px;gap:2px;overflow:hidden}
+.outlook-exit-excel{grid-column:4;justify-self:end;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 13px 0 9px;border:1px solid rgba(255,255,255,.5);border-radius:16px;background:rgba(255,255,255,.16);color:#fff;font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .12s}
+.outlook-exit-excel:hover{background:rgba(255,255,255,.28)}
+.outlook-exit-excel:active{background:rgba(255,255,255,.36)}
+.outlook-exit-excel img{width:17px;height:17px;border-radius:3px;display:block}
+.outlook-tabbar{height:42px;background:#f3f2f1;border-bottom:0;display:flex;align-items:center;padding:0 12px;gap:2px;overflow:hidden}
 .outlook-tabbar span,.outlook-hamburger{height:42px;font-size:13px;padding:0 10px;flex:0 0 auto}
 .outlook-hamburger{position:static;left:auto;width:30px;margin-right:4px;color:#323130;border-radius:3px}
 .outlook-hamburger:hover{background:#e9e8e7}
@@ -405,7 +411,14 @@ body.theme-outlook .outlook-app{grid-template-rows:54px 42px 104px minmax(0,1fr)
 .outlook-command em{font-size:11.5px;line-height:1.12;white-space:nowrap}
 .outlook-command small{font-size:9px;color:#605e5c;line-height:1;margin-top:-3px}
 .outlook-ribbon-group strong{position:absolute;left:6px;right:6px;bottom:0;font-size:10.5px;color:#605e5c;line-height:14px}
-.outlook-main{grid-template-columns:48px minmax(260px,288px) minmax(380px,28vw) minmax(560px,1fr);border-top:1px solid #edebe9;min-width:0}
+.outlook-ribbon-toggle{margin-left:auto;display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border:1px solid #e1dfdd;border-radius:13px;background:#fff;color:#444240;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s}
+.outlook-ribbon-toggle:hover{background:#f3f2f1;border-color:#d2d0ce}
+.outlook-ribbon-toggle .ook-rib-chevron{font-size:10px;line-height:1;transition:transform .15s}
+.outlook-ribbon-toggle .ook-rib-chevron::before{content:"⌃"}
+body.ribbon-collapsed .outlook-ribbon-toggle .ook-rib-chevron::before{content:"⌄"}
+body.theme-outlook.ribbon-collapsed{--ook-rib:0px}
+body.theme-outlook.ribbon-collapsed .outlook-ribbon{height:0;min-height:0;margin-top:0;margin-bottom:0;padding-top:0;padding-bottom:0;border-width:0;box-shadow:none;overflow:hidden;opacity:0;pointer-events:none}
+.outlook-main{grid-template-columns:48px minmax(260px,288px) minmax(380px,28vw) minmax(560px,1fr);border-top:0;min-width:0}
 .outlook-apprail{gap:18px;padding:10px 0;background:#f3f2f1}
 .outlook-apprail span{color:#0f6cbd;border-radius:4px}
 .outlook-apprail span.active{background:#fff;box-shadow:inset 3px 0 0 #0f6cbd}
@@ -501,11 +514,13 @@ body.theme-outlook .outlook-app{grid-template-rows:54px 42px 104px minmax(0,1fr)
   body.theme-outlook .outlook-ribbon{margin-left:8px;margin-right:8px;max-width:none}
 }
 @media(max-width:760px){
-  body.theme-outlook .outlook-app{grid-template-rows:48px 40px 104px minmax(0,1fr);width:100vw;max-width:100vw}
-  body.theme-outlook .outlook-topbar{grid-template-columns:34px 82px minmax(120px,1fr) auto;gap:5px;padding:0 6px}
+  body.theme-outlook .outlook-app{grid-template-rows:48px 40px var(--ook-rib,104px) minmax(0,1fr);width:100vw;max-width:100vw}
+  body.theme-outlook .outlook-topbar{grid-template-columns:34px 76px minmax(72px,1fr) 34px auto;gap:5px;padding:0 6px}
   body.theme-outlook .outlook-brand{font-size:16px}
   body.theme-outlook .outlook-search{grid-column:3;height:32px;padding:0 9px}
-  body.theme-outlook .outlook-top-actions{grid-column:4;gap:10px}
+  body.theme-outlook .outlook-exit-excel{grid-column:4;justify-self:center;width:32px;height:32px;padding:0;gap:0;border-radius:50%;justify-content:center}
+  body.theme-outlook .outlook-exit-excel span{display:none}
+  body.theme-outlook .outlook-top-actions{grid-column:5;gap:10px}
   body.theme-outlook .outlook-top-actions span:nth-child(n+3):not(.outlook-profile){display:none}
   body.theme-outlook .outlook-profile{width:32px;height:32px}
   body.theme-outlook .outlook-tabbar{height:40px;padding:0 4px 0 6px;overflow-x:auto;scrollbar-width:none}
@@ -606,7 +621,10 @@ body.theme-outlook .outlook-mail-row{display:grid;grid-template-columns:40px min
 body.theme-outlook .outlook-mail-row:hover{background:#f5f7fa}
 body.theme-outlook .outlook-mail-row.is-selected{background:#e5f1fb}
 body.theme-outlook .outlook-mail-row.is-selected::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#0f6cbd}
-body.theme-outlook .outlook-mail-row.is-unread .outlook-mail-sender{color:#0f4c81}
+body.theme-outlook .outlook-mail-row.is-unread .outlook-mail-sender{color:#0f4c81;font-weight:700}
+body.theme-outlook .outlook-mail-row.is-unread .outlook-mail-subject{color:#1a1a1a;font-weight:600}
+body.theme-outlook .outlook-mail-row.is-unread::after{content:"";position:absolute;left:5px;top:50%;width:7px;height:7px;border-radius:50%;background:#0f6cbd;transform:translateY(-50%)}
+body.theme-outlook .outlook-search-empty{color:#605e5c}
 body.theme-outlook .outlook-mail-avatar{grid-row:1 / span 3;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;letter-spacing:.2px;color:#fff;align-self:center}
 body.theme-outlook .outlook-mail-avatar[data-tone="kr"]{background:#1d8a52}
 body.theme-outlook .outlook-mail-avatar[data-tone="us"]{background:#2557c6}
@@ -615,9 +633,9 @@ body.theme-outlook .outlook-mail-avatar[data-tone="index"]{background:#6b3fa0}
 body.theme-outlook .outlook-mail-avatar[data-tone="fx"]{background:#0f7c5b}
 body.theme-outlook .outlook-mail-avatar[data-tone="flow"]{background:#605e5c}
 
-body.theme-outlook .outlook-mail-sender{font-size:13.5px;font-weight:700;color:#242424;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;align-self:end;min-width:0}
+body.theme-outlook .outlook-mail-sender{font-size:13.5px;font-weight:500;color:#242424;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;align-self:end;min-width:0}
 body.theme-outlook .outlook-mail-time{grid-column:3;grid-row:1;font-size:11.5px;color:#605e5c;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;align-self:end}
-body.theme-outlook .outlook-mail-subject{grid-column:2;font-size:12.5px;color:#242424;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;margin-top:2px}
+body.theme-outlook .outlook-mail-subject{grid-column:2;font-size:12.5px;color:#242424;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400;margin-top:2px}
 body.theme-outlook .outlook-mail-preview{grid-column:2;font-size:11.5px;color:#605e5c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35;margin-top:1px}
 body.theme-outlook .outlook-mail-price{grid-column:3;grid-row:2;font-size:13px;font-weight:700;color:#242424;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.2px}
 body.theme-outlook .outlook-mail-change{grid-column:3;grid-row:3;font-size:11.5px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.1px}
@@ -683,6 +701,9 @@ body.theme-outlook .outlook-reading-card-sub[data-change="up"]{color:#c50f1f}
 body.theme-outlook .outlook-reading-card-sub[data-change="down"]{color:#0f6cbd}
 body.theme-outlook .outlook-reading-card-value[data-change="up"]{color:#c50f1f}
 body.theme-outlook .outlook-reading-card-value[data-change="down"]{color:#0f6cbd}
+body.theme-outlook .outlook-reading-chart{border:1px solid #edebe9;border-radius:6px;background:#fff;padding:10px 12px 6px;display:grid;gap:4px}
+body.theme-outlook .outlook-reading-chart-head{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:#605e5c;font-weight:600}
+body.theme-outlook .outlook-reading-chart .mini-chart-svg{height:96px}
 
 body.theme-outlook .outlook-reading-attachment{display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #c7d8ea;border-radius:6px;background:#f3f9ff;color:#0f4c81;font-size:13px;font-weight:600;max-width:320px;cursor:default}
 body.theme-outlook .outlook-reading-attachment svg{width:24px;height:24px;flex:0 0 auto;color:#107c41}
@@ -709,6 +730,36 @@ body.theme-outlook .outlook-compose-body{align-items:start}
 body.theme-outlook .outlook-compose-body span{padding-top:9px}
 body.theme-outlook .outlook-compose-submit{background:#0f6cbd!important;color:#fff!important;border-color:#0f6cbd!important}
 body.theme-outlook .outlook-compose-submit:hover{background:#0b5ca8!important}
+/* Outlook 댓글/대댓글 (그룹 메일 회신) */
+body.theme-outlook .outlook-comment-section{margin-top:4px;padding-top:14px;border-top:1px solid #edebe9;display:grid;gap:12px}
+body.theme-outlook .outlook-comment-section-head{font-size:12px;font-weight:700;color:#605e5c;letter-spacing:.2px}
+body.theme-outlook .outlook-comment-empty{margin:0;font-size:12.5px;color:#8a8886}
+body.theme-outlook .outlook-comment-thread,
+body.theme-outlook .outlook-comment-children{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+body.theme-outlook .outlook-comment-children{margin-top:10px;padding-left:14px;border-left:2px solid #e1dfdd}
+body.theme-outlook .outlook-comment-node{margin:0}
+body.theme-outlook .outlook-comment-row2{display:grid;grid-template-columns:26px minmax(0,1fr);gap:9px;align-items:start}
+body.theme-outlook .outlook-comment-avatar{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+body.theme-outlook .outlook-comment-main{min-width:0;display:grid;gap:2px}
+body.theme-outlook .outlook-comment-meta{display:flex;align-items:baseline;gap:8px}
+body.theme-outlook .outlook-comment-meta strong{font-size:12.5px;color:#242424}
+body.theme-outlook .outlook-comment-meta span{font-size:11px;color:#8a8886}
+body.theme-outlook .outlook-comment-text{font-size:13px;line-height:1.55;color:#242424;white-space:pre-wrap;word-break:break-word}
+body.theme-outlook .outlook-comment-hidden{color:#8a8886;font-style:italic}
+body.theme-outlook .outlook-comment-tools{margin-top:1px}
+body.theme-outlook .outlook-comment-reply-btn{border:0;background:none;padding:0;color:#0f6cbd;font:inherit;font-size:11.5px;font-weight:650;cursor:pointer}
+body.theme-outlook .outlook-comment-reply-btn:hover{text-decoration:underline}
+body.theme-outlook .outlook-comment-compose{display:grid;gap:6px;max-width:640px}
+body.theme-outlook .outlook-comment-compose.is-reply{margin-top:8px;padding:8px;background:#faf9f8;border:1px solid #edebe9;border-radius:6px}
+body.theme-outlook .outlook-comment-nick{height:30px;width:160px;max-width:100%;border:1px solid #d0d7de;border-radius:4px;background:#fff;color:#242424;font:inherit;font-size:12.5px;padding:0 9px;box-sizing:border-box}
+body.theme-outlook .outlook-comment-input{width:100%;min-height:52px;border:1px solid #d0d7de;border-radius:4px;background:#fff;color:#242424;font:inherit;font-size:13px;line-height:1.5;padding:8px 10px;box-sizing:border-box;resize:vertical}
+body.theme-outlook .outlook-comment-input::placeholder{color:#8a8886}
+body.theme-outlook .outlook-comment-compose-actions{display:flex;gap:8px}
+body.theme-outlook .outlook-comment-submit{height:30px;border:1px solid #0f6cbd;background:#0f6cbd;color:#fff;border-radius:4px;padding:0 14px;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
+body.theme-outlook .outlook-comment-submit:hover{background:#0b5ca8}
+body.theme-outlook .outlook-comment-submit:disabled{opacity:.6;cursor:default}
+body.theme-outlook .outlook-comment-cancel{height:30px;border:1px solid #d0d7de;background:#fff;color:#605e5c;border-radius:4px;padding:0 12px;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
+body.theme-outlook .outlook-comment-cancel:hover{background:#f3f2f1}
 body.theme-outlook .outlook-compose-submit:disabled{opacity:.7;cursor:progress}
 
 body.theme-outlook .outlook-reading-news-bullets{margin:4px 0 4px 0;padding-left:20px;display:grid;gap:6px;color:#323130;font-size:13px;line-height:1.5}
@@ -824,9 +875,9 @@ body.ribbon-collapsed{--app-header-h:calc(104px + var(--safe-top))}
 .tabs{scrollbar-width:none;-ms-overflow-style:none}
 .tabs::-webkit-scrollbar{display:none}
 .tabs span{height:35px;padding:8px 14px 8px;color:var(--txt);font-size:12.5px;cursor:pointer;border-radius:4px 4px 0 0;position:relative;font-weight:400}
-.tabs span:hover{background:#f3f2f1}
-.tabs span.file-tab{background:transparent;color:var(--txt);font-weight:400;border-radius:4px 4px 0 0;padding:8px 14px}
-.tabs span.file-tab:hover{background:#f3f2f1}
+.tabs span:hover{background:rgba(0,0,0,.05)}
+.tabs span.file-tab{background:var(--excel);color:#fff;font-weight:400;border-radius:0;padding:8px 16px}
+.tabs span.file-tab:hover{background:var(--excel-dark);color:#fff}
 .tabs span.active{color:var(--excel-dark);font-weight:600}
 .tabs span.active::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:2px;background:var(--excel);border-radius:2px}
 
@@ -1116,6 +1167,12 @@ tr.empty-row .rownum{color:#9aa0a6}
 @media(max-width:959px){
   tr.empty-row{display:none}
 }
+/* 위장용 빈 시트 — 직접 입력 가능한 셀(저장 안 됨). 모바일에서도 표시한다. */
+tr.blank-row td{height:24px;background:var(--bg)}
+tr.blank-row .rownum{color:#9aa0a6}
+.blank-cell{cursor:text}
+.blank-cell:focus{outline:2px solid #107c41;outline-offset:-2px;background:#fff}
+body.excel-dark-mode:not(.theme-outlook) .blank-cell:focus{background:var(--bg)}
 /* 새로 들어온 뉴스 row 강조 — 4초 동안 노란 배경 fade out */
 @keyframes news-row-fadein{
   0%{background-color:#fff4d4}
@@ -1203,13 +1260,13 @@ th{background:var(--head);font-weight:600;text-align:center;position:sticky;top:
 }
 /* 두 sticky 행이 겹치는 경계는 한 줄로만 보이도록 위쪽 shadow 제거. */
 .sheet table tr:nth-child(2) th{box-shadow:inset 1px 0 0 var(--grid),inset -1px 0 0 var(--grid),inset 0 -1px 0 var(--grid)}
-.colhead{background:var(--head);font-weight:600;text-align:center;color:#555}
+.colhead{background:var(--head);font-weight:600;text-align:center;color:#444}
 .subhead{background:var(--bg);font-weight:600;color:var(--txt);white-space:nowrap}
-.rownum{background:var(--head);width:36px;text-align:right;color:#666;font-weight:600}
+.rownum{background:var(--head);width:36px;text-align:right;color:#4d4d4d;font-weight:600}
 th.rownum,
 td.rownum{
   background:var(--head)!important;
-  color:#666!important;
+  color:#4d4d4d!important;
   font-weight:600!important;
   text-align:right!important;
   box-sizing:border-box;
@@ -1265,6 +1322,17 @@ td.rownum::before{content:none!important;display:none!important}
 }
 .left{text-align:left}.right{text-align:right;font-variant-numeric:tabular-nums}.center{text-align:center}
 .up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--flat)}
+/* 시세 갱신 시 현재가 칸 약한 깜빡임 (엑셀스럽게 옅게). 설정에서 끌 수 있음. */
+:root{--xk-flash-up:rgba(163,77,77,.20);--xk-flash-down:rgba(63,111,159,.20)}
+body.excel-dark-mode{--xk-flash-up:rgba(255,133,133,.16);--xk-flash-down:rgba(136,186,255,.16)}
+@keyframes xkFlashUp{from{background-color:var(--xk-flash-up)}to{background-color:transparent}}
+@keyframes xkFlashDown{from{background-color:var(--xk-flash-down)}to{background-color:transparent}}
+#cardsTable .quote-price-cell.xk-flash-up{animation:xkFlashUp .85s ease-out}
+#cardsTable .quote-price-cell.xk-flash-down{animation:xkFlashDown .85s ease-out}
+@media(prefers-reduced-motion:reduce){
+  #cardsTable .quote-price-cell.xk-flash-up,
+  #cardsTable .quote-price-cell.xk-flash-down{animation:none}
+}
 a{color:#0563c1;text-decoration:none}
 a:hover{text-decoration:underline}
 .time{font-size:11px;color:#605e5c}
@@ -1331,8 +1399,6 @@ body.theme-outlook .outlook-mail-table tr:hover td:nth-child(4){opacity:.18}
   .news-feed table:not(.community-table) td:nth-child(3){width:64px}
   .news-feed table:not(.community-table) th:nth-child(4),
   .news-feed table:not(.community-table) td:nth-child(4){width:42%}
-  .news-feed table:not(.community-table) th:nth-child(6),
-  .news-feed table:not(.community-table) td:nth-child(6){width:62px}
 }
 body.readability-mode .news-feed table:not(.community-table){min-width:0}
 body.readability-mode .news-feed table:not(.community-table) th:nth-child(2),
@@ -1773,9 +1839,9 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
 .community-poll-inner{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:3px 7px;min-width:0;line-height:1.2}
 .community-poll-kicker{flex:0 0 auto;color:#107c41;font-size:11px;font-weight:750;white-space:nowrap}
 .community-poll-question{min-width:0;color:#2f4739;font-size:12px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.community-poll-options{grid-column:1 / -1;grid-row:2;display:inline-flex;align-items:center;gap:4px;min-width:0;overflow:hidden}
-.community-poll-choice{height:20px;min-width:38px;border:1px solid #c9d6ce;border-radius:var(--ui-control-radius);background:#fff;color:#3b3f45;padding:0 7px;font:inherit;font-size:10.8px;font-weight:650;line-height:18px;white-space:nowrap;cursor:pointer}
-.community-poll-choice:hover:not(:disabled){background:#eaf4ef;border-color:#a7cdb4;color:#107c41}
+.community-poll-options{grid-column:1 / -1;grid-row:2;display:inline-flex;align-items:center;gap:5px;min-width:0;overflow:hidden}
+.community-poll-choice{height:22px;min-width:40px;border:1px solid var(--grid);border-radius:var(--ui-control-radius);background:#fff;color:var(--txt);padding:0 9px;font:inherit;font-size:11px;font-weight:600;line-height:20px;white-space:nowrap;cursor:pointer;box-shadow:0 1px 0 rgba(16,124,65,.04);transition:background .12s,border-color .12s,color .12s}
+.community-poll-choice:hover:not(:disabled){background:var(--head);border-color:#a7cdb4;color:#107c41}
 .community-poll-choice.selected{background:#107c41;border-color:#107c41;color:#fff}
 .community-poll-choice:disabled{cursor:default;opacity:.86}
 .community-poll-count{display:inline-flex;grid-column:3;grid-row:1;justify-self:end;color:#7c8982;font-size:10.5px;font-weight:520;white-space:nowrap}
@@ -1823,6 +1889,24 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
 .community-pagination button{height:22px;border:1px solid #cfd8d3;background:#fff;color:#185c37;border-radius:3px;padding:0 9px;font:inherit;font-size:11px;font-weight:600;cursor:pointer}
 .community-pagination button:hover:not(:disabled){background:#eaf4ef}
 .community-pagination button:disabled{opacity:.42;cursor:default;color:#7b8490}
+/* 종목별 모아보기 — 최근 4일 언급 종목을 글 단위로 집계한 pill 모음 (전부 클라이언트 처리). */
+.community-stock-filter-row td:not(.rownum){padding:0}
+.community-stock-filter-cell{padding:6px 8px!important}
+.community-stock-filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;max-width:100%}
+.community-stock-tag{display:inline-flex;align-items:center;gap:3px;height:19px;padding:0 7px;border:1px solid #e0e8e3;background:#fbfdfc;color:#7c958a;border-radius:999px;font:inherit;font-size:10.5px;font-weight:450;line-height:1;cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s,color .12s}
+.community-stock-tag:hover{background:#f1f6f3;border-color:#c2d4c9;color:#5d7a6b}
+.community-stock-tag.is-active{background:#e7f1ec;border-color:#a9cdb9;color:#3f6f54;font-weight:500}
+.community-stock-tag-all{font-weight:500}
+.community-stock-tag-count{display:inline-flex;align-items:center;justify-content:center;min-width:14px;height:14px;padding:0 4px;border-radius:999px;background:#eef3f0;color:#90a89b;font-size:9px;font-weight:500}
+.community-stock-tag.is-active .community-stock-tag-count{background:rgba(63,111,84,.14);color:#3f6f54}
+@media (max-width:760px){
+  .community-stock-filter-cell{padding:6px!important}
+  .community-stock-filter-bar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:1px}
+  .community-stock-filter-bar::-webkit-scrollbar{display:none}
+  .community-stock-tag{flex:0 0 auto;height:23px;padding:0 10px;gap:4px;font-size:11.5px;font-weight:500}
+  .community-stock-tag.is-active{font-weight:600}
+  .community-stock-tag-count{min-width:15px;height:15px;font-size:9.5px}
+}
 /* 광고 행 — 시세표 셀처럼 보이되 아주 옅은 노트 셀 톤으로만 구분. */
 .community-note-row td:not(.rownum){color:#776b4d;vertical-align:middle;background:#fffdf7;background-clip:padding-box}
 .community-note-row .rownum{background:var(--head)!important;color:#666!important}
@@ -1962,7 +2046,7 @@ a.stock-mention-badge:hover{background:#f1f7f3;border-color:#bfd8c8;color:#3f664
   .community-poll-kicker{font-size:9.6px}
   .community-poll-question{font-size:11.1px;line-height:1.18}
   .community-poll-options{grid-column:1 / -1;grid-row:2;gap:3px;min-width:0;overflow:hidden}
-  .community-poll-choice{height:20px;min-width:0;flex:1 1 0;padding:0 5px;font-size:10.2px;line-height:18px}
+  .community-poll-choice{height:23px;min-width:0;flex:1 1 0;padding:0 6px;font-size:10.8px;line-height:21px}
   .community-poll-count{display:inline-flex;grid-column:3;grid-row:1;justify-self:end;font-size:9.6px}
   /* base pill 사이즈를 그대로 유지 — 별도 override 없음. */
   :is(#timelineTable,.timeline-swipe-table).community-table .stock-mention-market{display:none}
@@ -2687,10 +2771,17 @@ body.excel-dark-mode:not(.theme-outlook) .summary-sheet-note .notice-copy:hover{
 }
 
 /* === Floating sheet tabs (bottom) === */
-.floating-tabs{position:fixed;left:0;right:0;bottom:calc(24px + env(safe-area-inset-bottom));background:var(--sheet-tab-bg);border-top:1px solid var(--control-border);padding:3px 6px;display:flex;gap:0;z-index:50;justify-content:flex-start}
-.tab{padding:4px 11px;border:1px solid transparent;background:transparent;cursor:pointer;font-size:12px;border-radius:2px 2px 0 0;color:var(--txt)}
-.tab:hover{background:rgba(255,255,255,.5)}
-.tab.active{background:var(--panel-bg);font-weight:600;color:var(--excel-dark);border-color:var(--control-border);border-bottom-color:var(--panel-bg);position:relative;top:1px;box-shadow:inset 0 2px 0 var(--excel)}
+.floating-tabs{position:fixed;left:0;right:0;bottom:calc(24px + env(safe-area-inset-bottom));background:var(--sheet-tab-bg);border-top:1px solid var(--control-border);padding:3px 6px;display:flex;align-items:stretch;gap:0;z-index:50;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.floating-tabs::-webkit-scrollbar{display:none}
+.tab{padding:5px 13px;border:0;background:transparent;cursor:pointer;font-size:12px;border-radius:0;color:var(--muted);border-bottom:2px solid transparent;transition:color 90ms ease,border-color 90ms ease,background 90ms ease}
+.tab:hover{color:var(--txt);background:rgba(0,0,0,.045)}
+.tab.active{background:var(--panel-bg);font-weight:600;color:var(--excel-dark);border-bottom-color:var(--excel)}
+.sheet-nav{display:inline-flex;align-items:center;flex-shrink:0;margin-right:5px}
+.sheet-nav-btn,.sheet-add{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;padding:0;border:0;background:transparent;color:var(--muted);font-size:15px;line-height:1;border-radius:2px;cursor:default;flex-shrink:0}
+.sheet-nav-btn:hover,.sheet-add:hover{background:rgba(0,0,0,.06);color:var(--txt)}
+.sheet-add{margin-left:6px}
+.outlook-market-slot .sheet-nav,.outlook-market-slot .sheet-add,
+.outlook-mobile-market-slot .sheet-nav,.outlook-mobile-market-slot .sheet-add{display:none}
 
 /* === Sticky 헤더 (PC 만) — 리본/타이틀바/탭/수식바를 상단 고정 === */
 .app-header{background:var(--ribbon-bg);position:relative}
@@ -2764,17 +2855,17 @@ body.excel-dark-mode:not(.theme-outlook) .bar,
 body.excel-dark-mode:not(.theme-outlook) .updates-panel,
 body.excel-dark-mode:not(.theme-outlook) .updates-body{background:var(--panel-bg);color:var(--txt)}
 body.excel-dark-mode:not(.theme-outlook) .tabs span:hover,
-body.excel-dark-mode:not(.theme-outlook) .tabs span.file-tab:hover,
 body.excel-dark-mode:not(.theme-outlook) .change-toggle button:hover,
 body.excel-dark-mode:not(.theme-outlook) .timeline-tabs button:hover,
 body.excel-dark-mode:not(.theme-outlook) .tool:hover,
 body.excel-dark-mode:not(.theme-outlook) .tool.big:hover,
 body.excel-dark-mode:not(.theme-outlook) .split:hover{background:var(--hover);border-color:var(--hover-border)}
 body.excel-dark-mode:not(.theme-outlook) .tabs span,
-body.excel-dark-mode:not(.theme-outlook) .tabs span.file-tab,
 body.excel-dark-mode:not(.theme-outlook) .sheet-title,
 body.excel-dark-mode:not(.theme-outlook) .settings-row-text strong,
 body.excel-dark-mode:not(.theme-outlook) .updates-head h2{color:var(--txt)}
+body.excel-dark-mode:not(.theme-outlook) .tabs span.file-tab{background:var(--excel);color:#fff}
+body.excel-dark-mode:not(.theme-outlook) .tabs span.file-tab:hover{background:var(--excel-dark);color:#fff}
 body.excel-dark-mode:not(.theme-outlook) .settings-row-text em,
 body.excel-dark-mode:not(.theme-outlook) .settings-group-title,
 body.excel-dark-mode:not(.theme-outlook) .settings-foot,
@@ -2784,7 +2875,7 @@ body.excel-dark-mode:not(.theme-outlook) .time,
 body.excel-dark-mode:not(.theme-outlook) .sheet-title .hint{color:var(--muted)}
 body.excel-dark-mode:not(.theme-outlook) .floating-tabs{background:var(--sheet-tab-bg);border-color:var(--control-border)}
 body.excel-dark-mode:not(.theme-outlook) .tab:hover{background:#20272d}
-body.excel-dark-mode:not(.theme-outlook) .tab.active{background:var(--panel-bg);color:#9de8bb;border-color:var(--control-border);border-bottom-color:var(--panel-bg)}
+body.excel-dark-mode:not(.theme-outlook) .tab.active{background:var(--panel-bg);color:#9de8bb;border-bottom-color:var(--excel)}
 body.excel-dark-mode:not(.theme-outlook) .updates-head,
 body.excel-dark-mode:not(.theme-outlook) .settings-group{background:var(--soft-bg);border-color:var(--sep)}
 body.excel-dark-mode:not(.theme-outlook) .settings-row + .settings-row{border-top-color:#2e363d}
@@ -2937,6 +3028,11 @@ body.excel-dark-mode:not(.theme-outlook) .community-comment-row td:not(.rownum),
 body.excel-dark-mode:not(.theme-outlook) .community-hidden-row td:not(.rownum){background:#1b2229}
 body.excel-dark-mode:not(.theme-outlook) .community-post-row.is-pinned > td:not(.rownum){background:#211f18}
 body.excel-dark-mode:not(.theme-outlook) .community-pin-badge{background:#2a2418;border-color:#5a4923;color:#dcc488}
+body.excel-dark-mode:not(.theme-outlook) .community-stock-tag{background:#19241f;border-color:#384a40;color:#a4c9b2}
+body.excel-dark-mode:not(.theme-outlook) .community-stock-tag:hover{background:#1f3128;border-color:#4a6353}
+body.excel-dark-mode:not(.theme-outlook) .community-stock-tag.is-active{background:#274d3a;border-color:#46895f;color:#e3f4ea}
+body.excel-dark-mode:not(.theme-outlook) .community-stock-tag-count{background:#243a2f;color:#a4c9b2}
+body.excel-dark-mode:not(.theme-outlook) .community-stock-tag.is-active .community-stock-tag-count{background:rgba(255,255,255,.16);color:#e3f4ea}
 body.excel-dark-mode:not(.theme-outlook) .stock-mention-badge{background:#19241f;border-color:#384a40;color:#a4c9b2}
 body.excel-dark-mode:not(.theme-outlook) .community-note-badge-cell .notice-badge,
 body.excel-dark-mode:not(.theme-outlook) .community-note-merged-inner .notice-badge{background:#2a2418;border-color:#5a4923;color:#dcc488}
@@ -3039,6 +3135,15 @@ body.excel-dark-mode.readability-mode:not(.theme-outlook) #cardsTable tr.holding
 body.excel-dark-mode.readability-mode:not(.theme-outlook) #cardsTable tr.holding-row td.holding-summary-return-cell.down{color:#bad6ff}
 body.excel-dark-mode:not(.theme-outlook) .community-compose-box,
 body.excel-dark-mode:not(.theme-outlook) .community-reply-box{background:#11181d;border-color:#2d6d46;box-shadow:inset 0 0 0 1px rgba(33,163,102,.08)}
+body.excel-dark-mode:not(.theme-outlook) .community-cell-input,
+body.excel-dark-mode:not(.theme-outlook) .community-nick-input,
+body.excel-dark-mode:not(.theme-outlook) .community-reply-nick-input,
+body.excel-dark-mode:not(.theme-outlook) .community-main-compose .community-nick-input,
+body.excel-dark-mode:not(.theme-outlook) .community-main-compose .community-post-input,
+body.excel-dark-mode:not(.theme-outlook) :is(#timelineTable,.timeline-swipe-table).community-table .community-post-input,
+body.excel-dark-mode:not(.theme-outlook) :is(#timelineTable,.timeline-swipe-table).community-table .community-main-compose .community-post-input{color:var(--txt);-webkit-text-fill-color:var(--txt);background:transparent;caret-color:#2faa63}
+body.excel-dark-mode:not(.theme-outlook) .chat-input,
+body.excel-dark-mode:not(.theme-outlook) .chat-nickname{caret-color:#2faa63}
 body.excel-dark-mode:not(.theme-outlook) .community-post-body,
 body.excel-dark-mode:not(.theme-outlook) :is(#timelineTable,.timeline-swipe-table).community-table .community-comment-body,
 body.excel-dark-mode:not(.theme-outlook) .news-title-link{color:#eef2f4}
@@ -3120,6 +3225,8 @@ body.excel-dark-mode:not(.theme-outlook) .updates-body h3{color:#9de8bb;border-c
 body.excel-dark-mode:not(.theme-outlook) .updates-table th,
 body.excel-dark-mode:not(.theme-outlook) .updates-table tr:nth-child(even) td,
 body.excel-dark-mode:not(.theme-outlook) .notice-card-detail{background:#11161b;color:var(--txt);border-color:var(--sep)}
+body.excel-dark-mode:not(.theme-outlook) .notice-card-title,
+body.excel-dark-mode:not(.theme-outlook) .notice-card-detail strong{color:var(--txt)}
 body.excel-dark-mode:not(.theme-outlook) .notice-card-summary:hover,
 body.excel-dark-mode:not(.theme-outlook) .notice-card-button:hover,
 body.excel-dark-mode:not(.theme-outlook) .updates-link:hover,
@@ -3134,7 +3241,38 @@ body.excel-dark-mode:not(.theme-outlook) .mini-chart-foot,
 body.excel-dark-mode:not(.theme-outlook) .mini-chart-empty{color:var(--muted)}
 body.excel-dark-mode:not(.theme-outlook) .toast{box-shadow:0 10px 28px rgba(0,0,0,.42)}
 .updates-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.22)}
-.updates-panel{position:absolute;right:18px;bottom:calc(36px + env(safe-area-inset-bottom));width:min(520px,calc(100vw - 28px));max-height:min(72vh,620px);background:#fff;border:1px solid #b7c9bf;border-radius:8px;box-shadow:0 18px 48px rgba(0,0,0,.24),0 4px 12px rgba(0,0,0,.12);display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+.updates-panel{position:absolute;right:18px;bottom:calc(36px + env(safe-area-inset-bottom));width:min(600px,calc(100vw - 28px));max-height:min(84vh,860px);background:#fff;border:1px solid #b7c9bf;border-radius:8px;box-shadow:0 18px 48px rgba(0,0,0,.24),0 4px 12px rgba(0,0,0,.12);display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+/* 목차 — "공지사항" 제목 아래에 두는 작은 알약 버튼. 펼치면 날짜별 점프 목록. */
+.patch-toc{margin:0 0 14px}
+.patch-toc>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;height:25px;padding:0 11px;border:1px solid #cfe6d8;border-radius:999px;background:#f3faf5;color:#185c37;font-size:11px;font-weight:700;letter-spacing:.2px;user-select:none;transition:background .14s ease,border-color .14s ease}
+.patch-toc>summary::-webkit-details-marker{display:none}
+.patch-toc-icon{font-size:9px;line-height:1;opacity:.75}
+.patch-toc>summary::after{content:"▾";font-size:9px;line-height:1;opacity:.7;transition:transform .15s ease}
+.patch-toc[open]>summary::after{transform:rotate(180deg)}
+.patch-toc>summary:hover,.patch-toc[open]>summary{background:#e7f5ec;border-color:#a9d6bb}
+.patch-toc-count{background:#107c41;color:#fff;border-radius:999px;font-size:9.5px;font-weight:800;min-width:16px;padding:1px 6px;text-align:center;letter-spacing:0}
+.patch-toc ul{list-style:none;counter-reset:toc;margin:8px 0 0;padding:6px;background:#f8faf8;border:1px solid #e1ebe4;border-radius:8px;display:grid;gap:1px}
+.patch-toc li{margin:0}
+.patch-toc a{display:flex;align-items:baseline;gap:8px;padding:6px 9px;border-radius:6px;color:#2b4a39;text-decoration:none;font-size:12px;font-weight:600;line-height:1.4;transition:background .12s ease,color .12s ease}
+.patch-toc a::before{counter-increment:toc;content:counter(toc);flex:0 0 auto;min-width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;background:#e4f1ea;color:#107c41;font-size:9.5px;font-weight:800;transform:translateY(1px)}
+.patch-toc a:hover{background:#eaf4ee;color:#0e6b39}
+.patch-toc a:hover::before{background:#107c41;color:#fff}
+body.excel-dark-mode:not(.theme-outlook) .patch-toc>summary{background:#1c2922;border-color:#33493b;color:#9de8bb}
+body.excel-dark-mode:not(.theme-outlook) .patch-toc>summary:hover,
+body.excel-dark-mode:not(.theme-outlook) .patch-toc[open]>summary{background:#22332a;border-color:#3f5a48}
+body.excel-dark-mode:not(.theme-outlook) .patch-toc ul{background:#171d22;border-color:var(--sep)}
+body.excel-dark-mode:not(.theme-outlook) .patch-toc a{color:#cfe6d8}
+body.excel-dark-mode:not(.theme-outlook) .patch-toc a::before{background:#243029;color:#5fc88c}
+body.excel-dark-mode:not(.theme-outlook) .patch-toc a:hover{background:#22332a;color:#9de8bb}
+body.excel-dark-mode:not(.theme-outlook) .patch-toc a:hover::before{background:#2faa63;color:#08130c}
+.updates-body h2{scroll-margin-top:8px}
+/* 날짜별 업데이트를 카드로 끊어 스캔하기 쉽게 한다. 최신 카드는 초록 강조. */
+.patch-card{position:relative;margin:0 0 14px;padding:13px 16px 5px;background:#fff;border:1px solid #e1dfdd;border-left:3px solid #cfe0d6;border-radius:8px;scroll-margin-top:12px}
+.patch-card.is-newest{border-left-color:#107c41;background:linear-gradient(180deg,#f3faf5,#fff 64px);box-shadow:0 1px 8px rgba(16,124,65,.08)}
+.patch-card-title{margin:0 0 8px!important;padding-top:0!important;border-top:none!important;display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.patch-new{flex:none;background:#107c41;color:#fff;font-size:10px;font-weight:800;letter-spacing:.4px;border-radius:999px;padding:2px 8px;line-height:1.4}
+body.excel-dark-mode:not(.theme-outlook) .patch-card{background:var(--panel-bg);border-color:var(--sep);border-left-color:#3a4a40}
+body.excel-dark-mode:not(.theme-outlook) .patch-card.is-newest{border-left-color:#2faa63;background:linear-gradient(180deg,#1c2922,var(--panel-bg) 64px);box-shadow:none}
 .updates-head{height:42px;padding:0 10px 0 14px;background:#f6f8f6;border-bottom:1px solid #d8e3dc;display:flex;align-items:center;gap:8px}
 .updates-head h2{font-size:13px;margin:0;font-weight:700;color:#185c37;flex:1}
 .updates-link,.updates-close{height:26px;border:1px solid #c8c6c4;border-radius:4px;background:#fff;color:#252423;font:inherit;font-size:11px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;padding:0 8px;cursor:pointer}
@@ -3143,7 +3281,7 @@ body.excel-dark-mode:not(.theme-outlook) .toast{box-shadow:0 10px 28px rgba(0,0,
 .updates-body{padding:14px 16px 18px;overflow-y:auto;overflow-x:hidden;font-size:12.5px;line-height:1.58;background:#fff;min-width:0}
 .updates-body *{box-sizing:border-box}
 .updates-body h1,.updates-body h2,.updates-body h3{margin:0 0 8px;color:#185c37;line-height:1.3}
-.updates-body h1{font-size:18px}
+.updates-body h1{font-size:18px;margin-top:20px}
 .updates-body h2{font-size:15px;margin-top:16px;padding-top:12px;border-top:1px solid #e1dfdd}
 .updates-body h3{font-size:13px;margin-top:12px}
 .updates-body p{margin:7px 0;color:#3b3a39;overflow-wrap:anywhere;word-break:keep-all}
@@ -3156,20 +3294,20 @@ body.excel-dark-mode:not(.theme-outlook) .toast{box-shadow:0 10px 28px rgba(0,0,
 .updates-table-wide{min-width:760px}
 .updates-table th,.updates-table td{border:1px solid #edebe9;padding:6px 7px;vertical-align:top;text-align:left;white-space:normal;overflow-wrap:anywhere;word-break:keep-all}
 .updates-table th:first-child,.updates-table td:first-child{min-width:62px;white-space:nowrap;overflow-wrap:normal;word-break:normal}
+.updates-table th:last-child,.updates-table td:last-child{min-width:160px;max-width:320px;width:12vw}
 .updates-table th{background:#f6f8f6;color:#185c37;font-weight:750}
 .updates-table tr:nth-child(even) td{background:#fbfbfa}
 .updates-table .align-right{text-align:right;white-space:nowrap}
 .updates-table .align-center{text-align:center}
-/* 통일 카드 — 서버 상태 / Ootlook 베타 / 커피값 셋이 같은 모양으로 묶임.
+/* 통일 카드 — 서버 상태 / 커피값 두 장이 같은 모양으로 묶임.
  * 카드 자체 padding/border/높이/dot 위치 등은 동일하게, 색만 accent 별로 다르게 한다.
- * data-accent="status|outlook|coffee" 로 dot 색, 좌측 strip 색만 분기.
+ * data-accent="status|coffee" 로 dot 색, 좌측 strip 색만 분기.
  */
-.notice-card{margin:0 0 8px;border:1px solid #e1dfdd;border-left:3px solid #b6b6b6;border-radius:6px;background:#fbfbfa;color:#605e5c;font-size:12px;line-height:1.42;overflow:hidden;display:block;width:100%;text-align:left;padding:0;font:inherit}
+.notice-card{margin:0 0 8px;border:1px solid #e1dfdd;border-left:3px solid #b6b6b6;border-radius:7px;background:#fbfbfa;color:#605e5c;font-size:12px;line-height:1.42;overflow:hidden;display:block;width:100%;text-align:left;padding:0;font:inherit;transition:border-color .14s ease,box-shadow .14s ease}
+.notice-card:hover{box-shadow:0 1px 7px rgba(16,124,65,.09)}
 button.notice-card{cursor:pointer}
-.notice-card-summary{width:100%;min-height:32px;border:0;background:transparent;color:inherit;font:inherit;display:flex;align-items:center;gap:8px;padding:7px 10px;text-align:left;cursor:pointer}
+.notice-card-summary{width:100%;min-height:34px;border:0;background:transparent;color:inherit;font:inherit;display:flex;align-items:center;gap:8px;padding:8px 11px;text-align:left;cursor:pointer}
 .notice-card-summary:hover{background:#f4f7f5}
-.notice-card-summary-static{cursor:inherit}
-.notice-card-summary-static:hover{background:transparent}
 .notice-card-button{cursor:pointer}
 .notice-card-button:hover{background:#f4f7f5}
 .notice-card-dot{width:8px;height:8px;border-radius:50%;background:#9aa0a6;box-shadow:0 0 0 2px rgba(154,160,166,.18);flex:0 0 auto}
@@ -3185,8 +3323,6 @@ button.notice-card{cursor:pointer}
 /* accent 색 — dot + 왼쪽 strip + title 강조 */
 .notice-card[data-accent="status"]{border-left-color:#21a366}
 .notice-card[data-accent="status"] .notice-card-dot{background:#21a366;box-shadow:0 0 0 2px rgba(33,163,102,.18)}
-.notice-card[data-accent="outlook"]{border-left-color:#0f6cbd}
-.notice-card[data-accent="outlook"] .notice-card-dot{background:#0f6cbd;box-shadow:0 0 0 2px rgba(15,108,189,.18)}
 .notice-card[data-accent="coffee"]{border-left-color:#c08a3e}
 .notice-card[data-accent="coffee"] .notice-card-dot{background:#c08a3e;box-shadow:0 0 0 2px rgba(192,138,62,.18)}
 /* 서버 상태 health 변형 — 기본 status(녹색)에서 busy/degraded/down 으로 dot 색 + border 색 */
@@ -3477,7 +3613,12 @@ body.excel-dark-mode:not(.theme-outlook) .chat-poll-question{color:#d6e6dc}
 body.excel-dark-mode:not(.theme-outlook) .chat-poll-choice{background:#1d2825;border-color:#3f5950;color:#bdd2c3}
 body.excel-dark-mode:not(.theme-outlook) .chat-poll-choice:hover:not(:disabled){background:#26352d;border-color:#5a8d6b;color:#7cd6a2}
 body.excel-dark-mode:not(.theme-outlook) .chat-poll-choice.selected{background:#21a366;border-color:#21a366;color:#06180f}
+/* === ⑥ OS 다크 모드: 떠있는 채팅 패널만 어둡게. 엑셀 그리드는 위장 위해 라이트 유지.
+   수동 다크 모드(body.excel-dark-mode)에서는 기존 규칙이 처리하므로 :not 으로 제외 → 기존 동작 무회귀. === */
 .chat-msg{background:#fff;border:1px solid #e1dfdd;border-radius:8px;padding:6px 7px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+@keyframes chat-msg-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.chat-msg.chat-msg-enter{animation:chat-msg-enter .26s ease-out both}
+@media (prefers-reduced-motion: reduce){.chat-msg.chat-msg-enter{animation:none}}
 .chat-msg.own{background:#eef8f0;border-color:#cfe7d7}
 .chat-msg.admin{background:#f7fbf8;border-color:#b7d9c4}
 .chat-msg.moderated{background:#f3f4f6;border-color:#d8dde3;border-style:dashed;box-shadow:none}
@@ -3492,6 +3633,9 @@ body.excel-dark-mode:not(.theme-outlook) .chat-poll-choice.selected{background:#
 /* 추천 별 배지 — ★ 글리프가 명확히 보이도록 크기·색·voffset 을 다듬었다.
  * 기존엔 ✦ 마크가 작아서 별인지 다이아인지 헷갈렸다. */
 .chat-recommend-badge{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;min-width:17px;padding:0;border:1px solid #e2cf8a;border-radius:999px;background:#fff8d8;color:#a8851d;font-size:11px;font-weight:800;line-height:1;white-space:nowrap;cursor:help;box-shadow:inset 0 -1px 0 rgba(120,95,40,.08),0 1px 1px rgba(168,133,29,.12);vertical-align:-2px}
+/* 추천 15회 이상 — 별 두 개. 동그라미 대신 알약 모양으로 넓혀 ★★ 가 잘리지 않게. */
+.chat-recommend-badge-double{width:auto;min-width:0;padding:0 4px;letter-spacing:-1px;background:#fff1c4;border-color:#d8bf6f;color:#956f12}
+.chat-award-perk{display:block;margin-top:2px;font-size:10.5px;color:#8a8266}
 .chat-time{margin-left:auto;font-variant-numeric:tabular-nums}
 /* '루팡 중' 뱃지 — 위장을 위해 작고 무채색에 가깝게. */
 .chat-lupang-badge{font-size:9.8px;font-weight:600;color:#9a8f6b;white-space:nowrap;letter-spacing:-.2px;font-variant-numeric:tabular-nums}
@@ -3796,21 +3940,42 @@ body.excel-dark-mode:not(.theme-outlook) .sheet .excel-col-selected.colhead{
 
 @media(max-width:760px){
   :root{--gutter:6px}
+  /* ② 펼친 리본 높이를 살짝 줄여 시세표 노출 영역 확보(리본은 모바일 기본 접힘 상태) */
   .ribbon{
-    height:112px !important;
+    height:102px !important;
     scroll-snap-type:x proximity;
   }
   .group.clipboard,.group.font,.group.align,.group.number,.group.styles,.group.cells,.group.editing,.group.data{
-    grid-template-rows:88px 18px !important;
-    height:110px !important;
-    padding:5px 6px !important;
+    grid-template-rows:80px 18px !important;
+    height:100px !important;
+    padding:4px 6px !important;
   }
   .group-label{height:18px !important;line-height:18px !important;font-size:10.5px}
-  .group:not(:last-child)::after{top:10px !important;bottom:28px !important}
-  .tools,.commandcol{height:88px !important}
-  .tool.big{height:88px !important;padding:7px 1px 8px}
-  .group > div:first-child:not(.tools):not(.group-label){height:88px !important}
+  .group:not(:last-child)::after{top:9px !important;bottom:28px !important}
+  .tools,.commandcol{height:80px !important}
+  .tool.big{height:80px !important;padding:6px 1px 7px}
+  .group > div:first-child:not(.tools):not(.group-label){height:80px !important}
   .ribbon-actions{height:100%;align-self:stretch;padding:0 8px 28px 8px}
+}
+
+/* === 좁은 폰 화면(≤520px) 보완: ①플로팅 버튼 시세표 가림, ③타이틀·수식바 잘림 === */
+@media(max-width:520px){
+  /* ① 시세알림/채팅 버튼 폭을 줄이되 짧은 라벨(알림/채팅)은 유지 → 현재가(B열) 가림 최소화 */
+  .floating-actions{right:10px;bottom:calc(58px + env(safe-area-inset-bottom));gap:8px}
+  .floating-actions .tg-cta,
+  .floating-actions .chat-cta{padding:9px 13px;gap:6px;font-size:12px}
+  .floating-actions .tg-cta .lbl,
+  .floating-actions .chat-cta .lbl{display:inline}
+  /* 시트탭: 좁은 화면에선 시트 네비/추가(+) 장식은 감추고 탭만 가로 스크롤 */
+  .sheet-nav,.sheet-add{display:none}
+  /* ③ 빠른 실행 도구의 보조 버튼(실행취소/다시실행/사용자지정)을 접어 파일명 공간 확보 */
+  .titlebar{gap:4px}
+  .quick .qa-sep{display:none}
+  .quick button:not(.save-btn){display:none}
+  /* ③ 수식바: 이름상자·fx 기호를 줄이고 우측 세션 배지 폭을 제한해 =MARKETBRIEF(AUTO) 전체가 보이도록 */
+  .formula{grid-template-columns:48px 17px minmax(0,1fr) auto auto}
+  .fx-meta{max-width:74px}
+  .fx-meta .badge{font-size:9.5px;padding:1px 4px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
 
 .watchlist-add{

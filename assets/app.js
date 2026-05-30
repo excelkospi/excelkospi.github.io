@@ -67,6 +67,7 @@ const communityChannelSummaries = {};
 let communityPostInFlight = false;
 let communityCommentInFlight = false;
 let communityPage = 1;
+let communityStockFilter = '';
 const communityPollsByChannel = {};
 const communityPollUnavailableByChannel = {};
 let communityPollVoteInFlight = false;
@@ -92,7 +93,7 @@ let timelineTab = (()=>{
   }catch{ return 'news'; }
 })();
 const ETF_SCRIPT_VERSION = '20260528-621';
-const TIMELINE_TAB_ORDER = ['news', 'community-kr', 'community-us', 'community-coin', 'community-ops', 'etf'];
+const TIMELINE_TAB_ORDER = ['news', 'community-kr', 'community-us', 'community-coin', 'community-ops', 'etf', 'blank'];
 let etfModulePromise = null;
 
 function etfModule(){
@@ -192,7 +193,7 @@ function toggleEtfDetailKey(key){
 
 const IS_STANDALONE = !!(window.matchMedia?.('(display-mode: standalone)')?.matches || navigator.standalone === true);
 if(IS_STANDALONE) document.documentElement.classList.add('pwa-standalone');
-const EXCEL_THEMES = new Set(['classic','silver','deep']);
+const EXCEL_THEMES = new Set(['classic','silver','graphite','deep']);
 let excelTheme = readStringSetting(EXCEL_THEME_KEY, 'classic', EXCEL_THEMES);
 let excelDarkMode = readBoolSetting(EXCEL_DARK_MODE_KEY, false);
 let sheetMonochromeMode = readBoolSetting(SHEET_MONOCHROME_KEY, false);
@@ -212,13 +213,13 @@ let chatPanelOpacity=readChatOpacitySetting();
 function applyExcelAppearance(){
   const body=document.body;
   if(!body) return;
-  body.classList.remove('excel-theme-silver','excel-theme-classic','excel-theme-deep');
+  body.classList.remove('excel-theme-silver','excel-theme-classic','excel-theme-graphite','excel-theme-deep');
   body.classList.add(`excel-theme-${EXCEL_THEMES.has(excelTheme) ? excelTheme : 'silver'}`);
   body.classList.toggle('excel-dark-mode', !!excelDarkMode);
   body.classList.toggle('sheet-monochrome-mode', !!sheetMonochromeMode);
   const theme=document.querySelector('meta[name="theme-color"]');
   if(theme && !body.classList.contains('theme-outlook')){
-    theme.setAttribute('content', excelDarkMode ? '#101418' : (excelTheme === 'silver' ? '#e7e9ed' : (excelTheme === 'deep' ? '#06452b' : '#107c41')));
+    theme.setAttribute('content', excelDarkMode ? '#101418' : (excelTheme === 'silver' ? '#eef0f3' : (excelTheme === 'graphite' ? '#494b4f' : (excelTheme === 'deep' ? '#06452b' : '#107c41'))));
   }
 }
 function applyRibbonCollapsed(){
@@ -617,10 +618,15 @@ function timelineIsEtf(){
   return timelineTab === 'etf';
 }
 
+function timelineIsBlank(){
+  return timelineTab === 'blank';
+}
+
 function timelineTabParts(tab){
   const raw = String(tab || '');
   if(raw === 'news') return { tab:'news', channel:communityActiveChannel() };
   if(raw === 'etf') return { tab:'etf', channel:communityActiveChannel() };
+  if(raw === 'blank') return { tab:'blank', channel:communityActiveChannel() };
   if(raw === 'community') return { tab:'community', channel:communityActiveChannel() };
   if(raw.startsWith('community-')) return { tab:'community', channel:validCommunityChannel(raw.slice('community-'.length)) };
   return { tab:'news', channel:communityActiveChannel() };
@@ -629,6 +635,7 @@ function timelineTabParts(tab){
 function timelineActiveTabKey(){
   if(timelineIsCommunity()) return `community-${communityActiveChannel()}`;
   if(timelineIsEtf()) return 'etf';
+  if(timelineIsBlank()) return 'blank';
   return 'news';
 }
 
@@ -703,6 +710,7 @@ function clearCommunityReplyVisibleCounts(){
 
 function resetCommunityUiState(){
   communityPage = 1;
+  communityStockFilter = '';
   communityReplyPostId = '';
   communityReplyParentCommentId = '';
   communityMobileActionPostId = '';
@@ -719,6 +727,7 @@ function saveCommunityUiState(channel=communityActiveChannel()){
   if(replyEl) communityDraftReplyBody = replyEl.value || '';
   communityUiStateByChannel[key] = {
     page:communityPage,
+    stockFilter:communityStockFilter,
     replyPostId:communityReplyPostId,
     replyParentCommentId:communityReplyParentCommentId,
     mobileActionPostId:communityMobileActionPostId,
@@ -733,6 +742,7 @@ function restoreCommunityUiState(channel){
   const state = communityUiStateByChannel[validCommunityChannel(channel)];
   if(!state) return false;
   communityPage = Math.max(1, Number(state.page) || 1);
+  communityStockFilter = String(state.stockFilter || '');
   communityReplyPostId = String(state.replyPostId || '');
   communityReplyParentCommentId = String(state.replyParentCommentId || '');
   communityMobileActionPostId = String(state.mobileActionPostId || '');
@@ -774,7 +784,7 @@ function communityComposePlaceholder(){
   const meta=communityChannelMeta();
   const base = meta.placeholder || '여러 종목에 걸쳐 이야기를 나누는 공간입니다.';
   return communityShowsMentionPlaceholder()
-    ? `${base}\n특정 종목 태그하기 : @종목명`
+    ? `${base}\n특정 종목 태그하기 : @종목명(공백없이)`
     : base;
 }
 
@@ -1071,18 +1081,33 @@ function serverStatusHtml(){
     <div class="notice-card-detail server-status-detail" id="serverStatusDetail" hidden></div>
   </div>`;
 }
-function outlookBetaHtml(){
-  // 서버 상태판 바로 아래에 들어가는 Ootlook 베타 안내. 다른 두 카드와 동일 포맷.
-  if(document.body?.classList?.contains('theme-outlook')) return '';
-  return `<button type="button" class="notice-card notice-card-button outlook-beta-banner" data-outlook-beta aria-label="Ootlook 위장 모드 사용해보기" data-accent="outlook">
-    <span class="notice-card-summary notice-card-summary-static">
-      <span class="notice-card-dot outlook-beta-dot" aria-hidden="true"></span>
-      <span class="notice-card-title">Ootlook 위장 모드 (베타) 써보기 <em>피드백은 종토방에 남겨주세요</em></span>
-      <span class="notice-card-caret" aria-hidden="true">→</span>
-    </span>
-  </button>`;
+/* Ootlook disguise mode lives in app-outlook.js. 64KB짜리라 페이지 로드 때
+   프리패치하지 않고 Ootlook 모드 진입 시점에만 동적으로 로드한다. */
+let outlookModulePromise = null;
+function ensureOutlookModule(){
+  if(typeof activateOutlookTheme === 'function') return Promise.resolve();
+  if(outlookModulePromise) return outlookModulePromise;
+  outlookModulePromise = new Promise((resolve, reject)=>{
+    const s = document.createElement('script');
+    s.src = '/assets/app-outlook.js?v=20260530-662';
+    s.async = false;
+    s.onload = ()=>resolve();
+    s.onerror = ()=>{ outlookModulePromise = null; reject(new Error('outlook_module_failed')); };
+    document.head.appendChild(s);
+  });
+  return outlookModulePromise;
 }
-/* Ootlook disguise mode lives in app-outlook.js. */
+async function enterOutlookMode(){
+  try{
+    await ensureOutlookModule();
+  }catch(_){
+    showToast('Ootlook 모드를 불러오지 못했어요. 잠시 후 다시 시도해주세요.', 'err');
+    return false;
+  }
+  if(typeof activateOutlookTheme !== 'function') return false;
+  activateOutlookTheme();
+  return true;
+}
 async function openUpdatesModal(options={}){
   const modal=document.getElementById('updatesModal');
   const body=document.getElementById('updatesBody');
@@ -1095,10 +1120,18 @@ async function openUpdatesModal(options={}){
     try{
       const res=await fetch(PATCH_NOTES_URL, {cache:'no-store'});
       if(!res.ok) throw new Error(`patch-notes ${res.status}`);
-      body.innerHTML=serverStatusHtml()+outlookBetaHtml()+updatesNoticeHtml()+renderPatchMarkdown(await res.text());
+      body.innerHTML=serverStatusHtml()+updatesNoticeHtml()+renderPatchMarkdown(await res.text());
       patchNotesLoaded=true;
+      body.addEventListener('click', (e)=>{
+        const link=e.target.closest?.('a[data-patch-toc]');
+        if(!link) return;
+        e.preventDefault();
+        const id=link.getAttribute('href')?.slice(1) || '';
+        const target=id && body.querySelector(`#${CSS.escape(id)}`);
+        target?.scrollIntoView({behavior:'smooth', block:'start'});
+      });
     }catch{
-      body.innerHTML=serverStatusHtml()+outlookBetaHtml()+updatesNoticeHtml()+'<p class="updates-error">공지사항을 불러오지 못했습니다.</p>';
+      body.innerHTML=serverStatusHtml()+updatesNoticeHtml()+'<p class="updates-error">공지사항을 불러오지 못했습니다.</p>';
     }
   }
   bindServerStatusControls();
@@ -1321,12 +1354,16 @@ function syncSettingsUI(){
   if(fc) fc.checked = !floatingHiddenFor('chat');
   const cip=document.getElementById('settingChatImagePreview');
   if(cip) cip.checked = chatImagePreviewEnabled();
+  const can=document.getElementById('settingChatAnim');
+  if(can) can.checked = chatAnimSettingEnabled();
   const o=document.getElementById('settingOutlook');
   if(o) o.checked = !!document.body.classList.contains('theme-outlook') || outlookBetaActive;
   const m=document.getElementById('settingRememberMarket');
   if(m) m.checked = rememberMarketEnabled();
   const u=document.getElementById('settingUsKrwDisplay');
   if(u) u.checked = usKrwDisplayEnabled();
+  const qf=document.getElementById('settingQuoteFlash');
+  if(qf) qf.checked = quoteFlashEnabled();
   const c=document.getElementById('settingCoinQuoteSource');
   if(c) c.value = coinQuoteSource();
   applyChatPanelOpacity();
@@ -1420,15 +1457,21 @@ async function handleSettingChange(key, checked){
     showToast(checked ? '채팅 이미지를 자동으로 보여줍니다.' : '채팅 이미지를 클릭해서 펼치도록 바꿨습니다.', 'info');
     return;
   }
+  if(key === 'chatAnim'){
+    writeBoolSetting(CHAT_ANIM_KEY, !!checked);
+    showToast(checked ? '새 채팅이 부드럽게 올라옵니다.' : '채팅 애니메이션을 껐습니다.', 'info');
+    return;
+  }
   if(key === 'outlook'){
     if(checked && !outlookBetaActive){
       closeSettingsModal();
-      activateOutlookTheme();
-      // 첫 진입 안내 — 본인이 켠 직후라 짧고 명확하게.
-      setTimeout(()=>showToast('새로고침하면 엑셀로 돌아갑니다', 'info'), 400);
+      enterOutlookMode().then((ok)=>{
+        // 첫 진입 안내 — 본인이 켠 직후라 짧고 명확하게.
+        if(ok) setTimeout(()=>showToast('새로고침하면 엑셀로 돌아갑니다', 'info'), 400);
+      });
     } else if(!checked && outlookBetaActive){
       closeSettingsModal();
-      deactivateOutlookTheme();
+      if(typeof deactivateOutlookTheme === 'function') deactivateOutlookTheme();
     }
     return;
   }
@@ -1441,6 +1484,11 @@ async function handleSettingChange(key, checked){
     writeBoolSetting(US_SHEET_KRW_KEY, !!checked);
     if(lastSnapshot) await renderSnapshot(lastSnapshot);
     showToast(checked ? '미장 현재가를 원화로 환산해 표시합니다.' : '미장 현재가를 원래 통화로 표시합니다.', 'info');
+    return;
+  }
+  if(key === 'quoteFlash'){
+    writeBoolSetting(QUOTE_FLASH_KEY, !!checked);
+    showToast(checked ? '시세 갱신 시 현재가 칸이 잠깐 깜빡입니다.' : '현재가 깜빡임을 껐습니다.', 'info');
     return;
   }
   if(key === 'coinQuoteSource'){
@@ -1502,13 +1550,6 @@ async function handleSettingsReset(){
   setTimeout(()=>{ window.location.reload(); }, 600);
 }
 document.addEventListener('click',(ev)=>{
-  if(ev.target?.closest?.('[data-outlook-beta]')){
-    ev.preventDefault();
-    activateOutlookTheme();
-    closeUpdatesModal();
-    showToast('Ootlook 테마 베타로 전환했습니다. 새로고침하면 Excel로 돌아갑니다.', 'info');
-    return;
-  }
   const outlookAction=ev.target?.closest?.('[data-outlook-action]');
   if(outlookAction){
     ev.preventDefault();
@@ -1567,7 +1608,7 @@ function bindSettingsModalTriggers(){
       ev.preventDefault();
       ev.stopPropagation();
       openSettingsModal();
-      setOutlookMobileNavOpen(false);
+      if(typeof setOutlookMobileNavOpen === 'function') setOutlookMobileNavOpen(false);
     });
   });
 }
@@ -2001,6 +2042,49 @@ function makeEmptyRows(startIdx, count, cols){
     out += `<tr class="empty-row">${tds}</tr>`;
   }
   return out;
+}
+
+// 엑셀 위장용 빈 시트 — 헤더(A~)와 직접 입력 가능한 셀로 채운 표를 그린다.
+// 입력값은 저장되지 않는다(새로고침/탭전환 시 사라짐). 위장 몰입용 재미 기능.
+const BLANK_SHEET_COLS = 6;
+const BLANK_SHEET_ROWS = 100;
+function renderBlankTimeline(){
+  const table = document.getElementById('timelineTable');
+  if(!table) return;
+  table.classList.remove('community-table','etf-table');
+  const cols = BLANK_SHEET_COLS;
+  const colhead = Array.from({length:cols}, (_,i)=>`<th class="colhead">${String.fromCharCode(65+i)}</th>`).join('');
+  let body = '';
+  for(let r=1; r<=BLANK_SHEET_ROWS; r++){
+    let tds = `<td class="rownum">${r}</td>`;
+    for(let c=0; c<cols; c++) tds += `<td class="blank-cell" contenteditable="true" spellcheck="false"></td>`;
+    body += `<tr class="blank-row">${tds}</tr>`;
+  }
+  table.innerHTML = `<tr><th class="rownum"></th>${colhead}</tr>${body}`;
+  if(!table.dataset.blankNavBound){
+    table.addEventListener('keydown', blankCellNavigate);
+    table.dataset.blankNavBound = '1';
+  }
+  const hint = document.getElementById('timelineHint');
+  if(hint) hint.textContent = '';
+}
+// 엑셀처럼 Enter=아래 칸, Tab=오른쪽 칸 이동(줄바꿈 삽입 방지).
+function blankCellNavigate(e){
+  if(e.key !== 'Enter' && e.key !== 'Tab') return;
+  const cell = e.target.closest?.('.blank-cell');
+  if(!cell) return;
+  e.preventDefault();
+  const row = cell.parentElement;
+  const cells = Array.from(row.children).filter(td=>td.classList.contains('blank-cell'));
+  const colIdx = cells.indexOf(cell);
+  if(e.key === 'Tab'){
+    const next = cells[colIdx + 1] || row.nextElementSibling?.querySelector('.blank-cell');
+    next?.focus();
+  }else{
+    const nextRow = row.nextElementSibling;
+    const target = nextRow && Array.from(nextRow.children).filter(td=>td.classList.contains('blank-cell'))[colIdx];
+    target?.focus();
+  }
 }
 
 function sessionHas(session, part){
@@ -2810,12 +2894,12 @@ function holdingInputValue(value){
 /* Quote table rendering lives in app-quote-table.js. */
 
 function renderLoadingTable(kind='news'){
-  const cols = kind==='summary' ? 4 : 6;
+  const cols = kind==='summary' ? 4 : 5;
   const header = kind==='summary'
     ? `<tr><th class="rownum"></th><th class="colhead">A</th><th class="colhead">B</th><th class="colhead">C</th></tr>
        <tr><th class="rownum">1</th><th class="subhead">지표</th><th class="subhead">현재가</th><th class="subhead">변동률</th></tr>`
-    : `<tr><th class="rownum"></th><th class="colhead">A</th><th class="colhead">B</th><th class="colhead">C</th><th class="colhead">D</th><th class="colhead">E</th></tr>
-       <tr><th class="rownum">1</th><th class="subhead">시장</th><th class="subhead">시각</th><th class="subhead">헤드라인</th><th class="subhead">요약</th><th class="subhead">링크</th></tr>`;
+    : `<tr><th class="rownum"></th><th class="colhead">A</th><th class="colhead">B</th><th class="colhead">C</th><th class="colhead">D</th></tr>
+       <tr><th class="rownum">1</th><th class="subhead">시장</th><th class="subhead">시각</th><th class="subhead">헤드라인</th><th class="subhead">요약</th></tr>`;
   const rows = Array.from({length:5}, (_,i)=>`<tr class="loading-row"><td class="rownum">${i+2}</td><td colspan="${cols-1}">데이터 조회 중...</td></tr>`).join('');
   return header + rows;
 }
@@ -3049,6 +3133,7 @@ async function pingPresence(options={}){
     if(typeof p.chatOnline==='number') {
       presenceState.chatOnline = p.chatOnline;
       chatPresenceCount = p.chatOnline;
+      rescheduleChatIdleForPresence();
       renderChatStatus();
     }
     if(typeof p.today==='number' && p.today > 0) {
@@ -3083,6 +3168,7 @@ function absorbPresence(snap){
   if(typeof snap.presence.chatOnline === 'number') {
     presenceState.chatOnline = snap.presence.chatOnline;
     chatPresenceCount = snap.presence.chatOnline;
+    rescheduleChatIdleForPresence();
     renderChatStatus();
   }
   if(typeof snap.presence.today === 'number') presenceState.today = snap.presence.today;
@@ -3116,7 +3202,7 @@ function newsRowsFromTimeline(rows){
 
 function newsTableLayout(){
   const compact = newsCompactLayout();
-  const dataCols = compact ? 2 : 5;
+  const dataCols = compact ? 2 : 4;
   const header = compact ? `
     <colgroup>
       <col class="news-rownum-col">
@@ -3133,11 +3219,11 @@ function newsTableLayout(){
     </tr>` : `
     <tr>
       <th class="rownum"></th>
-      <th class="colhead">A</th><th class="colhead">B</th><th class="colhead">C</th><th class="colhead">D</th><th class="colhead">E</th>
+      <th class="colhead">A</th><th class="colhead">B</th><th class="colhead">C</th><th class="colhead">D</th>
     </tr>
     <tr>
       <th class="rownum">1</th>
-      <th class="subhead">시장</th><th class="subhead">시각</th><th class="subhead">헤드라인</th><th class="subhead">요약</th><th class="subhead">링크</th>
+      <th class="subhead">시장</th><th class="subhead">시각</th><th class="subhead">헤드라인</th><th class="subhead">요약</th>
     </tr>`;
   return { compact, dataCols, header };
 }
@@ -3200,7 +3286,6 @@ function renderNewsFeedTable(rows, options={}){
       <td class="center time">${fmtTime(n.publishedAt || n.asOf)}</td>
       <td class="left">${titleHtml}</td>
       <td class="left news-desc">${desc}</td>
-      <td class="center"></td>
     </tr>`;
   }).join('');
   const startIdx=rowNo + items.length;
@@ -3449,7 +3534,7 @@ function fmtRemainingSec(sec){
 }
 
 function refreshCountdownText(label){
-  return label === '곧' ? '곧' : `${label} 남음`;
+  return label === '곧' ? '곧 갱신' : `${label} 후 갱신`;
 }
 
 function marketRefreshPausedForHoliday(snapshot=lastSnapshot){
@@ -3535,7 +3620,7 @@ let pollHint={};
 let serverStatusState=null;
 let serverStatusExpanded=false;
 const HIDDEN_KEYS_STORE = 'kg_hidden_default_v1';
-const PERSIST_KEYS = [WATCHLIST_KEY, QUOTE_NOTES_KEY, HOLDINGS_KEY, CASH_POSITIONS_KEY, HOLDING_PNL_MODE_KEY, HIDDEN_KEYS_STORE, DEFAULT_ORDER_STORE, QUOTE_SORT_KEY, CHANGE_WINDOW_KEY, TIMELINE_TAB_KEY, COMMUNITY_CHANNEL_KEY, COMMUNITY_READ_STATE_KEY, COMMUNITY_POLL_VOTES_KEY, VIEW_KEY, FLOATING_HIDDEN_KEY, CHAT_NICK_KEY, COMMUNITY_NICK_KEY, CHAT_SIZE_KEY, CHAT_POSITION_KEY, CHAT_OPACITY_KEY, CHAT_IMAGE_PREVIEW_KEY, CHAT_DOCK_KEY, VISITOR_ID_KEY, FIRST_VISIT_KEY, HOLDING_TIP_KEY, CHANGE_WINDOW_TIP_KEY, CHART_TIP_KEY, TV_CHART_HEIGHT_KEY, SHEET_SPLIT_KEY, PANEL_ORDER_KEY, READABILITY_KEY, RIBBON_COLLAPSED_KEY, EXCEL_THEME_KEY, EXCEL_DARK_MODE_KEY, SHEET_MONOCHROME_KEY, US_SHEET_KRW_KEY, COIN_QUOTE_SOURCE_KEY, UPDATES_SEEN_KEY, SETTINGS_WAKELOCK_KEY, SETTINGS_REMEMBER_MARKET_KEY];
+const PERSIST_KEYS = [WATCHLIST_KEY, QUOTE_NOTES_KEY, HOLDINGS_KEY, CASH_POSITIONS_KEY, HOLDING_PNL_MODE_KEY, HIDDEN_KEYS_STORE, DEFAULT_ORDER_STORE, QUOTE_SORT_KEY, CHANGE_WINDOW_KEY, TIMELINE_TAB_KEY, COMMUNITY_CHANNEL_KEY, COMMUNITY_READ_STATE_KEY, COMMUNITY_POLL_VOTES_KEY, VIEW_KEY, FLOATING_HIDDEN_KEY, CHAT_NICK_KEY, COMMUNITY_NICK_KEY, CHAT_SIZE_KEY, CHAT_POSITION_KEY, CHAT_OPACITY_KEY, CHAT_IMAGE_PREVIEW_KEY, CHAT_ANIM_KEY, CHAT_DOCK_KEY, VISITOR_ID_KEY, FIRST_VISIT_KEY, HOLDING_TIP_KEY, CHANGE_WINDOW_TIP_KEY, CHART_TIP_KEY, CHAT_ANIM_TIP_KEY, TV_CHART_HEIGHT_KEY, SHEET_SPLIT_KEY, PANEL_ORDER_KEY, READABILITY_KEY, RIBBON_COLLAPSED_KEY, EXCEL_THEME_KEY, EXCEL_DARK_MODE_KEY, SHEET_MONOCHROME_KEY, US_SHEET_KRW_KEY, COIN_QUOTE_SOURCE_KEY, UPDATES_SEEN_KEY, SETTINGS_WAKELOCK_KEY, SETTINGS_REMEMBER_MARKET_KEY];
 const newsAccumulated=[];               // 평탄화된 누적 뉴스 (newest first)
 const newsSeenKeys=new Set();           // url 또는 title 기준 dedup (KR/US 중복도 하나로 합침)
 
@@ -4108,19 +4193,16 @@ function updateServerStatusClock(){
   const summary=document.getElementById('serverStatusSummary');
   const status=serverStatusState || (lastSnapshot ? normalizeServerStatus(lastSnapshot) : null);
   const expanded=document.getElementById('serverStatusCard')?.dataset.expanded === 'true';
+  const hint=expanded ? '<em>(접기)</em>' : '<em>(클릭해서 자세히 보기)</em>';
   if(!status){
-    if(summary) {
-      summary.textContent = expanded
-        ? '현재 서버 상태: 확인 중 (접기)'
-        : '현재 서버 상태: 확인 중 (클릭해서 자세히 보기)';
-    }
+    if(summary) summary.innerHTML = `현재 서버 상태: 확인 중 ${hint}`;
     return;
   }
   const info=serverStatusHealthInfo(status.health);
   if(summary) {
-    summary.textContent = expanded
-      ? `현재 서버 상태: ${info.label} · 접속 ${statusPeople(status.online)} · ${marketRefreshPausedForHoliday() ? '렌더링 늦춤(휴장일)' : `렌더링 ${statusBuiltAgeText()}`} (접기)`
-      : `현재 서버 상태: ${info.label} (클릭해서 자세히 보기)`;
+    summary.innerHTML = expanded
+      ? `현재 서버 상태: ${info.label} · 접속 ${statusPeople(status.online)} · ${marketRefreshPausedForHoliday() ? '렌더링 늦춤(휴장일)' : `렌더링 ${statusBuiltAgeText()}`} ${hint}`
+      : `현재 서버 상태: ${info.label} ${hint}`;
   }
   const age=document.getElementById('serverStatusAge');
   if(age) age.textContent=statusBuiltAgeText();
@@ -4262,12 +4344,24 @@ function communitySummaryRefreshIntervalMs(){
   return Math.max(communityRefreshIntervalMs(), scaleMs(COMMUNITY_SUMMARY_REFRESH_MS));
 }
 
+function chatPollTier(){
+  const raw=presenceState.chatOnline;
+  const n=Number(raw);
+  if(raw == null || !Number.isFinite(n)) return CHAT_POLL_TIERS[CHAT_POLL_DEFAULT_TIER_INDEX];
+  for(const tier of CHAT_POLL_TIERS){
+    if(n <= tier.maxChatOnline) return tier;
+  }
+  return CHAT_POLL_TIERS[CHAT_POLL_TIERS.length - 1];
+}
 function chatMessagesIntervalMs(){
-  const online=Number(presenceState.online);
-  const base = Number.isFinite(online) && online >= CHAT_BUSY_POLL_ONLINE_THRESHOLD
-    ? CHAT_BUSY_OPEN_POLL_MS
-    : CHAT_OPEN_POLL_MS;
-  return hintedMs('chatMessages', scaleMs(base));
+  // 기본은 chatOnline 티어가 결정. 서버 pollHint 는 baseline 보다 의미있게 큰
+  // '감속' 비상 오버라이드일 때만 우선(평상시 base 와 같은 힌트=5초가 4초 티어를
+  // 덮어쓰지 않게). 임계 base*1.1 은 pollHintActive() 와 동일.
+  const tierMs=scaleMs(chatPollTier().pollMs);
+  const hinted=Number(pollHint?.chatMessages);
+  const base=Number(basePollIntervals()?.chatMessages) || scaleMs(CHAT_OPEN_POLL_MS);
+  const slowdown=Number.isFinite(hinted) && hinted > base * 1.1;
+  return slowdown ? Math.max(hinted, tierMs) : tierMs;
 }
 function chatRefreshStatusText(){
   return `${statusMsLabel(chatMessagesIntervalMs())}마다 새로고침`;
@@ -4363,12 +4457,31 @@ function updateHoldingSummaryRow(){
   });
 }
 
+function quoteFlashEnabled(){
+  return readBoolSetting(QUOTE_FLASH_KEY, true);
+}
+function maybeFlashQuoteCell(cell, prevText, nextText){
+  if(!cell || !quoteFlashEnabled() || chatAnimReducedMotion) return;
+  if(!prevText || !nextText || prevText === nextText) return;
+  const toNum=(s)=>{ const n=Number(String(s).replace(/[^0-9.\-]/g,'')); return Number.isFinite(n) ? n : null; };
+  const a=toNum(prevText), b=toNum(nextText);
+  if(a==null || b==null || a===b) return;
+  const dir = b>a ? 'xk-flash-up' : 'xk-flash-down';
+  cell.classList.remove('xk-flash-up','xk-flash-down');
+  void cell.offsetWidth; // reflow so the animation restarts on rapid ticks
+  cell.classList.add(dir);
+  setTimeout(()=>cell.classList.remove(dir), 900);
+}
 function applyFastQuoteToRow(token, card){
   const row=quoteRowsCurrentlyRendered().get(token);
   if(!row) return;
   const {priceCell, changeCell, changeClass} = cardRenderedCells(card);
   const priceEl=row.querySelector('.quote-price-cell');
-  if(priceEl) priceEl.innerHTML=priceCell;
+  if(priceEl){
+    const prevPriceText=priceEl.textContent.trim();
+    priceEl.innerHTML=priceCell;
+    maybeFlashQuoteCell(priceEl, prevPriceText, priceEl.textContent.trim());
+  }
   const changeEl=row.querySelector('.quote-change-cell');
   if(changeEl){
     changeEl.className=`right ${changeClass} quote-change-cell`;
@@ -5233,6 +5346,10 @@ function newsCountdownText(){
 function updateNewsHint(){
   const tlHintEl=document.getElementById('timelineHint');
   if(!tlHintEl) return;
+  if(timelineIsBlank()){
+    tlHintEl.textContent='';
+    return;
+  }
   if(timelineIsEtf()){
     updateEtfHint();
     return;
@@ -5311,6 +5428,25 @@ let newsLoadInFlight = false;
 let newsRetryTimer = null;
 let newsLoadQueued = false;
 let newsFetchDeferredByCommunity = false;
+// 빈 상태 로딩 카운터는 단일 타이머로만 굴린다. loadNews 가 재진입(큐/재시도)해도
+// start 를 0으로 되돌리지 않아 "0초→1초→0초→2초" 깜빡임이 생기지 않는다.
+let newsLoadingStartedAt = 0;
+let newsLoadingProgressTimer = null;
+function newsLoadingElapsedSec(){
+  return newsLoadingStartedAt ? Math.floor((Date.now() - newsLoadingStartedAt) / 1000) : 0;
+}
+function startNewsLoadingProgress(){
+  if(newsLoadingProgressTimer) return;
+  newsLoadingStartedAt = Date.now();
+  renderNewsLoadingProgress(0);
+  newsLoadingProgressTimer = setInterval(()=>{
+    renderNewsLoadingProgress(newsLoadingElapsedSec());
+  }, 1000);
+}
+function stopNewsLoadingProgress(){
+  if(newsLoadingProgressTimer){ clearInterval(newsLoadingProgressTimer); newsLoadingProgressTimer = null; }
+  newsLoadingStartedAt = 0;
+}
 function clearNewsRetryTimer(){
   if(newsRetryTimer){
     clearTimeout(newsRetryTimer);
@@ -5351,15 +5487,22 @@ function renderNewsLoadingProgress(elapsed, options={}){
   updateNewsHint();
   enableCellSelection();
 }
-function sharedTimelinePayload(queryMarket, maxAgeMs=45 * 1000){
+// 강제 새로고침은 시장별로 약 7분에 한 번만 실제 reload 한다. 그 사이 강제 요청은
+// 캐시/304 로 처리해 트래픽 폭주 시 풀 페이로드 재다운로드를 막는다.
+const NEWS_FORCE_THROTTLE_MS = 7 * 60 * 1000;
+const newsLastForcedFetchAt = new Map(); // queryMarket -> ts
+// 교차탭 공유 캐시 창을 넓혀(45s→90s) 정기 폴링/멀티탭에서 캐시 적중률을 높인다.
+function sharedTimelinePayload(queryMarket, maxAgeMs=90 * 1000){
   const shared = runtimeShared.newsByMarket.get(queryMarket);
   return shared && Date.now() - Number(shared.at || 0) < maxAgeMs
     ? shared.data
     : null;
 }
-function cachedTimelinePayload(queryMarket){
+function cachedTimelinePayload(queryMarket, maxAgeMs){
   const cached = readTimelinePayloadCache(queryMarket);
-  return cached?.data || null;
+  if(!cached?.data) return null;
+  if(maxAgeMs != null && Date.now() - Number(cached.at || 0) > maxAgeMs) return null;
+  return cached.data;
 }
 async function loadNews(options={}){
   if(shouldPauseDataRefreshForHidden() && !options.allowHidden){
@@ -5389,22 +5532,31 @@ async function loadNews(options={}){
   newsLoadInFlight = true;
   const market=currentNewsMarket();
   const queryMarket = market==='ALL' ? 'ALL' : market;
-  // 빈 상태면 로딩 카운터 표시 (1초마다 갱신)
-  let progressTimer = null;
-  const start = Date.now();
-  if(newsAccumulated.length === 0){
-    renderNewsLoadingProgress(0);
-    progressTimer = setInterval(()=>{
-      renderNewsLoadingProgress(Math.floor((Date.now() - start) / 1000));
-    }, 1000);
-  }
+  const lastForced = Number(newsLastForcedFetchAt.get(queryMarket) || 0);
+  // 강제 새로고침이라도 7분 이내면 실제 reload 하지 않고 캐시/etag(304)로 처리한다.
+  const forceHonored = !!options.force && (Date.now() - lastForced >= NEWS_FORCE_THROTTLE_MS);
+  // 빈 상태면 단일 로딩 카운터 표시 (재진입해도 0으로 리셋되지 않음)
+  if(newsAccumulated.length === 0) startNewsLoadingProgress();
   const pollLockKey=`timeline:${queryMarket}`;
   let pollLockAcquired=false;
   try{
     const emptyNewsView = !hasVisibleRealNews();
-    let timelinePayload = !options.force ? (sharedTimelinePayload(queryMarket) || cachedTimelinePayload(queryMarket)) : null;
+    // 정기 폴링/새로고침은 localStorage 캐시(최대 1h)로 네트워크를 건너뛰면 안 된다.
+    // 그러면 새 뉴스가 와도 캐시 TTL 동안 화면이 그대로 멈춘다(=새로고침해도 갱신 안 됨).
+    // 교차탭 공유(45s)만 dedup 으로 쓰고, 그 외에는 항상 서버로 가서 etag 로 revalidate 한다.
+    // (변경 없으면 304 라 비용은 거의 없고, 새 뉴스가 있으면 즉시 받아온다.)
+    let timelinePayload = null;
+    if(forceHonored){
+      timelinePayload = null; // 실제 reload 수행
+    }else if(options.force){
+      // 스로틀된 강제 새로고침: 풀로드 대신 캐시(교차탭 → localStorage 7분 이내) 우선
+      timelinePayload = sharedTimelinePayload(queryMarket) || cachedTimelinePayload(queryMarket, NEWS_FORCE_THROTTLE_MS);
+    }else{
+      // 정기 폴링: 교차탭 공유 캐시로 dedup, 없으면 아래에서 etag 로 revalidate(=대개 304)
+      timelinePayload = sharedTimelinePayload(queryMarket);
+    }
     if(!timelinePayload){
-      if(!options.force){
+      if(!forceHonored){
         pollLockAcquired=tryAcquireSharedPollLock(pollLockKey, 20000);
         if(!pollLockAcquired){
           const firstWaitMs = emptyNewsView ? 350 : 1200;
@@ -5424,10 +5576,10 @@ async function loadNews(options={}){
       }
       const headers = {};
       const etag = readNewsEtag(queryMarket);
-      if(etag && !options.force) headers['if-none-match'] = etag;
+      if(etag && !forceHonored) headers['if-none-match'] = etag;
       if(!timelinePayload){
         const meta = await fetchJsonClient('/api/timeline?limit=25&market='+queryMarket, 16000, {
-          cache: options.force ? 'reload' : 'default',
+          cache: forceHonored ? 'reload' : 'default',
           headers,
           returnMeta:true,
         });
@@ -5451,8 +5603,9 @@ async function loadNews(options={}){
       runtimeShared.newsByMarket.set(queryMarket, { at:Date.now(), data:timelinePayload });
       writeTimelinePayloadCache(queryMarket, timelinePayload);
       postRuntimeMessage('timeline', { market:queryMarket, data:timelinePayload });
+      if(forceHonored) newsLastForcedFetchAt.set(queryMarket, Date.now());
     }
-    if(progressTimer){ clearInterval(progressTimer); progressTimer = null; }
+    stopNewsLoadingProgress();
     clearNewsRetryTimer();
     const items=newsRowsFromTimeline(timelinePayload);
     // 새 항목만 추출 (URL 또는 title 기반 dedup). market 을 키에 넣지 않아
@@ -5514,10 +5667,10 @@ async function loadNews(options={}){
       renderAccumulatedNews();
     }
   }catch(e){
-    if(progressTimer){ clearInterval(progressTimer); progressTimer = null; }
+    const elapsed = newsLoadingElapsedSec();
+    stopNewsLoadingProgress();
     if(newsAccumulated.length===0){
       // 비어있으면 안내 + 자동 재시도 (5초 후 1회)
-      const elapsed = Math.floor((Date.now() - start) / 1000);
       renderNewsLoadingProgress(elapsed, {
         message: '뉴스 응답 지연, 자동 재시도 대기',
         hint: '5초 후 다시 불러옵니다.',
@@ -5528,7 +5681,7 @@ async function loadNews(options={}){
     }
   }finally{
     if(pollLockAcquired) releaseSharedPollLock(pollLockKey);
-    if(progressTimer){ clearInterval(progressTimer); }
+    stopNewsLoadingProgress();
     newsLoadInFlight = false;
     if(newsLoadQueued){
       newsLoadQueued = false;
@@ -5619,6 +5772,12 @@ function setTimelineTab(tab, options={}){
     scheduleCommunitySummaryRefresh(0);
     renderEtfBrowser();
     loadEtfData();
+  }
+  else if(timelineIsBlank()){
+    // 엑셀 위장용 빈 시트 — 어떤 피드도 불러오지 않고 빈 표만 그린다.
+    clearCommunityRefresh();
+    clearCommunitySummaryRefresh();
+    renderBlankTimeline();
   }
   else{
     clearCommunityRefresh();
@@ -5757,7 +5916,7 @@ updateTimelineTabs();
     const meta = communityChannelMeta(channel);
     const placeholder = channel === 'ops'
       ? (meta.placeholder || '서비스 이용 의견이나 운영 관련 이야기를 남겨주세요.')
-      : `${meta.placeholder || '주식 이야기를 나누는 공간입니다.'}\n특정 종목 태그하기 : @종목명`;
+      : `${meta.placeholder || '주식 이야기를 나누는 공간입니다.'}\n특정 종목 태그하기 : @종목명(공백없이)`;
     return `<tr class="community-compose-row community-compose-top-row community-preview-compose-row">
       <td class="rownum"></td>
       <td colspan="${dataCols}" class="community-compose-cell">
@@ -6180,6 +6339,9 @@ document.getElementById('cardsTable').innerHTML=renderLoadingTable('summary');
     renderSnapshot(cached.value).catch(()=>{});
   }catch{}
 })();
+// 탭 hidden 기준 시각. 아래 최상위 초기화(scheduleCommunityRefresh→shouldPauseDataRefreshForHidden)
+// 가 이 값을 읽으므로 반드시 그 호출보다 먼저 초기화돼야 한다(TDZ 방지).
+let pageHiddenAt = document.hidden ? Date.now() : 0;
 if(timelineIsCommunity()){
   clearCommunitySummaryRefresh();
   loadCommunityPosts();
@@ -6293,7 +6455,6 @@ window.addEventListener('unhandledrejection', ()=>setTimeout(()=>recoverInitialS
    ============================================================ */
 const INACTIVE_FORCE_REFRESH_MS = DATA_HIDDEN_GRACE_MS;
 let snapTimer=null, newsTimer=null, sessionBoundaryTimer=null, hiddenDataPauseTimer=null;
-let pageHiddenAt = document.hidden ? Date.now() : 0;
 let lastPollProfileKey='';
 function hiddenElapsedMs(){
   return document.hidden && pageHiddenAt ? Date.now() - pageHiddenAt : 0;
@@ -6424,11 +6585,18 @@ let chatPollLastForceAt = 0;
 let chatIsOpen=false;
 let chatConnectionStatus='연결 준비 중';
 let chatIdleTimer=null;
+// 어댑티브 폴링 상태: idle 이 슬립 임계의 60% 를 지나면 true 가 되어 폴링 주기를 늘린다.
+let chatAdaptiveSlow=false;
+let chatAdaptiveTimer=null;
 let chatClosedPollTimer=null;
 let chatClosedPollInFlight=false;
 let chatOpenPollTimer=null;
 let chatOpenPollInFlight=false;
 let chatOpenPollTicks=0;
+// setInterval 은 생성 시점의 주기를 한 번만 캡처한다. chatOnline 티어가 바뀌어도
+// 이미 도는 루프는 옛 주기를 유지하므로, 마지막으로 무장한 주기를 기억해 뒀다가
+// 현재 계산값과 달라지면 syncOpenChatPollInterval 이 루프를 새 주기로 재시작한다.
+let chatOpenPollArmedMs=0;
 let chatLastSeenAt=null;
 let chatPreviewMode=false;
 let chatPreviewPollTimer=null;
@@ -6504,6 +6672,30 @@ let chatPanelLarge=readStringSetting(CHAT_SIZE_KEY, 'normal', new Set(['normal',
 let chatExcelMode=readBoolSetting(CHAT_EXCEL_MODE_KEY, false);
 function chatImagePreviewEnabled(){
   return readBoolSetting(CHAT_IMAGE_PREVIEW_KEY, false);
+}
+function chatAnimSettingEnabled(){
+  return readBoolSetting(CHAT_ANIM_KEY, true);
+}
+const chatAnimSeenIds=new Set();
+let chatAnimReducedMotion=false;
+try{
+  const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
+  chatAnimReducedMotion=!!mq.matches;
+  (mq.addEventListener ? mq.addEventListener('change', (e)=>{chatAnimReducedMotion=!!e.matches;}) : mq.addListener?.((e)=>{chatAnimReducedMotion=!!e.matches;}));
+}catch{}
+// 새로 들어온 (내 것이 아닌) 채팅 메시지만 부드럽게 올라오게 한다. 엑셀 모드는 제외.
+// 풀 리렌더 구조라 매 렌더마다 노드가 새로 생기므로, 본 적 없는 data-chat-id 만 표시한다.
+function applyChatEntryAnimation(body){
+  if(!body) return;
+  const rows=body.querySelectorAll('.chat-msg[data-chat-id]');
+  const seeding=chatAnimSeenIds.size === 0;
+  const animate=chatAnimSettingEnabled() && !chatAnimReducedMotion && !seeding;
+  rows.forEach((row)=>{
+    const id=row.getAttribute('data-chat-id');
+    if(!id || chatAnimSeenIds.has(id)) return;
+    chatAnimSeenIds.add(id);
+    if(animate && !row.classList.contains('own')) row.classList.add('chat-msg-enter');
+  });
 }
 function chatImagePreviewOptions(messageOrOptions={}, maybeOptions={}){
   const isMessage = messageOrOptions && typeof messageOrOptions === 'object' && Object.prototype.hasOwnProperty.call(messageOrOptions, 'body');
@@ -7370,6 +7562,28 @@ function clearChatIdleTimer(){
   }
 }
 
+function clearChatAdaptiveTimer(){
+  if(chatAdaptiveTimer){
+    clearTimeout(chatAdaptiveTimer);
+    chatAdaptiveTimer=null;
+  }
+}
+
+// 어댑티브 단계 on/off. 상태가 바뀌면 진행 중인 open 폴 루프를 새 주기로 재시작한다.
+// (즉시 폴은 하지 않아 추가 요청이 발생하지 않는다.)
+function setChatAdaptiveSlow(on){
+  const next=!!on;
+  if(next===chatAdaptiveSlow) return;
+  chatAdaptiveSlow=next;
+  if(chatOpenPollTimer){
+    clearOpenChatPoll();
+    startOpenChatPoll();
+  }
+  if(chatIsOpen && !chatPollingSleeping){
+    chatSetStatus(document.hidden ? '백그라운드 저속 확인 중' : chatRefreshStatusText());
+  }
+}
+
 function clearChatPreviewPoll(){
   if(chatPreviewPollTimer){
     clearInterval(chatPreviewPollTimer);
@@ -7382,12 +7596,16 @@ function clearOpenChatPoll(){
     clearInterval(chatOpenPollTimer);
     chatOpenPollTimer=null;
   }
+  chatOpenPollArmedMs=0;
 }
 
 function chatOpenPollInterval(){
+  const base = chatMessagesIntervalMs();
+  // 어댑티브 단계에서는 기본 주기보다 느리게(단, 절대 기본보다 빠르지 않게).
+  const interval = chatAdaptiveSlow ? Math.max(scaleMs(CHAT_ADAPTIVE_OPEN_POLL_MS), base) : base;
   return document.hidden
-    ? Math.max(scaleMs(CHAT_HIDDEN_OPEN_POLL_MS), chatMessagesIntervalMs())
-    : chatMessagesIntervalMs();
+    ? Math.max(scaleMs(CHAT_HIDDEN_OPEN_POLL_MS), interval)
+    : interval;
 }
 function chatPreviewPollInterval(){
   return document.hidden
@@ -7407,11 +7625,22 @@ function restartOpenChatPoll(options={}){
 function startOpenChatPoll({immediate=false}={}){
   if(!chatIsOpen || chatPollingSleeping) return;
   if(!chatOpenPollTimer){
+    chatOpenPollArmedMs=chatOpenPollInterval();
     chatOpenPollTimer=setInterval(()=>{
       pollOpenChat().catch(()=>{});
-    }, chatOpenPollInterval());
+    }, chatOpenPollArmedMs);
   }
   if(immediate) pollOpenChat().catch(()=>{});
+}
+
+// chatOnline 티어 변경 등으로 목표 주기가 무장된 주기와 달라지면 루프를 새 주기로
+// 재시작한다. 즉시 폴은 하지 않아(immediate:false) 추가 요청이 발생하지 않는다.
+function syncOpenChatPollInterval(){
+  if(!chatOpenPollTimer || !chatIsOpen || chatPollingSleeping) return;
+  if(chatOpenPollInterval() !== chatOpenPollArmedMs){
+    clearOpenChatPoll();
+    startOpenChatPoll();
+  }
 }
 
 async function pollOpenChat(){
@@ -7433,13 +7662,20 @@ async function pollOpenChat(){
 }
 
 function chatIdleSleepMs(){
-  const online=Number(presenceState.online);
-  if(!Number.isFinite(online)) return CHAT_IDLE_SLEEP_LOW_MS;
-  if(online < 100) return CHAT_IDLE_SLEEP_CALM_MS;
-  if(online < 500) return CHAT_IDLE_SLEEP_LOW_MS;
-  if(online < 1500) return CHAT_IDLE_SLEEP_MID_MS;
-  if(online < 3000) return CHAT_IDLE_SLEEP_HIGH_MS;
+  const raw=presenceState.chatOnline;
+  const online=Number(raw);
+  if(raw == null || !Number.isFinite(online)) return CHAT_IDLE_SLEEP_LOW_MS;
+  if(online < 40) return CHAT_IDLE_SLEEP_CALM_MS;
+  if(online < 100) return CHAT_IDLE_SLEEP_LOW_MS;
+  if(online < 250) return CHAT_IDLE_SLEEP_MID_MS;
+  if(online < 400) return CHAT_IDLE_SLEEP_HIGH_MS;
   return CHAT_IDLE_SLEEP_PEAK_MS;
+}
+// 숨김 탭은 가시 슬립 창보다 짧게(조기 절전). visibilitychange 가 양방향에서
+// startChatIdleSleepTimer 를 재호출하므로 창 값은 토글 시 자동 갱신된다.
+function chatIdleSleepWindowMs(){
+  const base=chatIdleSleepMs();
+  return document.hidden ? Math.min(CHAT_HIDDEN_IDLE_SLEEP_MS, base) : base;
 }
 
 function chatIdleSleepLabel(){
@@ -7447,15 +7683,30 @@ function chatIdleSleepLabel(){
 }
 
 function rescheduleChatIdleForPresence(){
-  if(chatIsOpen && !chatPollingSleeping) startChatIdleSleepTimer();
+  if(chatIsOpen && !chatPollingSleeping){
+    startChatIdleSleepTimer();
+    syncOpenChatPollInterval();
+  }
 }
 
 function startChatIdleSleepTimer(ms){
   clearChatIdleTimer();
+  clearChatAdaptiveTimer();
   if(!chatIsOpen) return;
-  const windowMs=Number.isFinite(ms) && ms>0 ? ms : chatIdleSleepMs();
+  const windowMs=Number.isFinite(ms) && ms>0 ? ms : chatIdleSleepWindowMs();
   const elapsed=Math.max(0, Date.now() - Number(chatLastActivityAt || Date.now()));
   const remaining=Math.max(0, windowMs - elapsed);
+  // 슬립 임계의 60% 지점에서 어댑티브(저속) 폴링으로 전환, 100% 에서 완전 절전.
+  const adaptiveAt=windowMs * CHAT_ADAPTIVE_POLL_FRACTION;
+  if(elapsed >= adaptiveAt){
+    setChatAdaptiveSlow(true);
+  }else{
+    setChatAdaptiveSlow(false);
+    chatAdaptiveTimer=setTimeout(()=>{
+      chatAdaptiveTimer=null;
+      if(chatIsOpen && !chatPollingSleeping) setChatAdaptiveSlow(true);
+    }, Math.max(0, adaptiveAt - elapsed));
+  }
   chatIdleTimer=setTimeout(()=>{
     if(chatIsOpen) sleepOpenChatPolling();
   }, remaining);
@@ -7463,6 +7714,8 @@ function startChatIdleSleepTimer(ms){
 
 function sleepOpenChatPolling(){
   chatPollingSleeping=true;
+  chatAdaptiveSlow=false;
+  clearChatAdaptiveTimer();
   clearOpenChatPoll();
   setChatPresenceOpen(false);
   chatSetStatus('절전 중 · 새 글 확인 중단');
@@ -7473,6 +7726,7 @@ function wakeOpenChatPolling({immediate=false}={}){
   if(!chatIsOpen) return;
   const wasSleeping=chatPollingSleeping;
   chatPollingSleeping=false;
+  chatAdaptiveSlow=false;
   if(wasSleeping) chatLastActivityAt=Date.now();
   setChatPresenceOpen(!document.hidden);
   startOpenChatPoll({immediate: immediate || wasSleeping});
@@ -7482,6 +7736,8 @@ function wakeOpenChatPolling({immediate=false}={}){
 
 function resetChatPollingState(status='연결 해제됨'){
   clearChatIdleTimer();
+  clearChatAdaptiveTimer();
+  chatAdaptiveSlow=false;
   clearChatPreviewPoll();
   clearOpenChatPoll();
   chatInitPromise=null;
@@ -7542,6 +7798,7 @@ function setChatOpen(open, options={}){
   }
   if(chatIsOpen){
     chatPollingSleeping=false;
+    chatAdaptiveSlow=false;
     chatHasNewBelow=false;
     chatLastActivityAt=Date.now();
     setChatPresenceOpen(true);
@@ -7571,6 +7828,11 @@ function setChatOpen(open, options={}){
       applyChatPanelPosition({saveClamp:true});
       scrollChatToBottom();
     });
+    // 채팅창을 처음 열 때 한 번만, 새 채팅 애니메이션을 설정에서 끌 수 있음을 알린다.
+    if(chatAnimSettingEnabled() && !oneTimeTipSeen(CHAT_ANIM_TIP_KEY)){
+      markOneTimeTipSeen(CHAT_ANIM_TIP_KEY);
+      setTimeout(()=>{ if(chatIsOpen) showToast('새 채팅이 부드럽게 올라옵니다. 설정에서 끌 수 있어요.', 'info'); }, 800);
+    }
     startChatIdleSleepTimer();
   }else{
     chatPollingSleeping=false;
@@ -7681,7 +7943,8 @@ async function loadChatMessages(options={}){
   if(!cfg?.enabled) return;
   const since=options.since || '';
   const limit=since || options.append ? CHAT_DELTA_LIMIT : CHAT_INITIAL_LIMIT;
-  const query = `/api/chat-messages?limit=${encodeURIComponent(limit)}${options.force ? '&fresh=1' : ''}`;
+  const ttl=chatPollTier().ttlSec;
+  const query = `/api/chat-messages?limit=${encodeURIComponent(limit)}&ttl=${encodeURIComponent(ttl)}${options.force ? '&fresh=1' : ''}`;
   const lockKey=`chat-messages:${limit}`;
   let lockAcquired=false;
   let data=!options.force ? sharedChatMessagesPayload(limit) : null;
@@ -7876,6 +8139,14 @@ function randomChatNoticeAnchor(){
   return chatMessages[Math.max(0, Math.min(count - 1, index))] || chatMessages[count - 1] || null;
 }
 
+// 투표 말풍선은 '새 채팅'처럼 맨 아래(가장 최근 메시지)에 등장한 뒤,
+// 이후 새 메시지가 쌓이면 자연스럽게 위로 흘러가다 보관 범위를 벗어나면 사라진다.
+// (예전처럼 중간 임의 위치에 anchor 하면 생겼다 사라졌다 하며 튀어 보였다.)
+function lastChatNoticeAnchor(){
+  const count=chatMessages.length;
+  return count > 0 ? chatMessages[count - 1] : null;
+}
+
 function chatAwardNoticeId(userId, badge){
   const normalized=normalizeChatRecommendBadge(badge);
   if(!normalized) return '';
@@ -7903,9 +8174,12 @@ function queueChatAwardNotice(userId, nickname, badge){
 }
 
 function chatAwardNoticeBodyHtml(notice){
+  const count=Math.max(7, Number(notice.badge?.count || 0) || 7);
   const mark=esc(notice.badge?.mark || '★');
+  const starText=count >= CHAT_DOUBLE_STAR_THRESHOLD ? '별 두 개(★★)' : '별(★)';
   return `<span class="chat-award-mark" aria-hidden="true">${mark}</span>`
-    + `<b>${esc(notice.nickname)}</b>님이 추천을 여러 번 받아 별을 획득했습니다.`;
+    + `<b>${esc(notice.nickname)}</b>님이 추천을 여러 번 받아 ${starText}을 획득했습니다. `
+    + `<span class="chat-award-perk">별을 달면 채팅을 더 빨리 보낼 수 있고, 신고 한도가 2배가 됩니다.</span>`;
 }
 
 function chatAwardNoticeHtml(notice){
@@ -8037,7 +8311,7 @@ function ensureChatPollFlowNotice(){
     }
     if(now - chatPollEligibleSince < CHAT_POLL_INSERT_DELAY_MS) return null;
   }
-  const anchor=randomChatNoticeAnchor();
+  const anchor=lastChatNoticeAnchor();
   const anchorId=chatMessageKey(anchor);
   if(!anchorId) return null;
   chatPollNotice={
@@ -8191,10 +8465,12 @@ function chatNickMarkup(message, options={}){
   const badge=!isAdminNick ? chatRecommendBadge(message) : null;
   const nickClass=`chat-nick${isAdminNick?' admin-nick':''}${badge?' recommended-nick':''}`;
   const count=badge ? Math.max(7, Number(badge.count || 0) || 7) : 0;
+  const stars=count >= CHAT_DOUBLE_STAR_THRESHOLD ? '★★' : '★';
+  const starWord=stars==='★★' ? '별 두 개' : '별';
   const wrapTitle=badge ? `${nick} · 최근 추천 ${count}회 · 채팅 더 빨리 보내기·신고 한도 2배` : nick;
   const badgeTitle=badge ? `최근 추천 ${count}회 · 채팅 빠른 전송과 신고 한도 2배 혜택` : '';
   const badgeHtml=badge
-    ? `<span class="chat-recommend-badge" title="${esc(badgeTitle)}" aria-label="추천 별, 채팅 빠른 전송과 신고 한도 2배 혜택">★</span>`
+    ? `<span class="chat-recommend-badge${stars==='★★'?' chat-recommend-badge-double':''}" title="${esc(badgeTitle)}" aria-label="추천 ${starWord}, 채팅 빠른 전송과 신고 한도 2배 혜택">${stars}</span>`
     : '';
   return `<span class="chat-nick-wrap${badge ? ' recommended-wrap' : ''}" title="${esc(wrapTitle)}"><span class="${nickClass}">${esc(nick)}</span>${badgeHtml}</span>`;
 }
@@ -8258,6 +8534,17 @@ function renderChatMessages(options={}){
   if(!body) return;
   const scrollTopBefore=body.scrollTop;
   const shouldStickToBottom=!!options.forceBottom || chatIsNearBottom(body);
+  // 맨 아래에 붙어있지 않다면, 화면 상단에 걸린 메시지 행을 기준점으로 잡아둔다.
+  // 재렌더로 위쪽 높이가 바뀌어도(이미지 로드/오래된 메시지 정리/투표 흘러감) 같은
+  // 메시지를 같은 위치에 유지해, 보던 위치가 튀거나 맨 아래로 쏠리지 않게 한다.
+  let scrollAnchor=null;
+  if(!shouldStickToBottom){
+    const rows=body.querySelectorAll('[data-chat-id]');
+    for(const row of rows){
+      const gap=row.offsetTop - scrollTopBefore;
+      if(gap >= 0){ scrollAnchor={id:row.getAttribute('data-chat-id'), gap}; break; }
+    }
+  }
   if(options.showNewBelow && !shouldStickToBottom) chatHasNewBelow=true;
   if(shouldStickToBottom) chatHasNewBelow=false;
   if(!chatMessages.length){
@@ -8282,8 +8569,8 @@ function renderChatMessages(options={}){
           <div class="chat-moderated-text">${esc(m.moderationText || '삭제된 메시지입니다')}</div>
         </div>`;
       }
-      const reportDisabled=isOwn || reported.has(String(m.id)) || isReservedAdminNickname(m.nickname);
       const isAdminNick=isReservedAdminNickname(m.nickname);
+      const reportDisabled=(!inlineAdmin && (isOwn || reported.has(String(m.id)))) || isAdminNick;
       const recommendDisabled=(!inlineAdmin && (isOwn || recommended.has(String(m.id)))) || isAdminNick;
       const adminActions=inlineAdmin ? `<span class="chat-admin-actions">
         <button class="chat-admin-action admin-action-danger" type="button" data-chat-admin-action="delete" data-message-id="${esc(m.id)}">삭제</button>
@@ -8302,6 +8589,7 @@ function renderChatMessages(options={}){
         <div class="chat-text">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions(m, {linkUrls:true, linkPolicy:chatLinkPolicy()}))}</div>
       </div>`;
     }).join('') + chatSleepNoticeHtml();
+    applyChatEntryAnimation(body);
   }
   bindCollapsedImageToggles(body);
   flushStockMentionQueue({chat:true});
@@ -8325,7 +8613,18 @@ function renderChatMessages(options={}){
     scrollChatToBottom();
     settleChatMediaScroll(body, {stickToBottom:true});
   }else{
-    body.scrollTop=scrollTopBefore;
+    let restored=false;
+    if(scrollAnchor && scrollAnchor.id){
+      const rows=body.querySelectorAll('[data-chat-id]');
+      for(const row of rows){
+        if(row.getAttribute('data-chat-id') === scrollAnchor.id){
+          body.scrollTop=Math.max(0, row.offsetTop - scrollAnchor.gap);
+          restored=true;
+          break;
+        }
+      }
+    }
+    if(!restored) body.scrollTop=scrollTopBefore;
     settleChatMediaScroll(body, {stickToBottom:false});
   }
 }
@@ -8380,6 +8679,16 @@ async function checkChatBan(){
   }
 }
 
+// 서버 isTooShortChatMessage 와 동일 규칙: 공백 제거 후 2자 이하이면서 한글 자모만(ㅋ/ㄷㄷ)
+// 또는 영문자만(d/dd)인 경우 무의미한 초단문으로 본다.
+function isTooShortChatMessage(text){
+  const compact=String(text || '').replace(/\s+/g,'');
+  if(!compact || compact.length>2) return false;
+  if(/^[ㄱ-ㅎㅏ-ㅣ]+$/.test(compact)) return true;
+  if(/^[A-Za-z]+$/.test(compact)) return true;
+  return false;
+}
+
 async function guardChatMessage(text, label='채팅'){
   if(isInlineAdmin()) return true;
   try{
@@ -8396,9 +8705,9 @@ async function guardChatMessage(text, label='채팅'){
       showToast(`금지 표현 반복 시도로 ${fmtTime(data.bannedUntil)}까지 채팅 제한`, 'err');
       return false;
     }
-    const attempt=Math.max(1, Math.min(4, Number(data?.attemptCount || 1)));
-    const remaining=Math.max(0, Number(data?.remaining ?? (4-attempt)));
-    showToast(`차단 표현이 포함되어 전송하지 않았습니다. 경고 ${attempt}/4회, ${remaining}회 후 30분 제한`, 'warn');
+    const attempt=Math.max(1, Math.min(5, Number(data?.attemptCount || 1)));
+    const remaining=Math.max(0, Number(data?.remaining ?? (5-attempt)));
+    showToast(`차단 표현이 포함되어 전송하지 않았습니다. 경고 ${attempt}/5회, ${remaining}회 후 30분 제한`, 'warn');
     return false;
   }catch(e){
     showToast(`${label} 검사를 완료하지 못했습니다: ${e.message || e}`, 'err');
@@ -8412,9 +8721,14 @@ function sendChatMessage(body){
   const text=String(body || '').trim().replace(/\s+/g,' ');
   if(!text) return;
   if(text.length>280){ showToast('채팅은 280자까지 가능합니다', 'warn'); return; }
+  const admin=isInlineAdmin();
+  if(!admin && isTooShortChatMessage(text)){
+    showToast('메시지가 너무 짧습니다', 'warn');
+    return;
+  }
   const now=Date.now();
   const gapMs=chatSendGapMs();
-  if(now-chatLastSendAt<gapMs){
+  if(!admin && now-chatLastSendAt<gapMs){
     showToast(`채팅은 ${Math.ceil(gapMs/1000)}초에 한 번만 보낼 수 있어요`, 'warn');
     return;
   }
@@ -8449,7 +8763,7 @@ async function deliverChatMessage(text, tempId, lupangMin=0){
       showToast('채팅 저장소 연결이 필요합니다', 'warn');
       return;
     }
-    const chatBan=await checkChatBan();
+    const chatBan=isInlineAdmin() ? null : await checkChatBan();
     if(chatBan?.until && chatBan.until>Date.now()){
       removeOptimisticChatMessage(tempId);
       const reason=chatBan.reason==='blocked_term_attempts' ? '금지 표현 반복 시도로' : '신고 누적으로';
@@ -8562,8 +8876,16 @@ async function reportChatMessage(id){
       showToast('신고가 접수되었습니다', 'info');
     }
   }catch(e){
-    if(e?.payload?.error === 'report_rate_limited') showToast(`채팅 신고는 1시간에 ${e.payload.limit || 5}개까지 가능합니다`, 'warn');
-    else showToast(`신고 실패: ${e.message || e}`, 'err');
+    const reason=e?.payload?.error || '';
+    if(reason === 'report_rate_limited'){
+      showToast(`채팅 신고는 1시간에 ${e.payload.limit || 8}개까지 가능합니다`, 'warn');
+    }else if(reason === 'report_too_fast' || e?.status === 429){
+      showToast('신고가 너무 빨라요. 잠시 후 다시 시도해주세요', 'warn');
+    }else if(reason === 'cannot_report_self'){
+      showToast('본인 메시지는 신고할 수 없습니다', 'info');
+    }else{
+      showToast('신고를 처리하지 못했습니다. 잠시 후 다시 시도해주세요', 'err');
+    }
   }
 }
 
@@ -9169,7 +9491,14 @@ function setChangeWindow(value){
   try{ localStorage.setItem(CHANGE_WINDOW_KEY, value); persistSet(CHANGE_WINDOW_KEY, value); }catch{}
   updateChangeWindowUi();
   if(lastSnapshot) renderSnapshot(lastSnapshot);
-  if(value !== 'day') loadSnapshot({force:true});
+  if(value !== 'day'){
+    // 일간→15/30분 전환: 기존 런타임 캐시는 분봉(bars) 없이 받은 값이라 _min15/_min30 이
+    // 비어 있다. 캐시를 비우고 즉시 bars=1 로 다시 받아 워치리스트에도 분봉을 채운다.
+    try{ runtimeShared.quotesByToken.clear(); }catch{}
+    loadSnapshot({force:true});
+    clearFastQuoteTimer();
+    scheduleFastQuoteRefresh(300);
+  }
 }
 
 function setHoldingPnlMode(mode){
@@ -9412,6 +9741,7 @@ async function fetchQuote(code, market){
   if(market && market!=='auto') u.searchParams.set('market', market);
   const source=coinSourceForMarket(market);
   if(source !== 'binance') u.searchParams.set('coinSource', source);
+  if(changeWindow !== 'day') u.searchParams.set('bars', '1');
   try{
     const r=await fetch(u.toString());
     return await r.json();
@@ -9423,6 +9753,9 @@ function quoteApiUrlForCodes(codes, coinSource='binance'){
   u.searchParams.set('codes', codes);
   const source=normalizeCoinQuoteSourceClient(coinSource);
   if(source !== 'binance') u.searchParams.set('coinSource', source);
+  // 15/30분 변동 토글이 켜졌을 때만 분봉(bars)을 요청한다. 기본 '일간' 뷰의 다수
+  // 사용자에겐 분봉 subrequest 를 보내지 않아 네이버 요청을 줄인다.
+  if(changeWindow !== 'day') u.searchParams.set('bars', '1');
   return apiUrl(`${u.pathname}${u.search}`);
 }
 

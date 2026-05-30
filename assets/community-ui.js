@@ -181,8 +181,81 @@ function communityTableHeader(compact=false, topRows=''){
     </tr>`;
 }
 
+const COMMUNITY_MENTION_WINDOW_MS = 5 * 24 * 60 * 60 * 1000;
+const COMMUNITY_MENTION_MIN_COUNT = 2;
+const COMMUNITY_MENTION_MAX_TAGS = 20;
+
+// 한 글이 언급한 종목들의 표준 식별자(code:market) 맵을 만든다.
+// post.mentions(서버가 내려준 고정 스냅샷) 우선, 없으면 클라이언트 캐시로 해석한다.
+function communityPostMentionIdentities(post){
+  const out = new Map();
+  const body = String(post?.body || '');
+  if(!body.includes('@')) return out;
+  const snapshots = post?.mentions || null;
+  const cache = typeof readStockMentionCache === 'function' ? readStockMentionCache() : null;
+  body.replace(STOCK_MENTION_RE, (match, prefix, term)=>{
+    const key = typeof stockMentionKey === 'function' ? stockMentionKey(term) : '';
+    if(!key) return match;
+    const frozen = typeof stockMentionSnapshotForKey === 'function' ? stockMentionSnapshotForKey(snapshots, key) : null;
+    const resolved = frozen || (cache ? cache.get(key) : null);
+    if(resolved && resolved.ok && resolved.code && resolved.market){
+      const canonical = `${String(resolved.code).toUpperCase()}:${String(resolved.market).toUpperCase()}`;
+      if(!out.has(canonical)){
+        out.set(canonical, {
+          canonical,
+          name:resolved.name || term,
+          market:String(resolved.market || ''),
+          code:String(resolved.code || ''),
+        });
+      }
+    }
+    return match;
+  });
+  return out;
+}
+
+function communityChannelSupportsMentionTags(){
+  return typeof communityShowsMentionPlaceholder === 'function' ? communityShowsMentionPlaceholder() : true;
+}
+
+// 최근 5일간 언급된 종목을 글 단위로 집계 (글 1개당 종목 1회). 전부 브라우저에서 처리.
+function communityMentionAggregates(){
+  if(!communityChannelSupportsMentionTags()) return [];
+  const now = Date.now();
+  const tally = new Map();
+  communityPosts.forEach((post)=>{
+    const postHidden = !!post?.hidden || Number(post?.report_count || 0) >= COMMUNITY_HIDE_REPORTS;
+    if(postHidden) return;
+    const ts = Date.parse(post?.created_at || '');
+    if(Number.isFinite(ts) && now - ts > COMMUNITY_MENTION_WINDOW_MS) return;
+    communityPostMentionIdentities(post).forEach((info, canonical)=>{
+      const entry = tally.get(canonical) || { ...info, count:0 };
+      entry.count += 1;
+      tally.set(canonical, entry);
+    });
+  });
+  return Array.from(tally.values())
+    .filter((entry)=>entry.count >= COMMUNITY_MENTION_MIN_COUNT)
+    .sort((a,b)=> b.count - a.count || String(a.name).localeCompare(String(b.name)))
+    .slice(0, COMMUNITY_MENTION_MAX_TAGS);
+}
+
+function communityActiveStockFilterInfo(){
+  if(!communityStockFilter) return null;
+  for(const post of communityPosts){
+    const info = communityPostMentionIdentities(post).get(communityStockFilter);
+    if(info) return info;
+  }
+  return { canonical:communityStockFilter, name:communityStockFilter, market:'', code:'' };
+}
+
+function communityVisiblePosts(){
+  if(!communityStockFilter || !communityChannelSupportsMentionTags()) return communityPosts;
+  return communityPosts.filter((post)=> communityPostMentionIdentities(post).has(communityStockFilter));
+}
+
 function communityTotalPages(){
-  return Math.max(1, Math.ceil(communityPosts.length / COMMUNITY_PAGE_SIZE));
+  return Math.max(1, Math.ceil(communityVisiblePosts().length / COMMUNITY_PAGE_SIZE));
 }
 
 function communityPostPinnedUntilMs(post){
@@ -205,7 +278,7 @@ function compareCommunityPostsForDisplay(a,b){
 }
 
 function communitySortedPosts(){
-  return communityPosts.slice().sort(compareCommunityPostsForDisplay);
+  return communityVisiblePosts().slice().sort(compareCommunityPostsForDisplay);
 }
 
 function clampCommunityPage(){
@@ -223,9 +296,9 @@ function communityPagePosts(){
 function communityPaginationRow(rowNum, dataCols){
   const totalPages = communityTotalPages();
   const page = clampCommunityPage();
-  const totalPosts = communityPosts.length;
+  const totalPosts = communityVisiblePosts().length;
   const from = totalPosts ? (page - 1) * COMMUNITY_PAGE_SIZE + 1 : 0;
-  const to = Math.min(communityPosts.length, page * COMMUNITY_PAGE_SIZE);
+  const to = Math.min(totalPosts, page * COMMUNITY_PAGE_SIZE);
   const rangeText = totalPosts ? `${from}-${to}번째 글` : '게시글 없음';
   return `<tr class="community-pagination-row">
     <td class="rownum">${rowNum}</td>
@@ -237,6 +310,41 @@ function communityPaginationRow(rowNum, dataCols){
       </div>
     </td>
   </tr>`;
+}
+
+function communityStockFilterRow(dataCols){
+  if(!communityChannelSupportsMentionTags()) return '';
+  const tags = communityMentionAggregates();
+  if(!tags.length && !communityStockFilter) return '';
+  const allActive = communityStockFilter ? '' : ' is-active';
+  const allBtn = `<button type="button" class="community-stock-tag community-stock-tag-all${allActive}" data-community-stock-filter="" aria-pressed="${communityStockFilter ? 'false' : 'true'}">전체보기</button>`;
+  let activeFound = false;
+  const tagButtons = tags.map((tag)=>{
+    const active = communityStockFilter === tag.canonical;
+    if(active) activeFound = true;
+    return communityStockTagButton(tag, active);
+  });
+  // 현재 필터 종목이 집계 상위권에서 밀려났더라도 해제할 수 있도록 맨 앞에 노출.
+  if(communityStockFilter && !activeFound){
+    const info = communityActiveStockFilterInfo();
+    if(info){
+      const count = communityVisiblePosts().length;
+      tagButtons.unshift(communityStockTagButton({ ...info, count }, true));
+    }
+  }
+  return `<tr class="community-stock-filter-row">
+    <td class="rownum"></td>
+    <td colspan="${dataCols}" class="community-stock-filter-cell">
+      <div class="community-stock-filter-bar" role="group" aria-label="종목별 모아보기">${allBtn}${tagButtons.join('')}</div>
+    </td>
+  </tr>`;
+}
+
+function communityStockTagButton(tag, active){
+  const cls = active ? ' is-active' : '';
+  const countText = Number.isFinite(Number(tag.count)) ? `<span class="community-stock-tag-count">${Number(tag.count)}</span>` : '';
+  const title = `${tag.name}${tag.market ? ` (${tag.market})` : ''} 언급 ${Number(tag.count) || 0}회 글 모아보기`;
+  return `<button type="button" class="community-stock-tag${cls}" data-community-stock-filter="${esc(tag.canonical)}" data-community-stock-name="${esc(tag.name)}" aria-pressed="${active ? 'true' : 'false'}" title="${esc(title)}"><span class="community-stock-tag-name">${esc(tag.name)}</span>${countText}</button>`;
 }
 
 function scrollCommunityListTop(){
@@ -1092,7 +1200,7 @@ function setupAdImpressionTracker(){
 function refreshTextAdPlacements(){
   updateChatTextAd();
   updateSummaryTextAd();
-  if(timelineIsCommunity() && !updateCommunityTextAdElements()) renderCommunityTable();
+  if(timelineIsCommunity() && !updateCommunityTextAdElements() && !isComposingCommunity()) renderCommunityTable();
 }
 
 function refreshTextAdCreatives(){
@@ -1451,6 +1559,17 @@ function communityReplyComposeRow(rowNum, postId, dataCols, currentNick, nickAtt
 function renderCommunityTable(state='ready'){
   const table=document.getElementById('timelineTable');
   if(!table) return;
+  // 재렌더(innerHTML 교체)는 작성칸의 포커스·커서를 날린다. 작성 중이던
+  // 입력칸(닉/본문/댓글)의 id와 커서 위치를 잡아뒀다가 렌더 후 복원한다.
+  const focusSnapshot=(()=>{
+    try{
+      const el=document.activeElement;
+      if(el && el.id && typeof el.closest==='function' && el.closest('.community-compose-box')){
+        return { id:el.id, start:el.selectionStart, end:el.selectionEnd };
+      }
+    }catch{}
+    return null;
+  })();
   table.classList.remove('etf-table');
   table.classList.add('community-table');
   const compact = communityCompactLayout();
@@ -1468,7 +1587,7 @@ function renderCommunityTable(state='ready'){
   const channelLabel = typeof communityChannelLabel === 'function' ? communityChannelLabel() : '국내주식토론';
   const composePlaceholder = typeof communityComposePlaceholder === 'function'
     ? communityComposePlaceholder()
-    : '여러 종목에 걸쳐 이야기를 나누는 공간입니다.\n특정 종목 태그하기 : @종목명';
+    : '여러 종목에 걸쳐 이야기를 나누는 공간입니다.\n특정 종목 태그하기 : @종목명(공백없이)';
   const composePlaceholderAttr = esc(composePlaceholder).replace(/\n/g, '&#10;');
   communityDraftBody = currentBody;
   communityDraftReplyBody = currentReplyBody;
@@ -1652,7 +1771,8 @@ function renderCommunityTable(state='ready'){
   const minTrailingRows = compact ? 5 : 0;
   const emptyCount = Math.max(minTrailingRows, TARGET - usedRows);
   const empties = makeEmptyRows(rowNum, emptyCount, dataCols);
-  table.innerHTML = communityTableHeader(compact, compose) +
+  const stockFilterRow = state === 'loading' ? '' : communityStockFilterRow(dataCols);
+  table.innerHTML = communityTableHeader(compact, compose + stockFilterRow) +
     rows.join('') +
     pagination +
     empties;
@@ -1667,6 +1787,17 @@ function renderCommunityTable(state='ready'){
   if(communityPostInFlight) setCommunityPostSending(true);
   if(communityCommentInFlight) setCommunityCommentSending(true);
   enableCellSelection();
+  if(focusSnapshot){
+    const el=document.getElementById(focusSnapshot.id);
+    if(el){
+      try{
+        el.focus({preventScroll:true});
+        if(focusSnapshot.start!=null && typeof el.setSelectionRange==='function'){
+          el.setSelectionRange(focusSnapshot.start, focusSnapshot.end);
+        }
+      }catch{}
+    }
+  }
 }
 
 function renderCommunityDisabled(){
@@ -1878,6 +2009,36 @@ function bindCommunityTable(){
       communityDraftReplyBody = '';
       renderCommunityTable();
       if(communityPage !== current) requestAnimationFrame(scrollCommunityListTop);
+    });
+  });
+  document.querySelectorAll('[data-community-stock-filter]').forEach((btn)=>{
+    btn.addEventListener('click', ()=>{
+      const next = btn.getAttribute('data-community-stock-filter') || '';
+      if(next === communityStockFilter) return;
+      communityStockFilter = next;
+      // 종목 pill 선택 시 작성창에 @종목명(공백제외)을 자동 입력한다.
+      // 기존에 사용자가 입력 중인 내용이 있으면(태그가 아닌) 보존한다.
+      if(next){
+        const tagName = String(btn.getAttribute('data-community-stock-name') || '').replace(/\s+/g, '');
+        if(tagName){
+          const bodyEl = document.getElementById('communityBody');
+          const cur = bodyEl ? bodyEl.value : communityDraftBody;
+          const curTrim = String(cur || '').trim();
+          if(!curTrim || curTrim.startsWith('@')){
+            const val = `@${tagName} `;
+            if(bodyEl) bodyEl.value = val;
+            communityDraftBody = val;
+          }
+        }
+      }
+      communityPage = 1;
+      communityReplyPostId = '';
+      communityReplyParentCommentId = '';
+      communityMobileActionPostId = '';
+      communityMobileActionCommentId = '';
+      communityDraftReplyBody = '';
+      renderCommunityTable();
+      requestAnimationFrame(scrollCommunityListTop);
     });
   });
   document.querySelectorAll('[data-community-poll-choice]').forEach((btn)=>{
@@ -2114,6 +2275,16 @@ function scheduleCommunityRefresh(delay=null){
   }, delay == null ? communityRefreshIntervalMs() : Math.round(Number(delay) * pollScale()));
 }
 
+// 글/댓글 작성 중(작성칸에 포커스)일 때 조용한 자동 갱신이 표를 다시 그리면
+// 입력 커서가 풀리고 IME 조합이 끊긴다. 작성 중에는 silent 재렌더를 건너뛰고
+// 데이터만 갱신해, 포커스를 잃지 않게 한다(블러 후 다음 주기에 자연히 반영됨).
+function isComposingCommunity(){
+  try{
+    const el=document.activeElement;
+    return !!(el && typeof el.closest === 'function' && el.closest('.community-compose-box'));
+  }catch{ return false; }
+}
+
 async function loadCommunityPosts(options={}){
   if(!timelineIsCommunity()) return;
   if(shouldPauseDataRefreshForHidden() && !options.allowHidden) return;
@@ -2134,7 +2305,7 @@ async function loadCommunityPosts(options={}){
       if(cached){
         communityPosts = cached;
         clampCommunityPage();
-        renderCommunityTable();
+        if(!(silent && isComposingCommunity())) renderCommunityTable();
         return;
       }
     }
@@ -2174,7 +2345,7 @@ async function loadCommunityPosts(options={}){
     if(!silent) showToast(communityLoadErrorMessage(e), 'err');
   }finally{
     communityLoadInFlight = false;
-    if(timelineIsCommunity()) renderCommunityTable();
+    if(timelineIsCommunity() && !(silent && isComposingCommunity())) renderCommunityTable();
   }
 }
 
@@ -2212,6 +2383,7 @@ async function createCommunityPost(){
       communityMobileActionCommentId = '';
       communityDraftBody = '';
       communityPage = 1;
+      communityStockFilter = '';
       communityPosts=[data.post, ...communityPosts].slice(0, COMMUNITY_POST_LIMIT);
       if(body) body.value='';
       markCommunityPostInserted(data.post.id);

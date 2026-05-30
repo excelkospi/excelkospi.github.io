@@ -27,11 +27,11 @@ a{color:inherit}
   position:sticky;
   top:0;
   z-index:20;
-  height:42px;
+  height:calc(42px + env(safe-area-inset-top,0px));
   display:flex;
   align-items:center;
   gap:14px;
-  padding:0 18px;
+  padding:env(safe-area-inset-top,0px) calc(18px + env(safe-area-inset-right,0px)) 0 calc(18px + env(safe-area-inset-left,0px));
   background:var(--excel);
   color:#fff;
   box-shadow:0 1px 0 rgba(0,0,0,.14);
@@ -71,7 +71,7 @@ a{color:inherit}
 .open-sheet:hover{background:rgba(255,255,255,.12)}
 .guide-ribbon{
   position:sticky;
-  top:42px;
+  top:calc(42px + env(safe-area-inset-top,0px));
   z-index:19;
   height:38px;
   display:flex;
@@ -547,7 +547,7 @@ details p{margin:0;padding:12px 14px 14px;font-size:14px;color:#4d5155}
 .guide-footer{
   width:min(1120px,calc(100% - 40px));
   margin:0 auto;
-  padding:20px 0 34px;
+  padding:20px 0 calc(34px + env(safe-area-inset-bottom,0px));
   border-top:1px solid #dde3df;
   display:flex;
   flex-wrap:wrap;

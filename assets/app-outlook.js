@@ -43,6 +43,10 @@ function activateOutlookTheme(){
   if(chatLbl) chatLbl.textContent = 'Teems 채팅';
   const chatPanel = document.getElementById('chatPanel');
   if(chatPanel) chatPanel.setAttribute('aria-label','Micrusoft Teems');
+  // 도크 모드(엑셀 ≥1600px 기본값)는 시트 칼럼에 채팅을 붙이는데, 아웃룩에선
+  // 그 칼럼이 통째로 숨겨진다. chatDockSupported()는 theme-outlook에서 false라
+  // applyChatDockMode()를 다시 돌리면 패널이 플로팅으로 빠지고 버튼이 살아난다.
+  if(typeof applyChatDockMode === 'function') applyChatDockMode();
 
   prepareOutlookTimeline();
   placeOutlookResponsiveSlots();
@@ -138,6 +142,31 @@ function bindOutlookListeners(){
       setOutlookMobileNavOpen(false);
     });
   });
+  // 상단 검색 — 현재 편지함의 메일 행을 실시간 필터링.
+  const searchInput = document.querySelector('.outlook-search input');
+  if(searchInput){
+    searchInput.addEventListener('input', ()=>{
+      outlookSearchQuery = searchInput.value || '';
+      applyOutlookSearchFilter();
+    });
+    searchInput.addEventListener('keydown', (ev)=>{
+      if(ev.key === 'Escape'){
+        searchInput.value = '';
+        outlookSearchQuery = '';
+        applyOutlookSearchFilter();
+        searchInput.blur();
+      }
+    });
+  }
+  // 중요(Focused) / 기타 탭.
+  document.querySelectorAll('.outlook-focused span[data-outlook-focused]').forEach((el)=>{
+    el.addEventListener('click', ()=>{
+      if(!outlookFocusedTabsVisible()) return;
+      outlookFocusedTab = el.dataset.outlookFocused === 'other' ? 'other' : 'primary';
+      syncOutlookFocusedTabs();
+      if(lastSnapshot) renderOutlookFromSnapshot(lastSnapshot, (lastRenderedCards || []).filter((card)=>card && !card._noteRow));
+    });
+  });
 }
 // Outlook 모드를 끄고 다시 Excel 모드로 돌아가는 helper.
 // 슬롯 이동을 깔끔하게 되돌리기 어려워서 새로고침으로 단순화한다 (가장 안전).
@@ -145,6 +174,61 @@ function deactivateOutlookTheme(){
   if(!outlookBetaActive) return;
   showToast('Excel 모드로 돌아갑니다…', 'info');
   setTimeout(()=>{ window.location.reload(); }, 250);
+}
+// === Outlook 검색 / 중요 메일(Focused) / 읽음 상태 — 모두 세션 한정 ============
+let outlookSearchQuery = '';
+let outlookFocusedTab = 'primary';
+const outlookReadKeys = new Set();
+function outlookUnreadCls(readKey){
+  return (readKey && !outlookReadKeys.has(readKey)) ? ' is-unread' : '';
+}
+function outlookMarkRead(readKey, row){
+  if(!readKey) return;
+  outlookReadKeys.add(readKey);
+  if(row) row.classList.remove('is-unread');
+}
+// Focused(중요)=사람이 읽는 실제 시세 메일, Other(기타)=수급·모멘텀 자동 다이제스트.
+// Outlook 의 "중요 받은 편지함 vs 기타" 와 같은 갈래라 비어 보이지 않고 분류가 일관적이다.
+function outlookCardIsFocused(card){
+  if(!card) return true;
+  const isFlow = !!(card._flows && card._flows.length);
+  const isMomentum = card._momentum !== undefined && card._momentum !== null;
+  return !(isFlow || isMomentum);
+}
+// 받은 편지함(주식 전체)에서만 중요/기타 분리가 의미있다.
+function outlookFocusedTabsVisible(){
+  return outlookFolderFilter === 'inbox';
+}
+function syncOutlookFocusedTabs(){
+  const wrap = document.querySelector('.outlook-list-head .outlook-focused');
+  if(!wrap) return;
+  wrap.style.display = outlookFocusedTabsVisible() ? '' : 'none';
+  wrap.querySelectorAll('span[data-outlook-focused]').forEach((el)=>{
+    el.classList.toggle('active', el.dataset.outlookFocused === outlookFocusedTab);
+  });
+}
+function applyOutlookSearchFilter(){
+  const list = document.getElementById('outlookMailList');
+  if(!list) return;
+  const q = outlookSearchQuery.trim().toLowerCase();
+  let shown = 0;
+  list.querySelectorAll('.outlook-mail-row').forEach((row)=>{
+    const hit = !q || row.textContent.toLowerCase().includes(q);
+    row.style.display = hit ? '' : 'none';
+    if(hit) shown++;
+  });
+  let empty = list.querySelector('.outlook-search-empty');
+  if(q && shown === 0){
+    if(!empty){
+      empty = document.createElement('div');
+      empty.className = 'outlook-mail-empty outlook-search-empty';
+      list.appendChild(empty);
+    }
+    empty.textContent = `'${outlookSearchQuery.trim()}' 검색 결과가 없습니다.`;
+    empty.style.display = '';
+  } else if(empty){
+    empty.style.display = 'none';
+  }
 }
 let outlookFolderFilter = 'inbox';
 let outlookCommunityChannel = 'kr';
@@ -196,6 +280,8 @@ let outlookSelectedCommunityId = null;
 const outlookCommunityCache = {};
 let outlookCommunityPostInFlight = false;
 let outlookCommunityPollVoteInFlight = false;
+let outlookCommentInFlight = false;
+let outlookCommentReplyTarget = '';
 async function loadOutlookCommunity(silent=false, channel=outlookCommunityChannel){
   const normalized = String(channel || 'kr');
   try{
@@ -235,7 +321,7 @@ function outlookCommunityPostRow(post, opts={}){
   const boardLabel = outlookCommunityLabel();
   const previewLines = previewBits.length ? previewBits.join(' · ') + ` · ${boardLabel}` : `${boardLabel} · 새 글`;
   const trail = `<span class="outlook-comment-pill">💬 ${comments}</span>${recommends ? `<span class="outlook-comment-pill" title="추천 ${recommends}회">👍 ${recommends}</span>` : ''}`;
-  return `<div class="outlook-mail-row outlook-community-row${selectedCls}${pinnedCls}" data-outlook-post-id="${esc(post.id||'')}" role="option" aria-selected="${opts.selected?'true':'false'}">
+  return `<div class="outlook-mail-row outlook-community-row${selectedCls}${pinnedCls}${outlookUnreadCls('post:'+(post.id||''))}" data-outlook-post-id="${esc(post.id||'')}" role="option" aria-selected="${opts.selected?'true':'false'}">
     <span class="outlook-mail-avatar" style="background:${avatarColor}">${esc(initial)}</span>
     <span class="outlook-mail-sender">${esc(nick)}</span>
     <span class="outlook-mail-time">${esc(time)}</span>
@@ -254,10 +340,7 @@ function renderOutlookCommunityReadingPane(post){
   const time = post.created_at ? outlookTimeLabel(post.created_at) : '';
   const fullTs = post.created_at ? new Date(post.created_at).toLocaleString('ko-KR', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
   const comments = Array.isArray(post.comments) ? post.comments : [];
-  const commentsHtml = comments.length ? `
-    <p>이 글에 달린 댓글입니다:</p>
-    <ul class="outlook-reading-news-bullets">${comments.map((c)=>`<li><span class="bullet-title"><strong>${esc(c.nickname||'익명')}</strong>: ${esc(c.body||'')}</span> <span class="bullet-meta">— ${esc(outlookTimeLabel(c.created_at))}</span></li>`).join('')}</ul>
-  ` : `<p>아직 댓글이 없습니다. 그룹 메일함에서 첫 회신을 남겨 보세요.</p>`;
+  const commentsHtml = outlookCommentSectionHtml(comments);
   const backBtn = `<button type="button" class="outlook-reading-back" data-outlook-action="reading-back" aria-label="목록으로 돌아가기"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>그룹 메일함</button>`;
   const recommends = Math.max(0, Number(post.recommend_count || 0) || 0);
   const pinUntilMs = Date.parse(post.pinned_until || '');
@@ -295,6 +378,161 @@ function renderOutlookCommunityReadingPane(post){
     ev.preventDefault();
     openOutlookCommunityCompose();
   });
+  wireOutlookCommentEvents(pane);
+  if(outlookCommentReplyTarget){
+    pane.querySelector('.outlook-comment-compose.is-reply .outlook-comment-input')?.focus();
+  }
+}
+function outlookCommentComposeHtml(parentId, placeholder){
+  const isReply = !!parentId;
+  const limit = typeof COMMUNITY_COMMENT_LIMIT === 'number' ? COMMUNITY_COMMENT_LIMIT : 400;
+  const nick = (typeof communityNicknameForInput === 'function' ? communityNicknameForInput() : '') || '익명';
+  const nickField = isReply ? '' : `<input class="outlook-comment-nick" id="outlookCommentNick" maxlength="24" value="${esc(nick)}" autocomplete="off" aria-label="닉네임" placeholder="닉네임">`;
+  return `<div class="outlook-comment-compose${isReply ? ' is-reply' : ''}" data-outlook-comment-parent="${esc(parentId || '')}">
+    ${nickField}
+    <textarea class="outlook-comment-input" maxlength="${limit}" rows="2" placeholder="${esc(placeholder)}"></textarea>
+    <div class="outlook-comment-compose-actions">
+      <button type="button" class="outlook-comment-submit" data-outlook-comment-submit>${isReply ? '답글 등록' : '댓글 등록'}</button>
+      ${isReply ? '<button type="button" class="outlook-comment-cancel" data-outlook-comment-cancel>취소</button>' : ''}
+    </div>
+  </div>`;
+}
+function outlookCommentNodeHtml(comment, childrenMap, depth){
+  const hidden = !!comment.hidden;
+  const nick = (comment.nickname || '익명').slice(0, 18);
+  const avatarColor = outlookCommunityAvatarColor(nick);
+  const initial = (nick.charAt(0) || '?').toUpperCase();
+  const time = comment.created_at ? outlookTimeLabel(comment.created_at) : '';
+  const bodyHtml = hidden ? '<em class="outlook-comment-hidden">신고로 가려진 댓글입니다.</em>' : esc(comment.body || '');
+  const canReply = !hidden && depth < 5;
+  const replyBtn = canReply ? `<button type="button" class="outlook-comment-reply-btn" data-outlook-comment-reply="${esc(comment.id)}">답글</button>` : '';
+  const replyForm = (outlookCommentReplyTarget && String(outlookCommentReplyTarget) === String(comment.id))
+    ? outlookCommentComposeHtml(comment.id, '답글을 입력하세요')
+    : '';
+  const kids = (childrenMap.get(String(comment.id)) || []).map((c)=>outlookCommentNodeHtml(c, childrenMap, depth + 1)).join('');
+  return `<li class="outlook-comment-node" data-depth="${Math.min(depth, 4)}">
+    <div class="outlook-comment-row2">
+      <span class="outlook-comment-avatar" style="background:${avatarColor}">${esc(initial)}</span>
+      <div class="outlook-comment-main">
+        <div class="outlook-comment-meta"><strong>${esc(nick)}</strong><span>${esc(time)}</span></div>
+        <div class="outlook-comment-text">${bodyHtml}</div>
+        <div class="outlook-comment-tools">${replyBtn}</div>
+      </div>
+    </div>
+    ${replyForm}
+    ${kids ? `<ul class="outlook-comment-children">${kids}</ul>` : ''}
+  </li>`;
+}
+function outlookCommentSectionHtml(comments){
+  const list = Array.isArray(comments) ? comments : [];
+  const ids = new Set(list.map((c)=>String(c.id)));
+  const childrenMap = new Map();
+  const roots = [];
+  list.forEach((c)=>{
+    const pid = c.parent_id ? String(c.parent_id) : '';
+    if(pid && ids.has(pid)){
+      if(!childrenMap.has(pid)) childrenMap.set(pid, []);
+      childrenMap.get(pid).push(c);
+    }else{
+      roots.push(c);
+    }
+  });
+  const threadHtml = roots.length
+    ? `<ul class="outlook-comment-thread">${roots.map((c)=>outlookCommentNodeHtml(c, childrenMap, 0)).join('')}</ul>`
+    : '<p class="outlook-comment-empty">아직 댓글이 없습니다. 첫 댓글을 남겨 보세요.</p>';
+  return `<section class="outlook-comment-section" aria-label="댓글">
+    <div class="outlook-comment-section-head">댓글 ${list.length}</div>
+    ${threadHtml}
+    ${outlookCommentComposeHtml('', '이 글에 댓글을 남겨보세요')}
+  </section>`;
+}
+function refreshOutlookReadingForSelectedPost(){
+  const post = outlookCommunityPosts.find((p)=>String(p.id) === String(outlookSelectedCommunityId));
+  if(post) renderOutlookCommunityReadingPane(post);
+}
+function wireOutlookCommentEvents(pane){
+  const section = pane.querySelector('.outlook-comment-section');
+  if(!section) return;
+  section.addEventListener('click', (ev)=>{
+    const replyBtn = ev.target.closest('[data-outlook-comment-reply]');
+    if(replyBtn){
+      const cid = replyBtn.getAttribute('data-outlook-comment-reply');
+      outlookCommentReplyTarget = (String(outlookCommentReplyTarget) === String(cid)) ? '' : cid;
+      refreshOutlookReadingForSelectedPost();
+      return;
+    }
+    if(ev.target.closest('[data-outlook-comment-cancel]')){
+      outlookCommentReplyTarget = '';
+      refreshOutlookReadingForSelectedPost();
+      return;
+    }
+    const submitBtn = ev.target.closest('[data-outlook-comment-submit]');
+    if(submitBtn){
+      const wrap = submitBtn.closest('.outlook-comment-compose');
+      submitOutlookCommunityComment(wrap?.getAttribute('data-outlook-comment-parent') || '', wrap);
+    }
+  });
+}
+async function submitOutlookCommunityComment(parentId, wrap){
+  if(outlookCommentInFlight) return;
+  const postId = outlookSelectedCommunityId;
+  if(!postId) return;
+  const composeWrap = wrap || document.querySelector('.outlook-comment-compose[data-outlook-comment-parent=""]');
+  const input = composeWrap?.querySelector('.outlook-comment-input');
+  const nickEl = document.getElementById('outlookCommentNick');
+  const text = String(input?.value || '').trim();
+  const nickname = typeof communityNicknameForSend === 'function' ? communityNicknameForSend(nickEl?.value) : String(nickEl?.value || '익명').trim();
+  if(!nickname) return;
+  if(text.length < 1){ showToast('댓글을 입력하세요', 'warn'); input?.focus?.(); return; }
+  if(typeof isCommunitySearchOnlyText === 'function' && isCommunitySearchOnlyText(text)){
+    if(typeof warnCommunitySearchOnly === 'function') warnCommunitySearchOnly(input);
+    return;
+  }
+  const limit = typeof COMMUNITY_COMMENT_LIMIT === 'number' ? COMMUNITY_COMMENT_LIMIT : 400;
+  if(text.length > limit){ showToast(`댓글은 ${limit}자까지 가능합니다`, 'warn'); return; }
+  outlookCommentInFlight = true;
+  const submitBtn = composeWrap?.querySelector('[data-outlook-comment-submit]');
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = '등록 중...'; }
+  try{
+    if(typeof guardChatMessage === 'function' && !(await guardChatMessage(text, '커뮤니티 댓글'))) return;
+    const data = await fetchJsonClient('/api/community', 7000, {
+      method:'POST',
+      headers: (typeof isInlineAdmin === 'function' && isInlineAdmin()) ? adminAuthHeaders({'content-type':'application/json'}) : {'content-type':'application/json'},
+      body: JSON.stringify({
+        action:'comment',
+        post_id:postId,
+        parent_id:parentId || '',
+        user_id:chatUserId(),
+        nickname,
+        channel:outlookCommunityChannel,
+        coin_source: typeof coinQuoteSource === 'function' ? coinQuoteSource() : 'binance',
+        body:text,
+      }),
+    });
+    if(data?.post){
+      const cache = outlookCommunityCache[outlookCommunityChannel] || { posts:[], loaded:true };
+      cache.posts = (cache.posts || []).map((p)=>String(p.id) === String(data.post.id) ? data.post : p);
+      cache.loaded = true;
+      outlookCommunityCache[outlookCommunityChannel] = cache;
+      outlookSelectedCommunityId = data.post.id;
+      outlookCommentReplyTarget = '';
+      if(typeof saveCommunityNickname === 'function') saveCommunityNickname(nickname);
+      showToast(parentId ? '답글을 등록했습니다' : '댓글을 등록했습니다', 'info');
+      await renderOutlookCommunity();
+    }
+  }catch(e){
+    const msg = String(e.message || e);
+    if(msg.includes('blocked_term')) showToast('차단 표현이 포함되어 등록하지 않았습니다', 'warn');
+    else if(msg.includes('reserved_nickname')) showToast('관리자/운영AI봇 닉네임은 관리자만 사용할 수 있습니다', 'warn');
+    else if(msg.includes('low_quality_jamo')) showToast('초성만 있거나 의미 없는 반복 댓글은 등록할 수 없습니다', 'warn');
+    else if(msg.includes('duplicate_content')) showToast('같은 댓글을 반복해서 올릴 수 없습니다', 'warn');
+    else if(msg.includes('rate_limited') || msg.includes('spam_detected')) showToast('도배 방지를 위해 잠시 후 다시 입력해주세요', 'warn');
+    else if(msg.includes('403')) showToast('채팅 제한 중에는 커뮤니티 댓글도 제한됩니다', 'err');
+    else showToast(`댓글 등록 실패: ${msg}`, 'err');
+  }finally{
+    outlookCommentInFlight = false;
+    if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = parentId ? '답글 등록' : '댓글 등록'; }
+  }
 }
 function outlookCommunityPollHtml(poll, channel=outlookCommunityChannel){
   if(!poll || String(channel) === 'ops') return '';
@@ -368,7 +606,7 @@ function renderOutlookCommunityComposePane(channel=outlookCommunityChannel){
       <div class="outlook-compose-grid">
         <label><span>보내는 사람</span><input id="outlookCommunityNick" maxlength="24" value="${esc(nick)}" autocomplete="off"></label>
         <label><span>받는 사람</span><input value="${esc(label)} 구독자" readonly></label>
-        <label class="outlook-compose-body"><span>내용</span><textarea id="outlookCommunityBody" maxlength="${typeof COMMUNITY_BODY_LIMIT === 'number' ? COMMUNITY_BODY_LIMIT : 160}" rows="7" placeholder="여러 종목에 걸쳐 이야기를 나누는 공간입니다.&#10;특정 종목 태그하기 : @종목명"></textarea></label>
+        <label class="outlook-compose-body"><span>내용</span><textarea id="outlookCommunityBody" maxlength="${typeof COMMUNITY_BODY_LIMIT === 'number' ? COMMUNITY_BODY_LIMIT : 160}" rows="7" placeholder="여러 종목에 걸쳐 이야기를 나누는 공간입니다.&#10;특정 종목 태그하기 : @종목명(공백없이)"></textarea></label>
       </div>
       <div class="outlook-reading-actions-row">
         <button type="button" class="outlook-compose-submit" data-outlook-community-submit><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4z"/></svg>게시글 보내기</button>
@@ -483,6 +721,7 @@ async function renderOutlookCommunity(){
       <button type="button" class="outlook-empty-compose" data-outlook-compose>새 글 쓰기</button>
     </div>`;
     document.querySelector('.outlook-empty-compose')?.addEventListener('click', openOutlookCommunityCompose);
+    syncOutlookFocusedTabs();
     return;
   }
   if(!outlookSelectedCommunityId || !outlookCommunityPosts.some((p)=>p.id===outlookSelectedCommunityId)){
@@ -502,6 +741,7 @@ async function renderOutlookCommunity(){
     const post = outlookCommunityPosts.find((p)=>p.id===id);
     if(!post) return;
     outlookSelectedCommunityId = id;
+    outlookMarkRead('post:'+id, row);
     document.querySelectorAll('.outlook-community-row').forEach((r)=>r.classList.toggle('is-selected', r===row));
     renderOutlookCommunityReadingPane(post);
     const pane = document.getElementById('outlookReadingPane');
@@ -509,6 +749,8 @@ async function renderOutlookCommunity(){
   };
   const first = outlookCommunityPosts.find((p)=>p.id===outlookSelectedCommunityId) || outlookCommunityPosts[0];
   if(first) renderOutlookCommunityReadingPane(first);
+  syncOutlookFocusedTabs();
+  applyOutlookSearchFilter();
 }
 let outlookSelectedNewsId = '';
 function outlookNewsItems(){
@@ -537,7 +779,7 @@ function outlookNewsRow(item, opts={}){
   const avatar = market === 'KR' ? 'KR' : (market === 'US' ? 'US' : (market === 'COIN' ? '₿' : 'N'));
   const preview = String(item.summary || item.desc || item.description || source || '').replace(/\s+/g, ' ').slice(0, 110);
   const selectedCls = opts.selected ? ' is-selected' : '';
-  return `<div class="outlook-mail-row outlook-news-row${selectedCls}" data-outlook-news-id="${esc(item._outlookId)}" role="option" aria-selected="${opts.selected?'true':'false'}">
+  return `<div class="outlook-mail-row outlook-news-row${selectedCls}${outlookUnreadCls('news:'+item._outlookId)}" data-outlook-news-id="${esc(item._outlookId)}" role="option" aria-selected="${opts.selected?'true':'false'}">
     <span class="outlook-mail-avatar" data-tone="${tone}">${esc(avatar)}</span>
     <span class="outlook-mail-sender">${esc(source)}</span>
     <span class="outlook-mail-time">${esc(time)}</span>
@@ -611,6 +853,7 @@ function renderOutlookNewsFeed(){
     const item = outlookNewsItems().find((n)=>n._outlookId === id);
     if(!item) return;
     outlookSelectedNewsId = id;
+    outlookMarkRead('news:'+id, row);
     document.querySelectorAll('.outlook-news-row').forEach((r)=>r.classList.toggle('is-selected', r===row));
     renderOutlookNewsReadingPane(item);
     const pane = document.getElementById('outlookReadingPane');
@@ -618,6 +861,8 @@ function renderOutlookNewsFeed(){
   };
   const first = items.find((item)=>item._outlookId === outlookSelectedNewsId) || items[0];
   renderOutlookNewsReadingPane(first);
+  syncOutlookFocusedTabs();
+  applyOutlookSearchFilter();
 }
 function findOutlookCardByKey(key){
   if(!Array.isArray(lastRenderedCards)) return null;
@@ -929,7 +1174,7 @@ function outlookMailRow(card, opts={}){
     pctText = Number.isFinite(pct) ? outlookFormatPct(pct) : '—';
     priceText = outlookFormatPrice(card);
   }
-  return `<div class="outlook-mail-row${selectedCls}" data-outlook-key="${esc(key)}" role="option" aria-selected="${opts.selected?'true':'false'}">
+  return `<div class="outlook-mail-row${selectedCls}${outlookUnreadCls('stock:'+key)}" data-outlook-key="${esc(key)}" role="option" aria-selected="${opts.selected?'true':'false'}">
     <span class="outlook-mail-avatar" data-tone="${tone}">${esc(initials)}</span>
     <span class="outlook-mail-sender">${esc(sender)}</span>
     <span class="outlook-mail-time">${esc(time)}</span>
@@ -1008,25 +1253,35 @@ function renderOutlookFromSnapshot(snapshot, cards){
   if(isCommunityView || isNewsView) return;
   list.onclick = null;
 
-  // Filter by current folder
+  // Filter by current folder, then (받은 편지함만) 중요/기타 분리.
   const filtered = outlookFilterCards(cards, outlookFolderFilter);
-  if(!outlookSelectedKey || !filtered.some((c)=>String(c.key) === outlookSelectedKey)){
-    outlookSelectedKey = filtered[0] ? String(filtered[0].key) : null;
+  syncOutlookFocusedTabs();
+  let visibleCards = filtered;
+  if(outlookFocusedTabsVisible()){
+    visibleCards = outlookFocusedTab === 'other'
+      ? filtered.filter((c)=>!outlookCardIsFocused(c))
+      : filtered.filter((c)=>outlookCardIsFocused(c));
+  }
+  if(!outlookSelectedKey || !visibleCards.some((c)=>String(c.key) === outlookSelectedKey)){
+    outlookSelectedKey = visibleCards[0] ? String(visibleCards[0].key) : null;
   }
   // Group by today's date (just one section now — could extend later)
   const today = new Date(); const todayStr = `${today.getMonth()+1}월 ${today.getDate()}일`;
   let html = `<div class="outlook-mail-date">오늘 · ${todayStr}</div>`;
-  if(filtered.length === 0){
-    html += `<div class="outlook-mail-empty">이 폴더에는 메일이 없습니다.</div>`;
+  if(visibleCards.length === 0){
+    html += `<div class="outlook-mail-empty">${outlookFocusedTab === 'other' && outlookFocusedTabsVisible() ? '기타로 분류된 자동 요약 메일이 없습니다.' : '이 폴더에는 메일이 없습니다.'}</div>`;
   } else {
-    html += filtered.map((c)=>outlookMailRow(c, {selected: String(c.key) === outlookSelectedKey})).join('');
+    html += visibleCards.map((c)=>outlookMailRow(c, {selected: String(c.key) === outlookSelectedKey})).join('');
   }
   list.innerHTML = html;
+  applyOutlookSearchFilter();
 
   // Render reading pane for current selection
-  const selected = filtered.find((c)=>String(c.key) === outlookSelectedKey) || filtered[0];
+  const selected = visibleCards.find((c)=>String(c.key) === outlookSelectedKey) || visibleCards[0];
   if(selected){
     renderOutlookReadingPane(selected, snapshot);
+  } else {
+    renderOutlookReadingPane(null);
   }
 }
 function selectOutlookEmail(card){
@@ -1036,6 +1291,7 @@ function selectOutlookEmail(card){
     const match = r.dataset.outlookKey === outlookSelectedKey;
     r.classList.toggle('is-selected', match);
     r.setAttribute('aria-selected', match ? 'true' : 'false');
+    if(match) outlookMarkRead('stock:'+outlookSelectedKey, r);
   });
   renderOutlookReadingPane(card, lastSnapshot);
   // Mobile: open reading overlay
@@ -1075,6 +1331,38 @@ function outlookNewsForCard(card, snapshot){
     })
     .sort((a,b)=>newsTimeMs(b)-newsTimeMs(a))
     .slice(0,6);
+}
+// 읽기창 인라인 스파크라인. Excel 모드의 hover 미니차트와 동일한 /api/chart 캐시를
+// 재사용하므로 추가 호출 비용이 없다(같은 토큰이면 캐시 히트).
+let outlookReadingChartToken = '';
+async function loadOutlookReadingChart(token, card){
+  if(!token || typeof renderMiniChartSvg !== 'function') return;
+  if(typeof featureEnabled === 'function' && !featureEnabled('chart')) return;
+  outlookReadingChartToken = token;
+  const paint = (data)=>{
+    const host = document.getElementById('outlookReadingChart');
+    if(!host || host.dataset.token !== token || outlookReadingChartToken !== token) return;
+    const change = (typeof miniChartDisplayChange === 'function') ? miniChartDisplayChange(card, data) : Number(data?.changePct);
+    const baseline = (typeof miniChartBaseline === 'function') ? miniChartBaseline(card, data, change) : null;
+    const src = [data.range, (typeof fmtDt === 'function') ? fmtDt(data.asOf) : ''].filter(Boolean).join(' · ');
+    host.innerHTML = `<div class="outlook-reading-chart-head"><span>최근 추이</span>${src ? `<span>${esc(src)}</span>` : ''}</div>${renderMiniChartSvg(data, baseline, change)}`;
+    host.hidden = false;
+  };
+  const cached = (typeof miniChartCache !== 'undefined') ? miniChartCache.get(token) : null;
+  if(cached && Date.now() - cached.at < MINI_CHART_CACHE_TTL_MS){ paint(cached.data); return; }
+  try{
+    let pending = miniChartInflight.get(token);
+    if(!pending){
+      pending = fetchJsonClient('/api/chart?token=' + encodeURIComponent(token), 5000)
+        .finally(()=>{ miniChartInflight.delete(token); });
+      miniChartInflight.set(token, pending);
+    }
+    const data = await pending;
+    if(!data?.ok) return;
+    miniChartCache.set(token, {at:Date.now(), data});
+    if(typeof pruneMiniChartCache === 'function') pruneMiniChartCache();
+    paint(data);
+  }catch(_){}
 }
 function renderOutlookReadingPane(card, snapshot){
   const pane = document.getElementById('outlookReadingPane');
@@ -1164,6 +1452,14 @@ function renderOutlookReadingPane(card, snapshot){
       : esc(title);
     return `<li><span class="bullet-title">${inner}</span>${n.source?` <span class="bullet-meta">— ${esc(n.source)}${nt?` · ${esc(nt)}`:''}</span>`:''}</li>`;
   }).join('') : '';
+  // 일반 시세 카드만 스파크라인 — 수급/모멘텀 카드는 토큰이 없다.
+  let chartToken = '';
+  if(!isFlow && !isMomentum && typeof quoteTokenForCard === 'function'){
+    try{ chartToken = quoteTokenForCard(card) || ''; }catch(_){ chartToken = ''; }
+  }
+  const chartHost = chartToken
+    ? `<div class="outlook-reading-chart" id="outlookReadingChart" data-token="${esc(chartToken)}" hidden></div>`
+    : '';
   const attachmentName = `${(card.key||card.code||'시세').replace(/\s+/g,'_')}_${new Date().getFullYear()}.xlsx`;
   const backBtn = `<button type="button" class="outlook-reading-back" data-outlook-action="reading-back" aria-label="목록으로 돌아가기"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>받은 편지함</button>`;
   const stockName = card.key||card.code||'-';
@@ -1197,6 +1493,7 @@ function renderOutlookReadingPane(card, snapshot){
         <p>안녕하세요, ${esc(sender)} 입니다.</p>
         <p>${isFlow ? `오늘 <strong>${esc(stockName)}</strong> 매매 동향을 주체별로 정리해 공유드립니다.` : (isMomentum ? `<strong>${esc(stockName)}</strong> 흐름을 짧게 정리해 드립니다.` : `<strong>${esc(stockName)}</strong>의 최신 시세를 정리해 공유드립니다. 아래 카드는 오늘 기준 핵심 지표입니다.`)}</p>
         <div class="outlook-reading-cards">${cardsHtml}</div>
+        ${chartHost}
         ${newsBullets ? `
           <p>관련해서 시장에서 주목받는 뉴스도 함께 정리했습니다.</p>
           <ul class="outlook-reading-news-bullets">${newsBullets}</ul>
@@ -1220,5 +1517,6 @@ function renderOutlookReadingPane(card, snapshot){
   `;
   // Wire mobile back button
   pane.querySelector('[data-outlook-action="reading-back"]')?.addEventListener('click', outlookCloseReadingMobile);
+  if(chartToken) loadOutlookReadingChart(chartToken, card);
 }
 /* === end Outlook v3 renderers ================================================== */

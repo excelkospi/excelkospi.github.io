@@ -6,6 +6,8 @@
     "/guide",
     "/guide/*",
     "/guide.html",
+    "/ad",
+    "/ad.html",
     "/ad-report",
     "/advertiser",
     "/advertiser/*",
