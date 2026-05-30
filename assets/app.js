@@ -7472,10 +7472,14 @@ function newestChatCreatedAt(){
   }, null);
 }
 
-// maxAgeMs: 어댑티브(15s) 상태에서도 chatMessagesIntervalMs()는 15000을 반환해
-// 탭 간 공유 캐시 허용 창이 15초로 늘어나 지연을 증폭시킨다. 폴링 주기가 아닌
-// 현재 티어의 기본 pollMs(4~6초)를 기준으로 삼아 최대 9초로 제한한다.
-function sharedChatMessagesPayload(limit, maxAgeMs=Math.max(6500, chatPollTier().pollMs * 1.5)){
+// maxAgeMs: runtimeShared.chatMessages 는 다른 탭의 broadcast 뿐 아니라 '자기 자신의
+// 직전 fetch' 로도 채워진다(아래 7968 라인). 그래서 이 창이 폴링 주기보다 크면 단일
+// 탭도 자기가 방금 받은 데이터를 재사용하며 다음 폴링을 통째로 건너뛴다 → 실제 서버
+// fetch 간격이 폴링 주기의 2배가 되고, 남의 메시지가 최대 2배 늦게 보인다.
+// 따라서 창은 폴링 주기보다 작게(절반, 최소 1.5초) 둔다: 거의 동시에 폴링하는 멀티탭만
+// dedup 하고(엣지 Cache API 가 DB read 는 어차피 막으므로 비용 영향 없음), 자기 정규
+// 폴링은 항상 실제 fetch 가 나가게 한다.
+function sharedChatMessagesPayload(limit, maxAgeMs=Math.max(1500, chatPollTier().pollMs * 0.5)){
   const item=runtimeShared.chatMessages;
   if(!item || !Array.isArray(item.data?.messages)) return null;
   if(Number(item.limit || 0) < Number(limit || 0)) return null;
