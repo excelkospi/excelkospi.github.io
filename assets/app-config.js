@@ -2,6 +2,22 @@
  * Kept separate from the main UI script so app.js stays focused on behavior.
  */
 
+// 무단 복제 방어(레이어1): 허가된 호스트가 아닌 곳에서 이 번들이 실행되면(=사이트 통째
+// 복사본) 원본으로 돌려보낸다. 정적 파일 다운로드 자체는 못 막지만 복제본을 무력화한다.
+// 미러(github.io/web.app)·프리뷰(*.pages.dev)·로컬 개발은 허가 목록에 포함.
+(function cloneGuard(){
+  try{
+    if(location.protocol === 'file:') return;
+    const h = location.hostname;
+    const ok = h === 'localhost' || h === '127.0.0.1' || h === '' || h.endsWith('.local')
+      || h.endsWith('.pages.dev') || h.endsWith('.azurestaticapps.net')
+      || h === 'excelkospi.github.io' || h === 'ohseyong.github.io'
+      || h === 'excelkospi.web.app' || h === 'excelkospi.firebaseapp.com';
+    if(ok) return;
+    location.replace('https://excelkospi.pages.dev' + location.pathname + location.search + location.hash);
+  }catch(e){ /* 가드 실패는 무시 — 정상 동작 우선 */ }
+})();
+
 // Google Analytics 4. Leave empty to skip loading gtag entirely.
 const GA_MEASUREMENT_ID = 'G-JX282WW6WM';
 
