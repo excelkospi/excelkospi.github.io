@@ -600,6 +600,16 @@ function renderPatchMarkdown(md){
       html+=`<li>${mdInline(raw.slice(2))}</li>`;
       continue;
     }
+    if(raw.startsWith('> ')){
+      closeList();
+      const quote=[mdInline(raw.slice(2))];
+      while(i + 1 < lines.length && lines[i + 1].trim().startsWith('> ')){
+        i+=1;
+        quote.push(mdInline(lines[i].trim().slice(2)));
+      }
+      html+=`<blockquote class="patch-quote">${quote.join('<br>')}</blockquote>`;
+      continue;
+    }
     closeList();
     html+=`<p>${mdInline(raw)}</p>`;
   }

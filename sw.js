@@ -1,5 +1,5 @@
-const CACHE_NAME = 'excelkospi-static-20260530-667';
-const API_CACHE_NAME = 'excelkospi-api-20260530-667';
+const CACHE_NAME = 'excelkospi-static-20260531-668';
+const API_CACHE_NAME = 'excelkospi-api-20260531-668';
 const API_ORIGINS = new Set([
   location.origin,
   'https://excelkospi-api.alaala3.workers.dev',
@@ -13,9 +13,9 @@ const APP_SHELL = [
   '/apple-touch-icon.png?v=20260530-665',
   '/icon-192.png?v=20260530-665',
   '/icon-512.png?v=20260530-665',
-  '/assets/app.css?v=20260530-665',
+  '/assets/app.css?v=20260531-668',
   '/assets/app-config.js?v=20260530-667',
-  '/assets/app-utils.js?v=20260530-665',
+  '/assets/app-utils.js?v=20260531-668',
   '/assets/app-mentions.js?v=20260530-665',
   '/assets/app-community-read.js?v=20260530-665',
   '/assets/community-ui.js?v=20260530-666',
