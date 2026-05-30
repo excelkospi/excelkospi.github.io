@@ -1089,7 +1089,7 @@ function ensureOutlookModule(){
   if(outlookModulePromise) return outlookModulePromise;
   outlookModulePromise = new Promise((resolve, reject)=>{
     const s = document.createElement('script');
-    s.src = '/assets/app-outlook.js?v=20260530-662';
+    s.src = '/assets/app-outlook.js?v=20260530-665';
     s.async = false;
     s.onload = ()=>resolve();
     s.onerror = ()=>{ outlookModulePromise = null; reject(new Error('outlook_module_failed')); };

@@ -317,7 +317,7 @@ function loadWatchlistQrLibrary(){
       return;
     }
     const script = document.createElement('script');
-    script.src = '/assets/vendor/qrcode.js?v=20260524-474';
+    script.src = '/assets/vendor/qrcode.js?v=20260530-665';
     script.async = true;
     script.dataset.watchlistQrLib = '1';
     script.onload = ()=>{
