@@ -9005,7 +9005,7 @@ function setupChatUi(){
     applyChatDockMode({notifyAutoPopup:true});
     applyChatPanelPosition({saveClamp:true});
   }), {passive:true});
-  body?.addEventListener('scroll', handleChatBodyScroll, {passive:true});
+  body?.addEventListener('scroll', (ev)=>{ handleChatBodyScroll(ev); noteChatActivity(ev); }, {passive:true});
   panel?.addEventListener('pointerdown', noteChatActivity, {passive:true});
   panel?.addEventListener('keydown', noteChatActivity);
   nick?.addEventListener('input', (ev)=>{

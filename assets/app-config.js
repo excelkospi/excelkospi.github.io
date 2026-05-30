@@ -82,11 +82,11 @@ const CHAT_RECOMMEND_BADGE_KEY = 'kg_chat_recommend_badge_v1';
 const CHAT_LAST_SEEN_KEY = 'kg_chat_last_seen_v1';
 // Chat idle sleep — 채팅 동접자 수(chatOnline)에 따라 부드럽게 단계별 변경.
 // 트래픽이 적을 때는 오래 켜두고, 폭증 시점에 짧게 줄여 비용을 보호한다.
-const CHAT_IDLE_SLEEP_CALM_MS = 20 * 60 * 1000;  // 채팅 ~40명 미만
-const CHAT_IDLE_SLEEP_LOW_MS  = 18 * 60 * 1000;  // 채팅 ~100명 미만
-const CHAT_IDLE_SLEEP_MID_MS  = 15 * 60 * 1000;  // 채팅 ~250명 미만
-const CHAT_IDLE_SLEEP_HIGH_MS = 12 * 60 * 1000;  // 채팅 ~400명 미만
-const CHAT_IDLE_SLEEP_PEAK_MS =  8 * 60 * 1000;  // 채팅 400명+ 폭증 구간
+const CHAT_IDLE_SLEEP_CALM_MS = 35 * 60 * 1000;  // 채팅 ~40명 미만
+const CHAT_IDLE_SLEEP_LOW_MS  = 28 * 60 * 1000;  // 채팅 ~100명 미만
+const CHAT_IDLE_SLEEP_MID_MS  = 20 * 60 * 1000;  // 채팅 ~250명 미만
+const CHAT_IDLE_SLEEP_HIGH_MS = 15 * 60 * 1000;  // 채팅 ~400명 미만
+const CHAT_IDLE_SLEEP_PEAK_MS =  9 * 60 * 1000;  // 채팅 400명+ 폭증 구간
 // 숨김 탭 전용 조기 슬립: 탭을 가린 지 이 시간이 지나면(데이터의 3분 grace와
 // 정합) 가시 슬립 창보다 먼저 완전 절전. 복귀 시 즉시 깨운다.
 const CHAT_HIDDEN_IDLE_SLEEP_MS = 5 * 60 * 1000;
@@ -101,9 +101,9 @@ const CHAT_POLL_TIERS = [
   { maxChatOnline: Infinity, pollMs: 6 * 1000, ttlSec: 6 },
 ];
 const CHAT_POLL_DEFAULT_TIER_INDEX = 1; // chatOnline 미상일 때 기본 = 보통(5초/TTL5)
-// 어댑티브 폴링: 단계별 슬립 임계(chatIdleSleepMs)의 이 비율을 지나면(=40%)
+// 어댑티브 폴링: 단계별 슬립 임계(chatIdleSleepMs)의 이 비율을 지나면(=60%)
 // 완전 절전 전에 폴링 주기를 늘려 비용을 줄인다. 활동 감지 시 즉시 기본 주기로 복귀.
-const CHAT_ADAPTIVE_POLL_FRACTION = 0.4;
+const CHAT_ADAPTIVE_POLL_FRACTION = 0.6;
 const CHAT_ADAPTIVE_OPEN_POLL_MS = 15 * 1000;
 const CHAT_SEND_GAP_MS = 4 * 1000;
 const CHAT_RECOMMENDED_SEND_GAP_MS = 2 * 1000;
