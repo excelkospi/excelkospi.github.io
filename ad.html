@@ -225,7 +225,10 @@ body.img-edit figure.shot{outline:2px dashed var(--green);outline-offset:-2px}
     var cp = new URLSearchParams(location.search).get('c');
     if (cp) CLIENT = b64urlDecode(cp);
   } catch(e){ CLIENT = null; }
-  if (CLIENT && typeof CLIENT === 'object') {
+  // 광고주 맞춤 링크(/ad?c=...)로 들어온 경우에만 실제 단가를 노출한다.
+  // 그냥 /ad 로 공개 접근하면 가격·CPC 를 '협의'로 가려 외부 노출을 막는다.
+  var isAdvertiserLink = !!(CLIENT && typeof CLIENT === 'object');
+  if (isAdvertiserLink) {
     if (CLIENT.price   != null && CLIENT.price   !== '') C.priceKRW       = Number(CLIENT.price);
     if (CLIENT.period)                                   C.periodLabel    = CLIENT.period;
     if (CLIENT.cpcLow  != null && CLIENT.cpcLow  !== '') C.cpcLow         = Number(CLIENT.cpcLow);
@@ -235,10 +238,11 @@ body.img-edit figure.shot{outline:2px dashed var(--green);outline-offset:-2px}
   }
 
   var won = function(n){ return Number(n).toLocaleString('ko-KR') + '원'; };
+  var PRICE_MASK = '협의';
   var TOKENS = {
-    '{{price}}': won(C.priceKRW),
+    '{{price}}': isAdvertiserLink ? won(C.priceKRW) : PRICE_MASK,
     '{{period}}': C.periodLabel,
-    '{{cpc}}': C.cpcLow + '~' + C.cpcHigh + '원',
+    '{{cpc}}': isAdvertiserLink ? (C.cpcLow + '~' + C.cpcHigh + '원') : PRICE_MASK,
     '{{maxAdv}}': String(C.maxAdvertisers),
     '{{vat}}': C.vatNote,
     '{{email}}': C.contactEmail,
