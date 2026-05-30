@@ -4058,16 +4058,6 @@ function readServerStatusPeak(){
     return raw?.day === kstDayKey() ? Number(raw.peak) || null : null;
   }catch{ return null; }
 }
-function apiCondition(item){
-  const ok=Number(item?.ok) || 0;
-  const fail=Number(item?.fail) || 0;
-  const total=ok+fail;
-  if(!total) return '대기';
-  const rate=fail/total;
-  if(rate > 0.5) return '지연';
-  if(rate > 0.1) return '느려짐';
-  return '정상';
-}
 function apiCountText(item){
   const ok=Number(item?.ok) || 0;
   const fail=Number(item?.fail) || 0;
@@ -4133,7 +4123,6 @@ function serverStatusDetailHtml(){
     ['naver', '네이버'],
     ['binance', '바이낸스'],
   ];
-  const apiText=sources.map(([key, label])=>`${label} ${apiCondition(api[key])}`).join(' · ');
   const counts=sources.map(([key, label])=>`<span>${label}: ${apiCountText(api[key])}</span>`).join('');
   const reduced=serverStatusReducedFeatures(flags);
   // 비관리자에게는 "모든 기능 정상" 같은 fluff 안 보여줌. 조정 중일 때만 한 줄.
@@ -4176,7 +4165,6 @@ function serverStatusDetailHtml(){
   return `
     <div class="server-status-row">접속자: 현재 ${statusPeople(status.online)} / 오늘 피크 ${statusPeople(peak)}</div>
     <div class="server-status-row">${statusSnapshotLineHtml()}</div>
-    <div class="server-status-row">외부 데이터 공급원: ${apiText}</div>
     ${fastQuoteLine}
     ${newsLine}
     ${communityLine}
