@@ -575,10 +575,10 @@ details p{margin:0;padding:12px 14px 14px;font-size:14px;color:#4d5155}
 }
 @media(max-width:620px){
   body{font-size:14px}
-  .excel-topbar{height:40px;padding:0 10px;gap:8px}
+  .excel-topbar{height:calc(40px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 10px 0;gap:8px}
   .brand span{display:none}
   .doc-name{text-align:left;font-size:13px}
-  .guide-ribbon{top:40px;height:36px;padding:0 6px;gap:2px}
+  .guide-ribbon{top:calc(40px + env(safe-area-inset-top,0px));height:36px;padding:0 6px;gap:2px}
   .guide-ribbon a{font-size:12.2px;padding:0 6px}
   main,.guide-footer{width:calc(100% - 18px)}
   .intro{padding:26px 0 18px;gap:16px}

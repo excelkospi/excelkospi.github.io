@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>excelkospi 광고 리포트</title>
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#107c41" />
@@ -44,7 +44,7 @@
     }
     a{color:var(--green-ink)}
     button,input{font:inherit;min-width:0}
-    .shell{width:min(1160px,calc(100% - 28px));margin:0 auto;padding:18px 0 42px}
+    .shell{width:min(1160px,calc(100% - 28px));margin:0 auto;padding:calc(18px + env(safe-area-inset-top,0px)) 0 calc(42px + env(safe-area-inset-bottom,0px))}
     .topbar{
       display:flex;
       justify-content:space-between;
@@ -300,7 +300,7 @@
       line-height:1.6;
     }
     @media (max-width:920px){
-      .shell{width:min(100% - 20px,760px);padding-top:12px}
+      .shell{width:min(100% - 20px,760px);padding-top:calc(12px + env(safe-area-inset-top,0px))}
       .topbar,.access-panel,.report-head{grid-template-columns:1fr}
       .topbar{display:grid}
       .top-meta{white-space:normal}

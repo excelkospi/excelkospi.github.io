@@ -1,5 +1,5 @@
-const CACHE_NAME = 'excelkospi-static-20260531-671';
-const API_CACHE_NAME = 'excelkospi-api-20260531-671';
+const CACHE_NAME = 'excelkospi-static-20260531-672';
+const API_CACHE_NAME = 'excelkospi-api-20260531-672';
 const API_ORIGINS = new Set([
   location.origin,
   'https://excelkospi-api.alaala3.workers.dev',
@@ -10,9 +10,9 @@ const APP_SHELL = [
   '/patch-notes.html',
   '/manifest.webmanifest?v=20260530-665',
   '/favicon.ico?v=20260530-665',
-  '/apple-touch-icon.png?v=20260530-665',
-  '/icon-192.png?v=20260530-665',
-  '/icon-512.png?v=20260530-665',
+  '/apple-touch-icon.png?v=20260531-672',
+  '/icon-192.png?v=20260531-672',
+  '/icon-512.png?v=20260531-672',
   '/assets/app.css?v=20260531-670',
   '/assets/app-config.js?v=20260530-667',
   '/assets/app-utils.js?v=20260531-668',
@@ -34,10 +34,10 @@ const APP_SHELL = [
   '/assets/favicon.svg?v=20260530-665',
   '/assets/favicon-32.png?v=20260530-665',
   '/assets/icon-sm.png?v=20260530-665',
-  '/assets/icon-192.png?v=20260530-665',
-  '/assets/icon-512.png?v=20260530-665',
-  '/assets/maskable-192.png?v=20260530-665',
-  '/assets/maskable-512.png?v=20260530-665',
+  '/assets/icon-192.png?v=20260531-672',
+  '/assets/icon-512.png?v=20260531-672',
+  '/assets/maskable-192.png?v=20260531-672',
+  '/assets/maskable-512.png?v=20260531-672',
 ];
 
 const API_SWR_TTL_MS = {
