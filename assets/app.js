@@ -8588,11 +8588,11 @@ function renderChatMessages(options={}){
         <div class="chat-meta">
           ${chatNickMarkup(m, {isAdminNick})}
           ${m.report_count>=4 ? '<span title="신고 누적">⚠</span>' : ''}
-          ${lupangBadgeHtml(m)}
-          <span class="chat-time">${m._pending ? '전송 중…' : fmtTime(m.created_at)}</span>
           <button class="chat-recommend" type="button" data-recommend-id="${esc(m.id)}" ${recommendDisabled?'disabled':''}>${esc(chatRecommendButtonLabel(m))}</button>
           <button class="chat-report" type="button" data-report-id="${esc(m.id)}" ${reportDisabled?'disabled':''}>신고</button>
           ${adminActions}
+          ${lupangBadgeHtml(m)}
+          <span class="chat-time">${m._pending ? '전송 중…' : fmtTime(m.created_at)}</span>
         </div>
         <div class="chat-text">${renderTextWithImagePreviews(m.body, chatImagePreviewOptions(m, {linkUrls:true, linkPolicy:chatLinkPolicy()}))}</div>
       </div>`;
