@@ -479,6 +479,7 @@ function isTextInputFocused(){
 }
 
 async function reloadForNewBuild(reason='new-build'){
+  if(isSearchCrawler()) return;
   if(versionReloading) return;
   versionReloading=true;
   if(versionReloadTimer){
@@ -499,6 +500,15 @@ async function reloadForNewBuild(reason='new-build'){
   }
 }
 
+// 검색 크롤러(네이버 Yeti, Googlebot 등) 판별. 봇은 JS를 제한적으로 실행해 스타일이
+// 깨진 것처럼 보일 수 있는데, 이때 자가복구/새빌드 리다이렉트가 돌면 크롤러가 "JS redirect로
+// 페이지가 이전됨"으로 인식해 제목·설명·OG·robots 메타를 못 읽는다. 봇에는 리다이렉트를 막는다.
+function isSearchCrawler(){
+  try{
+    return /bot\b|crawler|spider|crawling|\byeti\b|googlebot|bingbot|duckduckbot|baiduspider|yandex|slurp|daumoa|facebookexternalhit|twitterbot|slackbot|telegrambot|kakaotalk-scrap/i.test(navigator.userAgent || '');
+  }catch{ return false; }
+}
+
 let appStyleRecoveryTimer=null;
 function appStylesLookBroken(){
   const link=document.querySelector('link[rel="stylesheet"][href*="/assets/app.css"]');
@@ -513,6 +523,7 @@ function appStylesLookBroken(){
 }
 
 async function recoverBrokenAppStyles(reason='style-health'){
+  if(isSearchCrawler()) return;
   let last=0;
   try{ last=Number(sessionStorage.getItem('kg_style_recover_at_v1') || 0) || 0; }catch{}
   if(Date.now()-last < 60*1000) return;
@@ -6888,6 +6899,7 @@ Promise.allSettled([initialSnapshotPromise, initialTimelinePromise]).finally(()=
 // 빌드 버전 모두 stale 가능성이 커서 그게 더 안전·빠르다.
 const RESUME_HARD_RELOAD_MS = 30 * 60 * 1000;
 function hardReloadForStaleResume(reason='long-idle-resume'){
+  if(isSearchCrawler()) return;
   try{ sessionStorage.setItem('kg_last_reload_reason_v1', reason); }catch{}
   try{
     const url=new URL(window.location.href);
