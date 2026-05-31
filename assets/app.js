@@ -500,12 +500,15 @@ async function reloadForNewBuild(reason='new-build'){
   }
 }
 
-// 검색 크롤러(네이버 Yeti, Googlebot 등) 판별. 봇은 JS를 제한적으로 실행해 스타일이
-// 깨진 것처럼 보일 수 있는데, 이때 자가복구/새빌드 리다이렉트가 돌면 크롤러가 "JS redirect로
-// 페이지가 이전됨"으로 인식해 제목·설명·OG·robots 메타를 못 읽는다. 봇에는 리다이렉트를 막는다.
+// 검색 크롤러·SEO 진단 도구 판별. 봇은 JS를 제한적으로 실행해 스타일이 깨진 것처럼
+// 보일 수 있는데, 이때 자가복구/새빌드 리다이렉트가 돌면 "JS redirect로 페이지가 이전됨"으로
+// 인식해 제목·설명·OG·robots 메타를 못 읽는다. 봇에는 리다이렉트를 막는다.
+// 검색 색인 크롤러(Googlebot·네이버 Yeti·bingbot·Daum)뿐 아니라, URL 검사/리치결과
+// (Google-InspectionTool)와 최적화 점수 측정(Lighthouse·PageSpeed)까지 포함해야
+// 서치콘솔·PSI 진단이 리다이렉트로 오판되지 않는다.
 function isSearchCrawler(){
   try{
-    return /bot\b|crawler|spider|crawling|\byeti\b|googlebot|bingbot|duckduckbot|baiduspider|yandex|slurp|daumoa|facebookexternalhit|twitterbot|slackbot|telegrambot|kakaotalk-scrap/i.test(navigator.userAgent || '');
+    return /bot\b|crawler|spider|crawling|\byeti\b|googlebot|google-inspectiontool|storebot-google|adsbot-google|mediapartners-google|google page speed|chrome-lighthouse|lighthouse|pagespeed|bingbot|bingpreview|duckduckbot|baiduspider|yandex|slurp|daumoa|facebookexternalhit|twitterbot|slackbot|telegrambot|kakaotalk-scrap|headlesschrome/i.test(navigator.userAgent || '');
   }catch{ return false; }
 }
 
