@@ -1,0 +1,61 @@
+# 이 정적 파일은 GitHub Pages 미러(excelkospi.github.io) 전용이다 — 미러에는 Cloudflare
+# Functions 가 없어 정적 robots 가 그대로 서빙된다. Cloudflare Pages(excelkospi.pages.dev /
+# excelkospi.ai)에서는 /robots.txt 가 functions/api/_lib/seo-files.js 의 robotsTxtForHost 로
+# 호스트별 동적 생성되어 이 파일을 덮어쓴다. 둘을 함께 고쳐 미러와 Pages 를 일치시킬 것.
+User-agent: OAI-SearchBot
+User-agent: PerplexityBot
+User-agent: ChatGPT-User
+User-agent: Claude-User
+User-agent: Claude-Web
+User-agent: Perplexity-User
+Allow: /
+Disallow: /api/
+Disallow: /assets/
+Disallow: /admin
+Disallow: /advertiser
+Disallow: /docs/
+Disallow: /s/
+
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: anthropic-ai
+User-agent: CCBot
+User-agent: Bytespider
+User-agent: cohere-ai
+User-agent: Diffbot
+User-agent: YouBot
+User-agent: Meta-ExternalAgent
+User-agent: Meta-ExternalFetcher
+User-agent: Applebot-Extended
+User-agent: Amazonbot
+User-agent: AI2Bot
+User-agent: ImagesiftBot
+User-agent: Omgilibot
+User-agent: FriendlyCrawler
+User-agent: ICC-Crawler
+User-agent: Timpibot
+User-agent: cohere-training-data-crawler
+User-agent: PanguBot
+User-agent: Panscient
+User-agent: Webzio-Extended
+User-agent: img2dataset
+User-agent: VelenPublicWebCrawler
+User-agent: GoogleOther
+User-agent: DuckAssistBot
+User-agent: Scrapy
+User-agent: HTTrack
+Allow: /robots.txt
+Allow: /llms.txt
+Allow: /sitemap.xml
+Allow: /seo-sitemap.xml
+Disallow: /
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /docs/
+Disallow: /s/
+
+Sitemap: https://excelkospi.pages.dev/sitemap.xml
+Sitemap: https://excelkospi.ai/seo-sitemap.xml

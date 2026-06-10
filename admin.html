@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#185c37">
+  <title>admin · excelkospi</title>
+  <style>:root{color-scheme:light;--green:#107c41;--green-soft:#e6f4ec;--line:#e2e7ec;--line-strong:#cdd5dc;--bg:#f4f6f8;--card:#ffffff;--text:#1f2329;--muted:#6a7480;--muted-strong:#454d57;--danger:#c53030;--danger-soft:#fff1f1;--warn:#9a6b00;--warn-soft:#fff7e3;--shadow:0 6px 18px rgba(15,23,42,.06);--radius:10px;--radius-sm:6px}*{box-sizing:border-box}[hidden]{display:none!important}html,body{height:100%}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;-webkit-font-smoothing:antialiased}a{color:#0563c1;text-decoration:none}a:hover{text-decoration:underline}button{font:inherit}input,select,textarea{font:inherit;color:inherit}.topbar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 1px #0f172a08;padding-top:env(safe-area-inset-top,0px)}.topbar-inner{max-width:1200px;margin:0 auto;padding:10px calc(16px + env(safe-area-inset-right,0px)) 10px calc(16px + env(safe-area-inset-left,0px));display:flex;align-items:center;gap:12px;flex-wrap:wrap}.brand{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--green);font-size:15px}.brand-dot{width:8px;height:8px;border-radius:2px;background:var(--green)}.brand small{color:var(--muted);font-weight:600;font-size:12px}.top-spacer{flex:1}.top-actions{display:flex;align-items:center;gap:8px}.badge{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;background:#f7f9fb;color:var(--muted-strong);border:1px solid var(--line);font-size:12px;font-weight:700;white-space:nowrap}.badge.ok{color:var(--green);background:var(--green-soft);border-color:#cce5d7}.badge.bad{color:var(--danger);background:var(--danger-soft);border-color:#f0c4c4}.home-link{color:var(--muted);font-size:13px}main{max-width:1200px;margin:0 auto;padding:14px calc(16px + env(safe-area-inset-right,0px)) calc(56px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px))}section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-top:12px;box-shadow:var(--shadow)}section h2{margin:0 0 10px;font-size:16px;display:flex;align-items:center;gap:8px;font-weight:700}section h2 .hint{color:var(--muted);font-size:12px;font-weight:500}section p.lead{margin:0 0 10px;color:var(--muted);font-size:13px;line-height:1.5}.hr{border:0;border-top:1px solid var(--line);margin:12px 0}.login-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:end}.login-row label{font-size:12px;color:var(--muted-strong);font-weight:700;display:block;margin-bottom:5px}.login-row input{width:100%;height:36px;padding:0 11px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:#fff}.login-row input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px #107c411f}.login-meta{margin-top:8px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:12px}.login-meta label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}.login-meta input{accent-color:var(--green)}.ghost-link{background:none;border:0;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;padding:0}.ghost-link:hover{color:var(--text)}.status{min-height:18px;margin-top:8px;color:var(--muted);font-size:12.5px}.status.bad{color:var(--danger)}.locked-note{margin-top:8px;padding:10px 12px;border:1px dashed var(--line-strong);border-radius:var(--radius-sm);background:#f8fafb;color:var(--muted);font-size:12.5px;line-height:1.5}body:not(.auth-locked) .locked-note{display:none}body.auth-locked .admin-protected{display:none!important}.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:34px;padding:0 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:#fff;color:var(--text);font-weight:600;cursor:pointer;white-space:nowrap;transition:background-color .12s,border-color .12s,color .12s,transform .06s}.btn:hover{background:#f5f7f9;border-color:#b5bec7}.btn:active{transform:translateY(.5px)}.btn:disabled{opacity:.5;cursor:not-allowed}.btn.primary{background:var(--green);border-color:var(--green);color:#fff}.btn.primary:hover{background:#0d6b39;border-color:#0d6b39}.btn.danger{color:var(--danger);border-color:#f0c4c4;background:#fff}.btn.danger:hover{background:var(--danger-soft);border-color:#e69a9a}.btn.danger-solid{background:var(--danger);border-color:var(--danger);color:#fff}.btn.danger-solid:hover{background:#9b2424;border-color:#9b2424}.btn.sm{height:28px;padding:0 9px;font-size:12px;font-weight:600}.btn.icon{padding:0;width:28px;height:28px}.tabbar{display:flex;gap:2px;background:#fff;padding:6px;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}.tabbar::-webkit-scrollbar{display:none}.tabbar button{flex:1 1 auto;min-width:max-content;height:36px;padding:0 14px;border:0;background:transparent;color:var(--muted-strong);font-weight:700;font-size:13px;border-radius:var(--radius-sm);cursor:pointer;transition:background-color .12s,color .12s;white-space:nowrap}.tabbar button:hover{background:#f3f5f7;color:var(--text)}.tabbar button.active{background:var(--green-soft);color:var(--green)}.tabbar button .tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:#0f172a0f;color:var(--muted-strong);font-size:11px;font-weight:700}.tabbar button.active .tab-count{background:#107c412e;color:var(--green)}.panel{display:none}.panel.active{display:block}.form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px}.field{min-width:0;display:flex;flex-direction:column}.field.col-2{grid-column:span 2}.field.col-3{grid-column:span 3}.field.col-4{grid-column:1 / -1}.field label{margin:0 0 5px;font-size:12px;font-weight:700;color:var(--muted-strong)}.field input,.field select,.field textarea{width:100%;height:34px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:#fff;outline:none}.field textarea{padding:8px 10px;min-height:38px;resize:vertical;line-height:1.45}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px #107c411f}.field .help{margin:5px 0 0;color:var(--muted);font-size:11.5px;line-height:1.4}.field-check{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fafbfc;cursor:pointer;font-size:12.5px;color:var(--muted-strong);font-weight:600}.field-check input{width:15px;height:15px;margin:0;accent-color:var(--green)}.field-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;align-items:center}.inline-status{color:var(--muted);font-size:12px}.inline-status.ok{color:var(--green)}.inline-status.bad{color:var(--danger)}.subsection-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:12px 0 8px}.subsection-head h3{margin:0;font-size:14px;font-weight:800;color:var(--text)}.subsection-head .hint{color:var(--muted);font-size:12px;font-weight:500}.ad-linked-report{padding-top:2px}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;max-width:100%}.chat-msg-pager{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:10px 8px 2px}.chat-msg-pager[hidden]{display:none}.chat-msg-pageinfo{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{padding:9px 10px;border-bottom:1px solid #eef1f4;text-align:left;vertical-align:top;font-size:12.5px;overflow:hidden}th{position:sticky;top:0;background:#f7f9fb;color:var(--muted-strong);font-weight:700;font-size:11.5px;letter-spacing:.02em;text-transform:uppercase;z-index:1}tbody tr:hover{background:#fafcfd}tr.deleted,tr.hidden,tr.expired{opacity:.6;background:#fafafa}tr.expired:hover{background:#f6f6f6}code{font-family:ui-monospace,Menlo,Consolas,monospace;color:#46535f;font-size:11.5px;background:#f3f5f7;padding:1px 5px;border-radius:3px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}.actions{display:flex;flex-wrap:wrap;gap:5px}.admin-ban-menu{position:relative;display:inline-flex;align-items:center;vertical-align:middle}.admin-ban-menu>summary{list-style:none}.admin-ban-menu>summary::-webkit-details-marker{display:none}.admin-ban-menu>summary.btn{height:28px;margin:0;padding:0 9px;color:var(--danger);border-color:#f0c4c4;background:#fff}.admin-ban-menu>summary.btn:hover{background:var(--danger-soft);border-color:#e69a9a}.admin-ban-menu[open]>summary.btn{margin-bottom:0;background:var(--danger-soft);border-color:#e69a9a}.admin-ban-options{position:absolute;right:0;top:calc(100% + 4px);z-index:20;grid-template-columns:repeat(2,max-content);gap:5px;padding:7px;background:#fff;border:1px solid var(--line-strong);border-radius:var(--radius-sm);box-shadow:0 8px 20px #0f172a21}.admin-ban-menu:not([open])>.admin-ban-options{display:none}.admin-ban-menu[open]>.admin-ban-options{display:grid}.admin-ban-options .btn{justify-content:center;min-width:58px}.admin-actions-cell{overflow:visible}.pill{display:inline-flex;align-items:center;height:20px;padding:0 7px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:#fff;font-size:11px;font-weight:600;white-space:nowrap}.pill.ok{color:var(--green);background:var(--green-soft);border-color:#bfe1cd}.pill.bad{color:var(--danger);background:var(--danger-soft);border-color:#f0c4c4}.pill.warn{color:var(--warn);background:var(--warn-soft);border-color:#e8d39a}.body-cell{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}.ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ellipsis-link{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}.ad-card{display:flex;flex-direction:column;gap:8px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;position:relative;transition:border-color .12s,box-shadow .12s}.ad-card:hover{border-color:#cdd5dc;box-shadow:0 4px 14px #0f172a0d}.ad-card.is-inactive{background:#fafbfc;opacity:.72}.ad-card.is-editing{border-color:var(--green);box-shadow:0 0 0 3px #107c411f}.ad-card-head{display:flex;align-items:center;gap:8px;min-width:0;min-height:24px}.ad-card-id{flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#46535f;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ad-card-badges{display:flex;gap:5px;flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end;min-width:0}.ad-card-body{font-size:12.5px;line-height:1.45;color:var(--text);white-space:pre-wrap;word-break:break-word;display:flex;flex-direction:column;gap:3px}.ad-card-body .ad-text-line{padding:5px 8px;background:#fafbfc;border:1px solid #eef1f4;border-radius:5px}.ad-card-link{font-size:12px;color:#0563c1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px}.ad-card-link:before{content:"↗";color:var(--muted);flex:0 0 auto}.ad-card-meta{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding-top:7px;border-top:1px dashed var(--line)}.ad-card-meta-item{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted-strong)}.ad-card-meta-item .meta-label{color:var(--muted);font-weight:600}.ad-card-weight-input{width:64px;height:26px;padding:0 6px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);font:inherit;font-size:12px;text-align:right}.ad-card-weight-input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 2px #107c4126}.ad-card-share{color:var(--green);font-weight:700;font-variant-numeric:tabular-nums}.ad-card-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.ad-card-actions .btn{flex:1 1 auto;min-width:60px}.ad-card-actions .btn.icon-only{flex:0 0 auto;min-width:32px}.ad-empty{grid-column:1 / -1;text-align:center;color:var(--muted);padding:28px 12px;border:1px dashed var(--line);border-radius:var(--radius);background:#fafbfc;font-size:13px}.token-result{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin:12px 0;padding:10px;border:1px solid #bfe1cd;border-radius:var(--radius-sm);background:#f7fcf9}.token-result[hidden]{display:none}.token-result label{display:block;margin:0 0 5px;font-size:12px;font-weight:700;color:var(--green)}.token-result input{width:100%;height:34px;border:1px solid #bfe1cd;border-radius:var(--radius-sm);padding:0 9px;background:#fff;font:12px/1.2 ui-monospace,Menlo,Consolas,monospace;color:#254236}.token-note{margin:7px 0 0;color:#456154;font-size:12px;line-height:1.45}.report-card-token{margin:2px 0;box-shadow:none}.report-legend{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 10px;color:var(--muted);font-size:11.5px}.report-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}.report-card{display:flex;flex-direction:column;gap:8px;min-width:0;border:1px solid var(--line);border-radius:var(--radius);background:#fff;padding:12px 14px}.report-card.is-inactive{opacity:.72;background:#fafbfc}.report-card.is-editing{border-color:var(--green);box-shadow:0 0 0 3px #107c411f}.report-card-head{display:flex;gap:8px;align-items:flex-start;min-width:0}.report-card-id{flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#46535f;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.report-card-status{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.report-card-title{font-size:13px;font-weight:800;color:var(--text);line-height:1.35}.report-card-meta{display:flex;flex-wrap:wrap;gap:6px;color:var(--muted);font-size:11.5px}.report-card-meta code{max-width:210px}.report-card-facts{display:grid;gap:5px;padding:8px 0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}.report-fact{display:flex;gap:8px;min-width:0;font-size:12px;line-height:1.35}.report-fact .k{flex:0 0 74px;color:var(--muted);font-weight:700}.report-fact .v{min-width:0;color:var(--muted-strong);overflow:hidden;text-overflow:ellipsis}.report-card-note{padding:7px 8px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fafbfc;color:var(--muted-strong);font-size:12px;line-height:1.45}.report-card-note.warn{color:var(--warn);background:var(--warn-soft);border-color:#e8d39a}.report-card-note.ok{color:var(--green);background:var(--green-soft);border-color:#bfe1cd}.report-card-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.report-card-actions .btn{flex:1 1 auto;min-width:70px}.poll-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}.poll-card{display:flex;flex-direction:column;gap:8px;min-width:0;border:1px solid var(--line);border-radius:var(--radius);background:#fff;padding:12px 14px}.poll-card.is-managed{border-color:#bfe1cd;background:#fbfffc}.poll-card.is-disabled{opacity:.72;background:#fafbfc}.poll-card-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.poll-card-title{font-size:13px;font-weight:800;color:var(--text);line-height:1.35}.poll-card-question{font-size:13px;line-height:1.45;color:var(--muted-strong);word-break:break-word}.poll-card-options{display:flex;flex-wrap:wrap;gap:5px}.poll-card-meta{display:flex;flex-wrap:wrap;gap:5px;color:var(--muted);font-size:11.5px}.poll-card-actions{display:flex;flex-wrap:wrap;gap:5px}.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}.stat-tile{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;text-align:left;transition:border-color .12s,background-color .12s}.stat-tile:hover{border-color:#bfe1cd;background:#fafdfb}.stat-tile .stat-num{font-size:20px;font-weight:800;color:var(--green);line-height:1.1}.stat-tile .stat-label{margin-top:3px;color:var(--muted-strong);font-size:12px;font-weight:600}.term-input-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}.term-input-row input{flex:1 1 240px;min-width:200px;height:34px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm)}.term-input-row input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px #107c411f}.term-chips{display:flex;flex-wrap:wrap;gap:5px;padding:8px;border:1px dashed var(--line);border-radius:var(--radius-sm);min-height:42px;background:#fcfdfe}.term-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 6px 0 9px;background:#fff;border:1px solid var(--line-strong);border-radius:999px;font-size:12px;color:var(--text)}.term-chip button{border:0;background:transparent;color:var(--muted);font-weight:700;cursor:pointer;height:18px;width:18px;border-radius:50%;font-size:13px;line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center}.term-chip button:hover{background:#fff1f1;color:var(--danger)}.term-chip.builtin{background:#f4f7fa;color:var(--muted-strong);border-color:#dbe2e9}.builtin-groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}.builtin-group{border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px 10px;background:#fafbfc}.builtin-group h3{margin:0 0 5px;font-size:12.5px;color:var(--muted-strong);font-weight:700;display:flex;justify-content:space-between;align-items:center}.builtin-group h3 .count{color:var(--muted);font-weight:500;font-size:11px}.builtin-group .chips{display:flex;flex-wrap:wrap;gap:4px}.builtin-group .chips .term-chip{font-size:11px;padding:0 8px;height:21px;cursor:default}summary{cursor:pointer;color:var(--muted-strong);font-weight:700;font-size:13px;padding:6px 0}summary:hover{color:var(--text)}details[open] summary{margin-bottom:8px}.empty{text-align:center;color:var(--muted);font-size:13px;padding:20px 8px}.empty-row td{text-align:center;color:var(--muted);font-size:13px;padding:18px 8px}#toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%);background:#1f2329;color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:600;box-shadow:0 8px 22px #0000002e;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:50;max-width:90vw}#toast.show{opacity:1;transform:translate(-50%) translateY(-2px)}#toast.bad{background:#9b2424}#toast.ok{background:#0d6b39}@media (max-width:760px){.topbar-inner{padding:8px 12px}main{padding:10px 12px 40px}section{padding:12px}.login-row{grid-template-columns:1fr}.form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.field.col-3{grid-column:span 2}.stat-strip{grid-template-columns:repeat(2,1fr)}.token-result{grid-template-columns:1fr}table{min-width:520px;font-size:12px}th,td{padding:8px}.body-cell{max-width:240px}.builtin-groups{grid-template-columns:1fr}.msg-tablewrap{overflow:visible;border:0;background:transparent}.msg-table{min-width:0;table-layout:auto;display:block}.msg-table colgroup,.msg-table thead{display:none}.msg-table tbody{display:block}.msg-table tbody tr{display:block;border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px 10px;margin:0 0 8px;background:#fff}.msg-table td{display:block;width:auto;max-width:none;padding:2px 0;border:0}.msg-table .body-cell{max-width:none;font-size:13px;line-height:1.5;margin:5px 0;color:var(--text)}.msg-table .admin-actions-cell .actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}}@media (max-width:480px){.form-grid{grid-template-columns:1fr}.field.col-2,.field.col-3{grid-column:span 1}.card-grid,.report-grid,.poll-grid{grid-template-columns:1fr}.badge.hide-tight{display:none}}
+</style>
+</head>
+<body class="auth-locked">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="brand-dot"></span>excelkospi <small>관리</small></div>
+      <div class="top-spacer"></div>
+      <div class="top-actions">
+        <span class="badge" id="loginBadge">로그인 필요</span>
+        <a class="home-link" href="/" aria-label="사이트로 돌아가기">사이트로 ↗</a>
+      </div>
+    </div>
+  </div>
+  <main>
+    <section id="loginCard">
+      <h2>관리자 로그인 <span class="hint">토큰은 이 브라우저 세션에만 저장됩니다</span></h2>
+      <div class="login-row">
+        <div>
+          <label for="adminToken">관리자 토큰</label>
+          <input id="adminToken" type="password" autocomplete="off" placeholder="관리자 토큰" spellcheck="false">
+        </div>
+        <button class="btn primary" id="loadBtn" type="button">로그인</button>
+        <button class="btn" id="clearTokenBtn" type="button">지우기</button>
+      </div>
+      <div class="login-meta">
+        <label><input id="rememberToken" type="checkbox"> 이 기기에 토큰 저장</label>
+        <button class="ghost-link" id="toggleTokenBtn" type="button">토큰 보기</button>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="locked-note" id="lockedNote">토큰 인증 전에는 관리 도구가 잠겨 있습니다.</div>
+    </section>
+    <div class="admin-protected" id="adminProtected" hidden aria-hidden="true">
+      <div class="tabbar" role="tablist">
+        <button type="button" data-tab="moderation" class="active" role="tab" aria-selected="true">메시지·추방 <span class="tab-count" id="cntModeration">0</span></button>
+        <button type="button" data-tab="terms" role="tab" aria-selected="false">차단 키워드 <span class="tab-count" id="cntTerms">0</span></button>
+        <button type="button" data-tab="polls" role="tab" aria-selected="false">투표 <span class="tab-count" id="cntPolls">0</span></button>
+        <button type="button" data-tab="donors" role="tab" aria-selected="false">후원자 <span class="tab-count" id="cntDonors">0</span></button>
+        <button type="button" data-tab="ads" role="tab" aria-selected="false">광고·리포트 <span class="tab-count" id="cntAds">0</span></button>
+      </div>
+      
+      <div class="panel active" data-panel="moderation" role="tabpanel">
+        <section>
+          <h2>사용자 직접 처리 <span class="hint">user_id 로 바로 추방·해제</span></h2>
+          <div class="form-grid">
+            <div class="field col-2">
+              <label for="manualUser">사용자 ID</label>
+              <input id="manualUser" type="text" placeholder="web_...">
+            </div>
+            <div class="field col-2" style="justify-content:flex-end">
+              <div class="field-actions manual-ban-actions">
+                <button class="btn danger" type="button" data-manual-ban-hours="1">1시간</button>
+                <button class="btn danger" type="button" data-manual-ban-hours="2">2시간</button>
+                <button class="btn danger" type="button" data-manual-ban-hours="6">6시간</button>
+                <button class="btn danger" type="button" data-manual-ban-hours="12">12시간</button>
+                <button class="btn danger-solid" id="manualBanBtn" type="button" data-manual-ban-hours="24">1일</button>
+                <button class="btn" id="manualUnbanBtn" type="button">추방 해제</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section>
+          <h2>채팅 링크 허용 <span class="hint">뉴스·유튜브처럼 안전한 도메인만 자동 링크</span></h2>
+          <p class="lead">허용 목록에 있는 도메인과 그 하위 도메인만 채팅에서 클릭 가능한 링크로 표시됩니다. 링크 미리보기나 외부 요청은 하지 않습니다.</p>
+          <div class="form-grid">
+            <div class="field col-4">
+              <label class="field-check" style="width:max-content">
+                <input id="chatLinkEnabled" type="checkbox">
+                채팅 URL 자동 링크 사용
+              </label>
+            </div>
+            <div class="field col-4">
+              <label for="chatLinkDomains">허용 도메인</label>
+              <textarea id="chatLinkDomains" rows="6" spellcheck="false" placeholder="naver.com&#10;daum.net&#10;yna.co.kr&#10;mk.co.kr&#10;reuters.com&#10;youtube.com"></textarea>
+              <p class="help">한 줄에 하나씩 입력하세요. <code>naver.com</code>을 허용하면 <code>news.naver.com</code>도 함께 허용됩니다.</p>
+            </div>
+          </div>
+          <div class="field-actions">
+            <button class="btn primary" id="chatLinkSaveBtn" type="button">링크 정책 저장</button>
+            <button class="btn" id="chatLinkRefreshBtn" type="button">새로고침</button>
+            <button class="btn danger" id="chatLinkResetBtn" type="button">기본값 복원</button>
+            <span class="inline-status" id="chatLinkStatus"></span>
+          </div>
+        </section>
+        <section>
+          <h2>첫 글 쿨다운 <span class="hint">첫 접속(새 신원) 후 N초 뒤부터 글·채팅 가능 · 도배/스팸 방지</span></h2>
+          <p class="lead">새 사용자(또는 브라우저·주소·캐시를 바꾼 신원)는 첫 글/채팅을 이 시간만큼 기다려야 합니다. <strong>0이면 끔.</strong> 채팅·게시판 공통으로 적용됩니다. (밴은 별도로 IP+UA 기준이라 주소를 바꿔도 풀리지 않습니다.)</p>
+          <div style="display:flex;align-items:center;gap:10px;margin:8px 0">
+            <label for="firstWriteCooldownInput" style="font-weight:600">쿨다운(초)</label>
+            <input id="firstWriteCooldownInput" type="number" min="0" max="600" step="5" inputmode="numeric" style="width:120px;height:34px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:0 9px">
+          </div>
+          <div class="field-actions">
+            <button class="btn primary" id="firstWriteCooldownSaveBtn" type="button">저장</button>
+            <button class="btn" id="firstWriteCooldownRefreshBtn" type="button">새로고침</button>
+            <span class="inline-status" id="firstWriteCooldownStatus"></span>
+          </div>
+        </section>
+        <section>
+          <h2>시세 갱신 주기 <span class="hint">접속자 수 구간별 새로고침 주기(초)</span></h2>
+          <p class="lead">접속자가 많아질수록 시세를 덜 자주 받아 외부 호출(네이버 등)을 아낍니다. 값이 작을수록 빠르지만 호출이 늘어납니다. 30~300초 범위로 저장되며, 폴링 주기와 캐시 시간이 함께 움직입니다. 반영까지 최대 1분.</p>
+          <div id="quoteTiersWrap" class="tablewrap"><span class="inline-status">불러오는 중…</span></div>
+          <div class="field-actions">
+            <button class="btn primary" id="quoteTiersSaveBtn" type="button">갱신 주기 저장</button>
+            <button class="btn" id="quoteTiersRefreshBtn" type="button">새로고침</button>
+            <button class="btn danger" id="quoteTiersResetBtn" type="button">기본값 복원</button>
+            <span class="inline-status" id="quoteTiersStatus"></span>
+          </div>
+        </section>
+        <section>
+          <h2>신고로 가려진·삭제된 글 <span class="hint">채팅 삭제 + 게시판 신고가림(8회+)을 한곳에 모아봅니다</span></h2>
+          <div class="tablewrap">
+            <table>
+              <colgroup>
+                <col style="width:128px">
+                <col style="width:148px">
+                <col style="width:150px">
+                <col>
+                <col style="width:56px">
+              </colgroup>
+              <thead>
+                <tr><th>시각</th><th>출처</th><th>작성자</th><th>내용</th><th>신고</th></tr>
+              </thead>
+              <tbody id="reportedRows"><tr class="empty-row"><td colspan="5">채팅을 불러오면 함께 표시됩니다.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+        <section>
+          <h2>현재 추방 목록 <span class="hint">닉네임·사유·저장 위치를 함께 표시</span></h2>
+          <div class="field-actions" style="margin:0 0 10px">
+            <button class="btn" id="refreshBansBtn" type="button">목록 새로고침</button>
+            <button class="btn danger" id="clearPoliticalMutesBtn" type="button">정치 제한만 해제</button>
+            <button class="btn danger" id="clearBansBtn" type="button">전체 추방 해제</button>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <colgroup>
+                <col style="width:230px">
+                <col style="width:140px">
+                <col>
+                <col style="width:80px">
+              </colgroup>
+              <thead>
+                <tr><th>사용자</th><th>해제 시각</th><th>사유</th><th>처리</th></tr>
+              </thead>
+              <tbody id="banRows"><tr class="empty-row"><td colspan="4">현재 추방된 사용자가 없습니다.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+        <section>
+          <h2>종토방 차단 목록 <span class="hint">신고 누적·신고 남용·관리자 차단</span></h2>
+          <p class="lead">종토방 신고는 일반 사용자 기준 1시간 4회 제한이 유지되고, 신고로 가려진 작성자는 6시간 차단됩니다. 6시간 내 15회 이상 신고하면 신고자는 24시간 차단됩니다. 관리자는 신고 횟수 제한이 없습니다.</p>
+          <div class="field-actions" style="margin:0 0 10px">
+            <button class="btn" id="refreshCommunityBansBtn" type="button">종토방 차단 새로고침</button>
+            <button class="btn danger" id="clearCommunityBansBtn" type="button">기존 종토방 차단 초기화</button>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <colgroup>
+                <col style="width:230px">
+                <col style="width:140px">
+                <col>
+                <col style="width:80px">
+              </colgroup>
+              <thead>
+                <tr><th>사용자</th><th>해제 시각</th><th>사유</th><th>처리</th></tr>
+              </thead>
+              <tbody id="communityBanRows"><tr class="empty-row"><td colspan="4">현재 종토방 차단 사용자가 없습니다.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+        <section>
+          <h2>채팅 전체 목록 <span class="hint">신고 받은 글, 차단어 글, 일반 글 모두 · 200개씩</span></h2>
+          <div class="tablewrap msg-tablewrap">
+            <table class="msg-table">
+              <colgroup>
+                <col style="width:118px">
+                <col style="width:170px">
+                <col>
+                <col style="width:64px">
+                <col style="width:240px">
+              </colgroup>
+              <thead>
+                <tr><th>시각·ID</th><th>사용자</th><th>메시지</th><th>신고</th><th>처리</th></tr>
+              </thead>
+              <tbody id="messageRows"><tr class="empty-row"><td colspan="5">불러오면 표시됩니다.</td></tr></tbody>
+            </table>
+          </div>
+          <div class="chat-msg-pager" id="chatMsgPager" hidden></div>
+        </section>
+      </div>
+      
+      <div class="panel" data-panel="terms" role="tabpanel">
+        <section>
+          <h2>차단 키워드 관리 <span class="hint">채팅 + 종토방 공통</span></h2>
+          <p class="lead">관리자가 추가한 키워드는 채팅과 종목토론방 두 곳 모두에서 즉시 적용됩니다. 같은 단어 변형(공백·구두점·대소문자)은 자동으로 정규화돼 한 번에 잡힙니다. <strong>4회 누적 시 자동 30분 추방</strong>됩니다.</p>
+          <div class="term-input-row">
+            <input id="termInput" type="text" maxlength="40" placeholder="추가할 키워드를 입력 (쉼표나 줄바꿈으로 여러 개)" spellcheck="false">
+            <button class="btn primary" id="termAddBtn" type="button">추가</button>
+            <button class="btn" id="termRefreshBtn" type="button">새로고침</button>
+            <button class="btn danger" id="termClearBtn" type="button">사용자 추가 전체 삭제</button>
+          </div>
+          <div class="term-chips" id="customTerms" aria-live="polite">
+            <span class="inline-status">불러오면 표시됩니다.</span>
+          </div>
+          <details style="margin-top:14px">
+            <summary>기본 내장 키워드 (수정 불가)</summary>
+            <div class="builtin-groups" id="builtinGroups"></div>
+          </details>
+        </section>
+      </div>
+      
+      <div class="panel" data-panel="polls" role="tabpanel">
+        <section>
+          <h2>투표 관리 <span class="hint">종토방과 채팅 말풍선이 같은 집계를 사용</span></h2>
+          <p class="lead">채널별 질문과 선택지를 저장하면 해당 채널의 일일 투표에 바로 반영됩니다. 질문이나 선택지를 바꾸면 새 버전으로 집계되어 기존 표와 섞이지 않습니다.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="pollChannel">채널</label>
+              <select id="pollChannel">
+                <option value="kr">국내주식토론</option>
+                <option value="us">해외주식토론</option>
+                <option value="coin">코인토론</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>상태</label>
+              <label class="field-check" style="width:max-content"><input id="pollEnabled" type="checkbox" checked> 투표 노출</label>
+            </div>
+            <div class="field col-2">
+              <label for="pollQuestion">질문 *</label>
+              <input id="pollQuestion" type="text" maxlength="100" placeholder="예: 내일 장은 어떻게 보세요?">
+            </div>
+            <div class="field col-2">
+              <label for="pollOptions">선택지 * <span style="color:var(--muted);font-weight:500;font-size:11px">2~4개, 줄바꿈 또는 쉼표 구분</span></label>
+              <textarea id="pollOptions" rows="3" maxlength="140" placeholder="상승&#10;하락&#10;보합"></textarea>
+            </div>
+            <div class="field">
+              <label for="pollKicker">종토방 배지 문구</label>
+              <input id="pollKicker" type="text" maxlength="24" placeholder="비우면 자동">
+            </div>
+            <div class="field">
+              <label for="pollTimeLabel">종토방 시간 라벨</label>
+              <input id="pollTimeLabel" type="text" maxlength="16" placeholder="비우면 자동">
+            </div>
+          </div>
+          <div class="field-actions">
+            <button class="btn primary" id="pollSaveBtn" type="button">투표 저장</button>
+            <button class="btn" id="pollPublishChatBtn" type="button" title="국내주식 투표를 지금 채팅방 말풍선으로 띄웁니다">지금 채팅방에 띄우기</button>
+            <button class="btn" id="pollResetConfigBtn" type="button">이 채널 기본값 복원</button>
+            <button class="btn" id="pollRefreshBtn" type="button">투표 새로고침</button>
+            <span class="inline-status" id="pollStatus"></span>
+          </div>
+        </section>
+        <section>
+          <h2>현재 투표</h2>
+          <div class="poll-grid" id="pollRows">
+            <div class="ad-empty">불러오면 표시됩니다.</div>
+          </div>
+        </section>
+      </div>
+      
+      <div class="panel" data-panel="donors" role="tabpanel">
+        <section id="donors">
+          <h2>후원자 (커피값) 관리 <span class="hint">채팅 헤더 마퀴에 닉네임·금액 노출</span></h2>
+          <p class="lead">입금 확인 후 추가하면 채팅창 상단 마퀴에 잠시 표시됩니다. 기본 노출 기간은 <strong>3일</strong>이며 만료 시 자동 사라집니다.</p>
+          <details open>
+            <summary>마퀴 좌측 라벨 문구</summary>
+            <div class="form-grid">
+              <div class="field col-3">
+                <label for="donorPrefix">라벨 (예: 커피값 보내주신 분들)</label>
+                <input id="donorPrefix" type="text" maxlength="60" placeholder="비워두면 라벨이 사라집니다">
+                <p class="help">이모지·구두점 OK · 최대 60자</p>
+              </div>
+              <div class="field" style="justify-content:flex-end">
+                <div class="field-actions" style="margin-top:auto">
+                  <button class="btn primary" id="donorPrefixSaveBtn" type="button">라벨 저장</button>
+                </div>
+                <span class="inline-status" id="donorPrefixStatus"></span>
+              </div>
+            </div>
+          </details>
+          <hr class="hr">
+          <h2 style="margin-top:6px">새 후원자 추가</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label for="donorNick">닉네임</label>
+              <input id="donorNick" type="text" maxlength="24" placeholder="익명 / 닉네임">
+            </div>
+            <div class="field">
+              <label for="donorAmount">금액 (원)</label>
+              <input id="donorAmount" type="number" min="100" step="100" inputmode="numeric" placeholder="5000">
+            </div>
+            <div class="field">
+              <label for="donorDonatedAt">입금 시각</label>
+              <input id="donorDonatedAt" type="datetime-local">
+            </div>
+            <div class="field">
+              <label for="donorDays">노출 기간 (일)</label>
+              <input id="donorDays" type="number" min="1" max="14" step="1" value="3">
+            </div>
+            <div class="field col-4">
+              <label for="donorNote">짧은 메모 (선택)</label>
+              <textarea id="donorNote" maxlength="80" placeholder="감사 인사 또는 짧은 메시지 (최대 80자)"></textarea>
+            </div>
+          </div>
+          <div class="field-actions">
+            <button class="btn primary" id="donorAddBtn" type="button">추가</button>
+            <button class="btn" id="donorResetBtn" type="button">폼 초기화</button>
+            <button class="btn" id="donorRefreshBtn" type="button">목록 새로고침</button>
+            <button class="btn" id="donorPruneBtn" type="button">만료 정리</button>
+          </div>
+        </section>
+        <section>
+          <h2>등록된 후원자</h2>
+          <div class="tablewrap">
+            <table>
+              <colgroup>
+                <col style="width:130px">
+                <col style="width:100px">
+                <col style="width:130px">
+                <col style="width:90px">
+                <col>
+                <col style="width:74px">
+              </colgroup>
+              <thead>
+                <tr><th>닉네임</th><th>금액</th><th>입금 시각</th><th>노출 종료</th><th>메모</th><th>처리</th></tr>
+              </thead>
+              <tbody id="donorRows"><tr class="empty-row"><td colspan="6">불러오면 표시됩니다.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      
+      <div class="panel" data-panel="ads" role="tabpanel">
+        <section id="adInventory">
+          <h2>등록된 광고 <span class="hint">광고 카드에서 수정·리포트·노출 상태를 바로 처리</span></h2>
+          <p class="lead">운영 기준은 광고 카드가 중심입니다. 리포트가 연결된 광고는 카드에서 집계 상태를 함께 확인할 수 있습니다.</p>
+          <div class="card-grid" id="adRows">
+            <div class="ad-empty">불러오면 표시됩니다.</div>
+          </div>
+        </section>
+        <section id="ads">
+          <h2>광고 등록·수정 <span class="hint">저장 후 같은 흐름에서 리포트 토큰 준비</span></h2>
+          <p class="lead"><strong>가중치</strong>는 전체 활성 광고 합계 중 비율 (A=1, B=3 → A 25%, B 75%). <strong>식별자</strong>는 GA4 <code>ad_id</code> 이벤트로 기록돼 동일 광고의 노출·클릭을 누적합니다.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="adId">식별자 *</label>
+              <input id="adId" type="text" maxlength="40" placeholder="iphone15_may" spellcheck="false">
+              <p class="help">영문·숫자·_·- 권장. 수정 중에는 고정.</p>
+            </div>
+            <div class="field">
+              <label for="adLabel">배지 텍스트</label>
+              <input id="adLabel" type="text" maxlength="16" placeholder="광고 / 알림 / 후원" value="광고">
+            </div>
+            <div class="field">
+              <label for="adWeight">노출 가중치</label>
+              <input id="adWeight" type="number" min="0" max="100" step="0.1" value="1">
+            </div>
+            <div class="field">
+              <label for="adStartAt">시작 시각</label>
+              <input id="adStartAt" type="datetime-local">
+              <p class="help">비워두면 바로 노출됩니다. 한국시간 기준.</p>
+            </div>
+            <div class="field">
+              <label for="adEndAt">종료 시각</label>
+              <input id="adEndAt" type="datetime-local">
+              <p class="help">비워두면 종료 없이 계속 노출됩니다.</p>
+            </div>
+            <div class="field" style="justify-content:end">
+              <label>게재 위치</label>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:auto">
+                <label class="field-check"><input id="adPlaceChat" type="checkbox" checked> 채팅창</label>
+                <label class="field-check"><input id="adPlaceCommunity" type="checkbox" checked> 종토방</label>
+                <label class="field-check"><input id="adPlaceSummary" type="checkbox" checked> 시세창 하단</label>
+              </div>
+            </div>
+            <div class="field col-4">
+              <label for="adText">문구 목록 * <span style="color:var(--muted);font-weight:500;font-size:11px">한 줄에 하나, 최대 8개 (랜덤 회전)</span></label>
+              <textarea id="adText" maxlength="800" rows="3" placeholder="예: 애플 아이폰 15, 지금 바로 구매하세요"></textarea>
+            </div>
+            <div class="field col-4">
+              <label for="adHref">링크 URL (선택)</label>
+              <input id="adHref" type="text" maxlength="400" placeholder="https://... 또는 mailto:...">
+              <p class="help">기본은 모든 문구가 이 링크 하나를 함께 사용합니다.</p>
+            </div>
+            <div class="field col-4">
+              <label class="field-check" style="font-weight:600">
+                <input id="adPerTextLinkToggle" type="checkbox"> 문구마다 링크 따로 지정
+              </label>
+              <p class="help">옵션. 켜면 아래에 각 문구별 링크 칸이 나오고, 비워두면 위 기본 링크로 자동 fallback. GA 광고 집계는 동일 광고 ID 로 묶입니다.</p>
+              <div id="adPerTextLinkList" hidden style="display:flex;flex-direction:column;gap:6px;margin-top:6px"></div>
+            </div>
+          </div>
+          <div class="field-actions">
+            <button class="btn primary" id="adAddBtn" type="button">광고 저장</button>
+            <button class="btn" id="adSaveReportBtn" type="button">저장 후 리포트 준비</button>
+            <button class="btn" id="adCancelEditBtn" type="button" hidden>수정 취소</button>
+            <button class="btn" id="adResetBtn" type="button">폼 초기화</button>
+            <button class="btn" id="adRefreshBtn" type="button">목록 새로고침</button>
+          </div>
+          <hr class="hr">
+          <div id="adReports" class="ad-linked-report">
+            <div class="subsection-head">
+              <h3>선택한 광고의 리포트 토큰</h3>
+              <span class="hint">광고 하나 → 리포트 하나 → 링크 하나</span>
+            </div>
+            <p class="lead">광고 카드의 <strong>리포트 발급</strong>을 누르거나 위에서 <strong>저장 후 리포트 준비</strong>를 누르면 광고 식별자가 자동으로 들어갑니다. 토큰 원문은 저장하지 않으므로 새 링크를 발급하면 이전 링크는 만료됩니다.</p>
+            <div class="form-grid">
+              <div class="field">
+                <label for="reportId">리포트 ID *</label>
+                <input id="reportId" type="text" maxlength="64" placeholder="prohealth-nmn-2026-05" spellcheck="false">
+                <p class="help">광고주 링크의 <code>id</code> 값입니다.</p>
+              </div>
+              <div class="field">
+                <label for="reportAdvertiser">광고주 *</label>
+                <input id="reportAdvertiser" type="text" maxlength="80" placeholder="프로헬스">
+              </div>
+              <div class="field col-2">
+                <label for="reportCampaign">캠페인명 *</label>
+                <input id="reportCampaign" type="text" maxlength="120" placeholder="프로헬스 NMN 광고">
+              </div>
+              <div class="field col-2">
+                <label for="reportAdIds">광고 식별자 *</label>
+                <input id="reportAdIds" type="text" maxlength="240" placeholder="ad_xxx 또는 여러 개는 쉼표로 구분">
+                <p class="help">등록된 광고 카드의 식별자와 GA4 itemPromotionId를 기준으로 묶습니다.</p>
+              </div>
+              <div class="field">
+                <label for="reportStartDate">집계 시작 시각</label>
+                <input id="reportStartDate" type="datetime-local">
+                <p class="help">한국시간 기준. 기본값은 광고 계측 시작일 00:00입니다.</p>
+              </div>
+              <div class="field">
+                <label for="reportEndDate">집계 종료 시각</label>
+                <input id="reportEndDate" type="datetime-local">
+                <p class="help">비워두면 현재까지 자동 집계합니다.</p>
+              </div>
+              <div class="field">
+                <label for="reportCpc">CPC 단가 (원)</label>
+                <input id="reportCpc" type="number" min="0" step="1" inputmode="numeric" placeholder="150">
+                <p class="help">입력하면 리포트에 예상 비용, 도달당 비용, CPM을 표시합니다.</p>
+              </div>
+              <div class="field col-2">
+                <label for="reportCreativeIncludes">문구 포함 필터</label>
+                <input id="reportCreativeIncludes" type="text" maxlength="240" placeholder="예: 프로헬스, NMN">
+                <p class="help">같은 광고 ID에 여러 캠페인이 섞였을 때만 사용합니다.</p>
+              </div>
+              <div class="field col-2">
+                <label for="reportCreativeExcludes">문구 제외 필터</label>
+                <input id="reportCreativeExcludes" type="text" maxlength="240" placeholder="예: AI, 테스트">
+              </div>
+              <div class="field col-4">
+                <label for="reportNotes">광고주 노트</label>
+                <textarea id="reportNotes" maxlength="500" rows="2" placeholder="동일 광고 내 문구 로테이션과 30분 기준 노출 cap으로 보정한 기준입니다."></textarea>
+              </div>
+            </div>
+            <div class="field-actions">
+              <button class="btn primary" id="reportSaveBtn" type="button">토큰 발급</button>
+              <button class="btn" id="reportCancelEditBtn" type="button" hidden>수정 취소</button>
+              <button class="btn" id="reportResetBtn" type="button">리포트 폼 초기화</button>
+              <button class="btn" id="reportRefreshBtn" type="button">리포트 재집계 요청</button>
+            </div>
+          </div>
+        </section>
+        <section id="issuedReports">
+          <h2>발급된 리포트 <span class="hint">토큰 상태와 집계 반영 상태를 분리해서 확인</span></h2>
+          <div class="report-legend">
+            <span class="pill ok">링크 활성</span>
+            <span class="pill warn">집계 대기</span>
+            <span class="pill">원문 미저장</span>
+          </div>
+          <div class="report-grid" id="adReportRows">
+            <div class="ad-empty">불러오면 표시됩니다.</div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script>const TOKEN_KEY="excelkospi_admin_token_session",REMEMBER_TOKEN_KEY="excelkospi_admin_token_trusted_device",WORKERS_API_BASE="https://excelkospi-api.alaala3.workers.dev";function apiUrl(path){const value=String(path||"");if(/^https?:\/\//i.test(value)||!value.startsWith("/api/"))return value;const host=location.hostname,local=host==="localhost"||host==="127.0.0.1"||host===""||host.endsWith(".local")||location.protocol==="file:",pages=host==="excelkospi.pages.dev"||host.endsWith(".excelkospi.pages.dev");return local||pages?value:`${WORKERS_API_BASE}${value}`}const $=id=>document.getElementById(id);let latestAds=[],latestAdReports=[],latestCustomTerms=[],latestChatLinkPolicy=null,latestPolls=[],editingAdId="",editingReportId="",generatedReportLinkState=null;const statusEl=$("status"),loginBadge=$("loginBadge"),tokenInput=$("adminToken"),rememberInput=$("rememberToken"),toggleTokenBtn=$("toggleTokenBtn"),adminProtected=$("adminProtected"),rowsEl=$("messageRows"),bansEl=$("banRows"),communityBansEl=$("communityBanRows"),toastEl=$("toast");let toastTimer=null;const rememberedToken=localStorage.getItem(REMEMBER_TOKEN_KEY)||"";tokenInput.value=rememberedToken||sessionStorage.getItem(TOKEN_KEY)||"",rememberInput.checked=!!rememberedToken;function esc(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[ch])}function showToast(text,kind="ok"){toastEl&&(toastEl.textContent=text,toastEl.className="show "+(kind==="bad"?"bad":kind==="ok"?"ok":""),clearTimeout(toastTimer),toastTimer=setTimeout(()=>toastEl.classList.remove("show"),2200))}function setStatus(text,bad=!1){statusEl.textContent=text||"",statusEl.classList.toggle("bad",!!bad)}function setLoginState(state,text){loginBadge.textContent=text,loginBadge.classList.toggle("ok",state==="ok"),loginBadge.classList.toggle("bad",state==="bad")}function setAdminUnlocked(unlocked){document.body.classList.toggle("auth-locked",!unlocked),adminProtected&&(adminProtected.hidden=!unlocked,adminProtected.setAttribute("aria-hidden",unlocked?"false":"true"))}function friendlyError(error){const text=String(error||"");return text.includes("unauthorized")?"토큰이 맞지 않습니다. 기존 secret 값은 확인할 수 없으니 새 토큰으로 재발급해야 합니다.":text.includes("admin_token_not_configured")?"Cloudflare Pages에 CHAT_ADMIN_TOKEN secret이 설정되어 있지 않습니다.":text.includes("supabase_service_role_key_not_configured")?"Cloudflare Pages에 SUPABASE_SERVICE_ROLE_KEY secret이 없어 채팅 메시지 조회와 Supabase 추방 동기화가 제한됩니다.":text.includes("duplicate_id")?"이미 쓰고 있는 광고 식별자입니다. 다른 식별자를 입력하거나 기존 광고를 수정해 주세요.":text.includes("duplicate_report_id")?"이미 쓰고 있는 리포트 ID입니다. 기존 리포트를 수정하거나 다른 ID를 입력해 주세요.":text.includes("invalid_token_hash")?"토큰 해시 생성에 실패했습니다. 브라우저 보안 설정을 확인한 뒤 다시 시도해 주세요.":text.includes("invalid_report")?"리포트 필수값을 확인해 주세요. 리포트 ID, 광고주, 캠페인, 광고 식별자가 필요합니다.":text.includes("report_not_found")?"수정할 리포트를 찾지 못했습니다.":text.includes("github_workflow_token_missing")?"리포트 재집계용 GitHub 토큰이 API 런타임에 설정되어 있지 않습니다.":text.includes("workflow_dispatch_failed")?"리포트 재집계 워크플로우 요청에 실패했습니다. GitHub Actions 권한과 워크플로우 이름을 확인해 주세요.":text.includes("store_not_configured")?"D1/KV 저장소가 설정되어 있지 않아 차단 키워드를 저장할 수 없습니다.":text.includes("kv_not_configured")?"Cloudflare KV가 설정되어 있지 않아 저장할 수 없습니다.":text}function chatAdminWarningText(data){const warnings=Array.isArray(data?.warnings)?data.warnings:[],syncError=String(data?.syncError||data?.deletionError||"");return warnings.some(warning=>String(warning).includes("supabase_service_role_key_not_configured"))||syncError.includes("supabase_service_role_key_not_configured")?"SUPABASE_SERVICE_ROLE_KEY가 없어 채팅 메시지 조회와 Supabase 추방 동기화는 제한됩니다. D1 기준 추방 목록과 해제는 계속 작동합니다.":warnings.length?`채팅 관리 일부 로드 제한: ${warnings.map(friendlyError).join(", ")}`:syncError?`채팅 관리 일부 동기화 제한: ${friendlyError(syncError)}`:""}function handleAdminError(error){const raw=String(error?.message||error||""),authProblem=raw.includes("unauthorized")||raw.includes("admin_token_not_configured")||raw.includes("관리자 토큰을 입력")||raw.includes("토큰이 맞지");setLoginState(authProblem?"bad":"ok",authProblem?"확인 필요":"인증됨"),authProblem&&setAdminUnlocked(!1),showToast(friendlyError(raw),"bad"),setStatus(friendlyError(raw),!0)}function persistToken(value){value?sessionStorage.setItem(TOKEN_KEY,value):sessionStorage.removeItem(TOKEN_KEY),value&&rememberInput.checked?localStorage.setItem(REMEMBER_TOKEN_KEY,value):localStorage.removeItem(REMEMBER_TOKEN_KEY)}function token(){const value=tokenInput.value.trim();return persistToken(value),value}async function api(path,options={}){const value=token();if(!value)throw new Error("관리자 토큰을 입력하세요.");const res=await fetch(apiUrl(path),{...options,headers:{authorization:`Bearer ${value}`,"content-type":"application/json",...options.headers||{}},cache:"no-store"}),data=await res.json().catch(()=>({ok:!1,error:"invalid_response"}));if(!res.ok||data.ok===!1)throw new Error(friendlyError(data.error||`요청 실패 ${res.status}`));return setLoginState("ok","인증됨"),setAdminUnlocked(!0),data}async function requestAdStatsRefresh(url){const value=token();if(!value)throw new Error("관리자 토큰을 입력하세요.");const res=await fetch(url,{method:"POST",headers:{authorization:`Bearer ${value}`,"content-type":"application/json"},body:JSON.stringify({action:"refresh"}),cache:"no-store"}),data=await res.json().catch(()=>({ok:!1,error:"invalid_response"}));if(!res.ok||data.ok===!1){const err=new Error(data.error||`요청 실패 ${res.status}`);throw err.status=res.status,err.code=data.error||"",err}return setLoginState("ok","인증됨"),setAdminUnlocked(!0),data}function shouldRetryAdStatsRefreshOnWorker(error,url){const code=String(error?.code||error?.message||"");return!String(url||"").startsWith(WORKERS_API_BASE)&&code.includes("github_workflow_token_missing")}async function refreshAdStats(){const btn=$("reportRefreshBtn");btn&&(btn.disabled=!0),setStatus("리포트 재집계 요청 중...");const primaryUrl=apiUrl("/api/admin/ad-stats");let usedWorker=!1;try{try{await requestAdStatsRefresh(primaryUrl)}catch(error){if(!shouldRetryAdStatsRefreshOnWorker(error,primaryUrl))throw error;setStatus("Pages API에 재집계 토큰이 없어 Worker API로 재시도 중..."),await requestAdStatsRefresh(`${WORKERS_API_BASE}/api/admin/ad-stats`),usedWorker=!0}await loadAdReports().catch(()=>null),setStatus(`리포트 재집계를 요청했습니다. GitHub Actions 완료 후 수치가 갱신됩니다.${usedWorker?" Worker API로 요청했습니다.":""}`),showToast("리포트 재집계를 요청했습니다.")}finally{btn&&(btn.disabled=!1)}}function time(value){if(!value)return"-";try{return new Intl.DateTimeFormat("ko-KR",{hour:"2-digit",minute:"2-digit",month:"2-digit",day:"2-digit"}).format(new Date(value))}catch{return value}}function formatNumber(value){const n=Number(value);return new Intl.NumberFormat("ko-KR").format(Number.isFinite(n)?Math.round(n):0)}function parseIsoMs(value){const t=Date.parse(String(value||""));return Number.isFinite(t)?t:null}function adScheduleState(ad,now=Date.now()){if(!ad||ad.active===!1)return{key:"inactive",label:"비활성",kind:""};const start=parseIsoMs(ad.startAt),end=parseIsoMs(ad.endAt);return start!==null&&now<start?{key:"scheduled",label:"예약",kind:"warn"}:end!==null&&now>=end?{key:"ended",label:"종료",kind:""}:{key:"running",label:"노출중",kind:"ok"}}function kstDateTimeInputToIso(value){const match=String(value||"").trim().match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);if(!match)return"";const[,y,m,d,hh,mm]=match,ms=Date.UTC(Number(y),Number(m)-1,Number(d),Number(hh)-9,Number(mm));return Number.isFinite(ms)?new Date(ms).toISOString():""}function isoToKstDateTimeInput(value){const t=parseIsoMs(value);if(t===null)return"";const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date(t)).reduce((acc,part)=>(acc[part.type]=part.value,acc),{});return`${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`}function formatKstDateTime(value){const t=parseIsoMs(value);return t===null?"":new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).format(new Date(t))}function adScheduleText(ad){const start=formatKstDateTime(ad?.startAt),end=formatKstDateTime(ad?.endAt);return start&&end?`${start} ~ ${end}`:start?`${start}부터`:end?`${end}까지`:"항상"}function reportForAd(adId){return latestAdReports.find(report=>(report.adIds||[]).includes(adId))}document.querySelectorAll(".tabbar button").forEach(btn=>{btn.addEventListener("click",()=>{const tab=btn.dataset.tab;document.querySelectorAll(".tabbar button").forEach(b=>{const active=b===btn;b.classList.toggle("active",active),b.setAttribute("aria-selected",active?"true":"false")}),document.querySelectorAll(".panel").forEach(p=>{p.classList.toggle("active",p.dataset.panel===tab)})})});function adminBanMenuHtml(userId,nickname="",options={}){const safeUserId=esc(userId||""),safeNickname=esc(nickname||""),deleteOption=options.includeDelete?`<button class="btn sm danger-solid" type="button" data-action="ban-user" data-ban-hours="24" data-delete-messages="1" data-user-id="${safeUserId}" data-nickname="${safeNickname}">1일+삭제</button>`:"";return`<details class="admin-ban-menu">
+        <summary class="btn sm danger" title="추방 시간 선택">추방 ▾</summary>
+        <span class="admin-ban-options" role="menu" aria-label="추방 시간 선택">
+          <button class="btn sm danger" type="button" data-action="ban-user" data-ban-hours="1" data-user-id="${safeUserId}" data-nickname="${safeNickname}">1시간</button>
+          <button class="btn sm danger" type="button" data-action="ban-user" data-ban-hours="2" data-user-id="${safeUserId}" data-nickname="${safeNickname}">2시간</button>
+          <button class="btn sm danger" type="button" data-action="ban-user" data-ban-hours="6" data-user-id="${safeUserId}" data-nickname="${safeNickname}">6시간</button>
+          <button class="btn sm danger" type="button" data-action="ban-user" data-ban-hours="12" data-user-id="${safeUserId}" data-nickname="${safeNickname}">12시간</button>
+          ${deleteOption}
+          <button class="btn sm" type="button" data-action="shadow-user" data-user-id="${safeUserId}" data-nickname="${safeNickname}" title="섀도우: 본인에겐 정상처럼 보이지만 글·추천·신고가 남에겐 무효">섀도우</button>
+          <button class="btn sm" type="button" data-action="unshadow-user" data-user-id="${safeUserId}" data-nickname="${safeNickname}">섀도우 해제</button>
+        </span>
+      </details>`}const CHAT_MSG_PAGE_SIZE=200;let chatAllMessages=[],chatMsgPage=0;function chatMsgRowHtml(m){return`
+        <tr class="${m.deleted_at?"deleted":""}">
+          <td><div class="ellipsis">${time(m.created_at)}</div><span class="pill" style="margin-top:3px">#${esc(String(m.id).slice(-8))}</span></td>
+          <td><div class="ellipsis"><strong>${esc(m.nickname||"익명")}</strong></div><code title="${esc(m.user_id)}">${esc(m.user_id)}</code></td>
+          <td class="body-cell">${esc(m.body)}${m.deleted_at?'<br><span class="pill bad">삭제됨</span>':""}</td>
+          <td>${Number(m.report_count||0)?`<span class="pill warn">${Number(m.report_count)}</span>`:'<span class="pill">0</span>'}</td>
+          <td class="admin-actions-cell">
+            <div class="actions">
+              <button class="btn sm" data-action="delete-message" data-message-id="${esc(m.id)}" ${m.deleted_at?"disabled":""}>메시지 삭제</button>
+              <button class="btn sm" data-action="delete-user" data-user-id="${esc(m.user_id)}">사용자 글</button>
+              ${adminBanMenuHtml(m.user_id,m.nickname||"",{includeDelete:!0})}
+            </div>
+          </td>
+        </tr>`}function renderChatMsgPage(){const pager=document.getElementById("chatMsgPager"),total=chatAllMessages.length;if(!total){rowsEl.innerHTML='<tr class="empty-row"><td colspan="5">최근 메시지가 없습니다.</td></tr>',pager&&(pager.hidden=!0,pager.innerHTML="");return}const pages=Math.ceil(total/CHAT_MSG_PAGE_SIZE);chatMsgPage=Math.min(Math.max(chatMsgPage,0),pages-1);const start=chatMsgPage*CHAT_MSG_PAGE_SIZE,slice=chatAllMessages.slice(start,start+CHAT_MSG_PAGE_SIZE);rowsEl.innerHTML=slice.map(chatMsgRowHtml).join(""),pager&&(pages<=1?(pager.hidden=!0,pager.innerHTML=""):(pager.hidden=!1,pager.innerHTML=`<button class="btn sm" type="button" data-msg-page="prev" ${chatMsgPage===0?"disabled":""}>← 이전</button><span class="chat-msg-pageinfo">${start+1}–${start+slice.length} / 총 ${total}개 · ${chatMsgPage+1}/${pages}p</span><button class="btn sm" type="button" data-msg-page="next" ${chatMsgPage>=pages-1?"disabled":""}>다음 →</button>`))}function renderMessages(messages=[]){chatAllMessages=Array.isArray(messages)?messages:[],chatMsgPage=0,renderChatMsgPage()}document.getElementById("chatMsgPager")?.addEventListener("click",ev=>{const t=ev.target.closest("[data-msg-page]");t&&(t.dataset.msgPage==="prev"?chatMsgPage--:chatMsgPage++,renderChatMsgPage(),document.getElementById("messageRows")?.scrollIntoView?.({block:"start"}))});function banHoursLabel(hours){const n=Math.max(1,Number(hours||1)||1);return n%24===0?`${Math.max(1,n/24)}일`:`${n}시간`}function banReasonLabel(reason){const value=String(reason||"");return value==="political_speech_mute"?"정치성 표현 제한":value==="blocked_term_attempts"?"차단 표현 반복":value==="reported_message_deletes_4_in_1h"?"신고 삭제 누적":value==="reported_4_times"||value==="reported_3_times"?"신고 누적":value==="admin"?"관리자 추방":value||"-"}function shortDuration(seconds){const n=Math.max(0,Math.ceil(Number(seconds||0)));return n?n<60?`${n}초`:`${Math.ceil(n/60)}분`:""}function renderBans(bans=[]){if(!bans.length){bansEl.innerHTML='<tr class="empty-row"><td colspan="4">현재 추방된 사용자가 없습니다.</td></tr>';return}bansEl.innerHTML=bans.map(ban=>`
+        <tr>
+          <td>
+            <div class="ellipsis"><strong>${esc(ban.nickname||"닉네임 없음")}</strong></div>
+            <code title="${esc(ban.user_id)}">${esc(ban.user_id)}</code>
+            ${Array.isArray(ban.actor_ids)&&ban.actor_ids.length?`<div class="ellipsis" style="margin-top:3px"><span class="pill">기기 ${esc(ban.actor_ids.length)}개</span></div>`:""}
+          </td>
+          <td class="ellipsis">${time(ban.banned_until)}</td>
+          <td class="ellipsis">
+            <span class="pill warn">${esc(banReasonLabel(ban.reason))}</span>
+            ${Number(ban.attempt_count||0)?`<span class="pill">시도 ${Number(ban.attempt_count||0)}회</span>`:""}
+            ${Number(ban.mute_seconds||0)?`<span class="pill">${esc(shortDuration(ban.mute_seconds))}</span>`:""}
+            ${Array.isArray(ban.terms)&&ban.terms.length?`<span class="pill" title="${esc(ban.terms.join(", "))}">감지 ${esc(ban.terms.slice(0,2).join(", "))}</span>`:""}
+            ${(ban.sources||[]).map(source=>`<span class="pill">${esc(source)}</span>`).join(" ")}
+          </td>
+          <td><button class="btn sm" data-action="unban-user" data-user-id="${esc(ban.user_id)}">해제</button></td>
+        </tr>`).join("")}function renderCommunityBans(bans=[]){if(communityBansEl){if(!bans.length){communityBansEl.innerHTML='<tr class="empty-row"><td colspan="4">현재 종토방 차단 사용자가 없습니다.</td></tr>';return}communityBansEl.innerHTML=bans.map(ban=>`
+        <tr>
+          <td>
+            <div class="ellipsis"><strong>${esc(ban.nickname||"닉네임 없음")}</strong></div>
+            <code title="${esc(ban.user_id)}">${esc(ban.user_id)}</code>
+            ${Array.isArray(ban.actor_ids)&&ban.actor_ids.length?`<div class="ellipsis" style="margin-top:3px"><span class="pill">기기 ${esc(ban.actor_ids.length)}개</span></div>`:""}
+          </td>
+          <td class="ellipsis">${time(ban.banned_until)}</td>
+          <td class="ellipsis">
+            <span class="pill warn">${esc(ban.reason||"-")}</span>
+            ${Number(ban.report_count||0)?`<span class="pill">신고 ${Number(ban.report_count||0)}</span>`:""}
+          </td>
+          <td><button class="btn sm" data-community-action="unban-user" data-user-id="${esc(ban.user_id)}">해제</button></td>
+        </tr>`).join("")}}function loadSupabaseLib(){return window.supabase?.createClient?Promise.resolve():(window.__supabaseLoadPromise||(window.__supabaseLoadPromise=new Promise((resolve,reject)=>{const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0",script.integrity="sha384-o+Hkm/usHFhCEWo1Ae1cLsOLiQQNrD2UfI424QDAaiZR7URnC8v35ey7s2sbGZHB",script.crossOrigin="anonymous",script.async=!0,script.onload=()=>resolve(),script.onerror=()=>reject(new Error("Supabase JS 로드 실패")),document.head.appendChild(script)})),window.__supabaseLoadPromise)}async function broadcastModeration(body){let payload=null;if(body.action==="delete_message"?payload={messageId:Number(body.message_id)}:(body.action==="delete_user_messages"||body.action==="ban_user")&&(payload={reportedUserId:String(body.user_id||"")}),!(!payload||!payload.messageId&&!payload.reportedUserId))try{const cfg=await fetch(apiUrl("/api/chat-config"),{cache:"no-store"}).then(res=>res.json());if(!cfg?.enabled||!cfg?.url||!cfg?.anonKey)return;await loadSupabaseLib();const client=window.supabase.createClient(cfg.url,cfg.anonKey,{realtime:{params:{eventsPerSecond:1}},auth:{persistSession:!1,autoRefreshToken:!1}}),channel=client.channel(`excelkospi-chat:${cfg.room}`);await new Promise(resolve=>{const timer=setTimeout(resolve,1800);channel.subscribe(status=>{status==="SUBSCRIBED"&&(clearTimeout(timer),resolve())})});const sent=channel.send({type:"broadcast",event:"chat_moderation",payload});sent?.catch&&await sent.catch(()=>{}),setTimeout(()=>client.removeChannel(channel),500)}catch{}}async function loadChat(){const data=await api("/api/chat-admin?action=messages&limit=1000");renderMessages(data.messages||[]),renderBans(data.bans||[]),$("cntModeration").textContent=String((data.messages||[]).length);const warning=chatAdminWarningText(data);return warning&&setStatus(warning,!0),loadReported(data.messages||[]).catch(()=>{}),data}async function loadReported(chatMessages){const board=await api("/api/community-admin?action=reported").catch(()=>({items:[]})),chatDeleted=(chatMessages||[]).filter(m=>m&&m.deleted_at);renderReported(board.items||[],chatDeleted)}function renderReported(boardItems,chatItems){const rows=[];(chatItems||[]).forEach(m=>rows.push({ts:m.deleted_at||m.created_at,src:"채팅",nick:m.nickname||"익명",body:m.body||"",reports:Number(m.report_count||0)})),(boardItems||[]).forEach(it=>rows.push({ts:it.hidden_at||it.created_at,src:"게시판·"+(it.kind==="comment"?"댓글":"글")+" ("+(it.channel||"")+")",nick:it.nickname||"익명",body:it.body||"",reports:Number(it.report_count||0)})),rows.sort((a,b)=>String(b.ts||"").localeCompare(String(a.ts||"")));const tb=$("reportedRows");if(tb){if(!rows.length){tb.innerHTML='<tr class="empty-row"><td colspan="5">신고로 가려지거나 삭제된 글이 없습니다.</td></tr>';return}tb.innerHTML=rows.map(r=>`
+        <tr>
+          <td><div class="ellipsis">${time(r.ts)}</div></td>
+          <td><span class="pill">${esc(r.src)}</span></td>
+          <td><div class="ellipsis"><strong>${esc(r.nick)}</strong></div></td>
+          <td class="body-cell">${r.body?esc(r.body):'<span class="muted">(내용 없음)</span>'}</td>
+          <td>${r.reports?`<span class="pill warn">${r.reports}</span>`:'<span class="pill">0</span>'}</td>
+        </tr>`).join("")}}async function loadBansOnly(){const data=await api("/api/chat-admin?action=bans");renderBans(data.bans||[]);const warning=chatAdminWarningText(data);return warning&&setStatus(warning,!0),showToast(warning?"D1 기준 추방 목록을 새로고침했습니다.":"추방 목록을 새로고침했습니다."),data}async function loadCommunityBans(options={}){const data=await api("/api/community-admin?action=bans");return renderCommunityBans(data.bans||[]),options.silent||showToast("종토방 차단 목록을 새로고침했습니다."),data}function renderChatLinkPolicy(policy){latestChatLinkPolicy=policy||{enabled:!0,allowedDomains:[]};const enabled=$("chatLinkEnabled"),domains=$("chatLinkDomains"),status=$("chatLinkStatus");if(enabled&&(enabled.checked=latestChatLinkPolicy.enabled!==!1),domains&&(domains.value=(latestChatLinkPolicy.allowedDomains||[]).join(`
+`)),status){const count=(latestChatLinkPolicy.allowedDomains||[]).length,updated=latestChatLinkPolicy.updatedAt?` · ${time(latestChatLinkPolicy.updatedAt)} 저장`:"";status.textContent=`${count}개 도메인 허용${updated}`,status.className="inline-status ok"}}async function loadChatLinkPolicy(options={}){const data=await api("/api/chat-admin?action=link_policy");return renderChatLinkPolicy(data.linkPolicy||null),options.silent||showToast("채팅 링크 정책을 새로고침했습니다."),data}function chatLinkDomainsFromInput(){return String($("chatLinkDomains")?.value||"").split(/[\n,]+/).map(line=>line.trim()).filter(Boolean)}async function saveChatLinkPolicy(){const data=await api("/api/chat-admin",{method:"POST",body:JSON.stringify({action:"save_link_policy",enabled:!!$("chatLinkEnabled")?.checked,allowedDomains:chatLinkDomainsFromInput()})});return renderChatLinkPolicy(data.linkPolicy||null),showToast("채팅 링크 정책을 저장했습니다."),data}async function resetChatLinkPolicy(){if(!confirm("채팅 링크 허용 도메인을 기본값으로 되돌릴까요?"))return null;const data=await api("/api/chat-admin",{method:"POST",body:JSON.stringify({action:"reset_link_policy"})});return renderChatLinkPolicy(data.linkPolicy||null),showToast("채팅 링크 정책을 기본값으로 복원했습니다."),data}async function loadFirstWriteCooldown(options={}){const data=await api("/api/admin/flags"),v=Number(data?.flags?.firstWriteCooldownSeconds),el=$("firstWriteCooldownInput");el&&(el.value=Number.isFinite(v)&&v>=0?v:60);const s=$("firstWriteCooldownStatus");return s&&(s.textContent="",s.className="inline-status"),options.silent||showToast("첫 글 쿨다운 설정을 새로고침했습니다."),data}async function saveFirstWriteCooldown(){const v=Math.max(0,Math.min(600,Math.floor(Number($("firstWriteCooldownInput")?.value)||0))),data=await api("/api/admin/flags",{method:"POST",body:JSON.stringify({key:"firstWriteCooldownSeconds",value:v})}),applied=Number(data?.flags?.firstWriteCooldownSeconds),s=$("firstWriteCooldownStatus");return s&&(s.textContent=applied===0?"꺼짐(0초)":`${Number.isFinite(applied)&&applied>=0?applied:v}초 적용됨`,s.className="inline-status ok"),showToast(v===0?"첫 글 쿨다운을 껐습니다.":`첫 글 쿨다운을 ${v}초로 저장했습니다.`),data}let quoteTierLimits={minSeconds:30,maxSeconds:300};function renderQuoteTiers(tiers,limits){limits&&typeof limits=="object"&&(quoteTierLimits=limits);const wrap=$("quoteTiersWrap");if(!wrap)return;const list=Array.isArray(tiers)?tiers.slice().sort((a,b)=>(Number(b.minOnline)||0)-(Number(a.minOnline)||0)):[];if(!list.length){wrap.innerHTML='<span class="inline-status">티어 정보가 없습니다.</span>';return}const rows=list.map((t,i)=>{const min=Math.max(0,Math.floor(Number(t.minOnline)||0)),sec=Math.round(Number(t.seconds)||30),next=list[i-1],range=i===0?`${min.toLocaleString()}명 이상`:`${min.toLocaleString()}~${((Number(next.minOnline)||0)-1).toLocaleString()}명`;return`<tr><td>동접 <b>${esc(range)}</b></td><td><input type="number" class="quote-tier-sec" data-tier-min="${min}" value="${sec}" min="${quoteTierLimits.minSeconds}" max="${quoteTierLimits.maxSeconds}" step="5" style="width:88px">초</td></tr>`}).join("");wrap.innerHTML=`<table><thead><tr><th>접속자 구간</th><th>갱신 주기</th></tr></thead><tbody>${rows}</tbody></table>`}async function loadQuoteTiers(options={}){const data=await api("/api/admin/quote-tiers");return renderQuoteTiers(data.tiers||[],data.limits),options.silent||showToast("시세 갱신 주기를 새로고침했습니다."),data}function quoteTiersFromInputs(){return Array.from(document.querySelectorAll(".quote-tier-sec")).map(el=>({minOnline:Number(el.dataset.tierMin)||0,seconds:Number(el.value)||0}))}async function saveQuoteTiers(){const data=await api("/api/admin/quote-tiers",{method:"POST",body:JSON.stringify({tiers:quoteTiersFromInputs()})});return renderQuoteTiers(data.tiers||[],data.limits),showToast("시세 갱신 주기를 저장했습니다. (반영까지 최대 1분)"),data}async function resetQuoteTiers(){if(!confirm("시세 갱신 주기를 기본값으로 되돌릴까요?"))return null;const data=await api("/api/admin/quote-tiers",{method:"POST",body:JSON.stringify({action:"reset"})});return renderQuoteTiers(data.tiers||[],data.limits),showToast("기본값으로 복원했습니다."),data}function renderCustomTerms(terms=[]){latestCustomTerms=Array.isArray(terms)?terms:[];const wrap=$("customTerms");if($("cntTerms").textContent=String(latestCustomTerms.length),!latestCustomTerms.length){wrap.innerHTML='<span class="inline-status">아직 사용자가 추가한 키워드가 없습니다. 위에서 입력해 추가하세요.</span>';return}wrap.innerHTML=latestCustomTerms.map(t=>`
+        <span class="term-chip">${esc(t)}<button type="button" data-term-remove="${esc(t)}" aria-label="${esc(t)} 삭제" title="삭제">×</button></span>
+      `).join("")}function renderBuiltinGroups(groups=[]){const wrap=$("builtinGroups");if(!groups.length){wrap.innerHTML='<span class="inline-status">내장 그룹이 비어 있습니다.</span>';return}wrap.innerHTML=groups.map(g=>`
+        <div class="builtin-group">
+          <h3><span>${esc(g.label)}</span><span class="count">${Number(g.count||0)}개</span></h3>
+          <div class="chips">${(g.terms||[]).map(t=>`<span class="term-chip builtin">${esc(t)}</span>`).join("")}</div>
+        </div>
+      `).join("")}async function loadBlockedTerms(){const data=await api("/api/admin/blocked-terms");return renderCustomTerms(data.custom||[]),renderBuiltinGroups(data.builtin||[]),data}$("termAddBtn").addEventListener("click",async()=>{const raw=$("termInput").value;if(!raw.trim()){showToast("추가할 키워드를 입력하세요","bad");return}try{const data=await api("/api/admin/blocked-terms",{method:"POST",body:JSON.stringify({action:"add",term:raw})});renderCustomTerms(data.custom||[]),$("termInput").value="",showToast("키워드를 추가했습니다.")}catch(e){handleAdminError(e)}}),$("termInput").addEventListener("keydown",ev=>{ev.key==="Enter"&&(ev.preventDefault(),$("termAddBtn").click())}),$("termRefreshBtn").addEventListener("click",()=>loadBlockedTerms().catch(handleAdminError)),$("termClearBtn").addEventListener("click",async()=>{if(confirm("사용자가 추가한 키워드를 전부 비울까요? (내장 키워드는 그대로 유지됩니다.)"))try{const data=await api("/api/admin/blocked-terms",{method:"POST",body:JSON.stringify({action:"clear"})});renderCustomTerms(data.custom||[]),showToast("사용자 추가 키워드를 모두 비웠습니다.")}catch(e){handleAdminError(e)}}),document.addEventListener("click",async ev=>{const btn=ev.target.closest("[data-term-remove]");if(!btn)return;const term=btn.dataset.termRemove;try{const data=await api("/api/admin/blocked-terms",{method:"POST",body:JSON.stringify({action:"remove",term})});renderCustomTerms(data.custom||[]),showToast("키워드를 제거했습니다.")}catch(e){handleAdminError(e)}});function pollChannelLabel(channel){return channel==="us"?"해외주식토론":channel==="coin"?"코인토론":"국내주식토론"}function pollOptionsFromInput(){return String($("pollOptions")?.value||"").split(/[\n,]+/).map(item=>item.trim()).filter(Boolean).slice(0,4)}function setPollStatus(text="",ok=!1){const el=$("pollStatus");el&&(el.textContent=text,el.className="inline-status"+(ok?" ok":""))}function activePollForChannel(channel){return latestPolls.find(item=>item.channel===channel)||null}function setPollFormFromItem(item){const poll=item?.poll||item?.defaultPoll||{},config=item?.config||null;$("pollChannel").value=item?.channel||poll.channel||"kr",$("pollEnabled").checked=poll.enabled!==!1,$("pollQuestion").value=config?.question||poll.question||"",$("pollOptions").value=(config?.options?.length?config.options:poll.options||["상승","하락","보합"]).join(`
+`),$("pollKicker").value=config?.kicker||"",$("pollTimeLabel").value=config?.timeLabel||"",setPollStatus(config?`관리자 설정 적용 중 · ${time(config.updatedAt)}`:"기본 자동 투표 사용 중",!!config)}function renderPolls(items=[]){latestPolls=Array.isArray(items)?items:[];const rows=$("pollRows"),activeCount=latestPolls.filter(item=>item.poll?.enabled!==!1).length;if($("cntPolls").textContent=String(activeCount),!latestPolls.length){rows.innerHTML='<div class="ad-empty">등록된 투표 정보가 없습니다.</div>';return}rows.innerHTML=latestPolls.map(item=>{const poll=item.poll||{},config=item.config||null,classes=["poll-card"];config&&classes.push("is-managed"),poll.enabled===!1&&classes.push("is-disabled");const total=Number(poll.total||0)||0,options=(poll.options||[]).map((option,index)=>{const pct=Number(poll.percentages?.[index]||0),label=total?`${option} ${pct?pct.toFixed(pct%1?1:0):0}%`:option;return`<span class="pill">${esc(label)}</span>`}).join(""),status=poll.enabled===!1?'<span class="pill bad">비활성</span>':'<span class="pill ok">노출중</span>',managed=config?'<span class="pill ok">관리자 설정</span>':'<span class="pill">자동 생성</span>';return`<article class="${classes.join(" ")}" data-poll-channel="${esc(item.channel)}">
+          <div class="poll-card-head">
+            <div class="poll-card-title">${esc(pollChannelLabel(item.channel))}</div>
+            <div>${status}${managed}</div>
+          </div>
+          <div class="poll-card-question">${esc(poll.question||"질문 없음")}</div>
+          <div class="poll-card-options">${options}</div>
+          <div class="poll-card-meta">
+            <span>참여 ${formatNumber(total)}명</span>
+            <span>ID <code>${esc(poll.id||"-")}</code></span>
+            ${config?.updatedAt?`<span>수정 ${esc(time(config.updatedAt))}</span>`:""}
+          </div>
+          <div class="poll-card-actions">
+            <button class="btn sm" type="button" data-poll-action="edit" data-poll-channel="${esc(item.channel)}">수정</button>
+            <button class="btn sm danger" type="button" data-poll-action="reset" data-poll-channel="${esc(item.channel)}" ${config?"":"disabled"}>기본값</button>
+          </div>
+        </article>`}).join("");const selected=activePollForChannel($("pollChannel")?.value||"kr")||latestPolls[0];selected&&document.activeElement?.closest?.('[data-panel="polls"]')==null&&setPollFormFromItem(selected)}async function loadPolls(options={}){const data=await api("/api/community-admin?action=polls");return renderPolls(data.polls||[]),options.silent||showToast("투표 정보를 새로고침했습니다."),data}async function savePollConfig(){const channel=$("pollChannel").value||"kr",enabled=!!$("pollEnabled").checked,question=$("pollQuestion").value.trim(),options=pollOptionsFromInput();if(enabled&&question.length<4){showToast("질문을 4자 이상 입력해 주세요.","bad");return}if(enabled&&options.length<2){showToast("선택지는 2개 이상 필요합니다.","bad");return}setPollStatus("저장 중...");const data=await api("/api/community-admin",{method:"POST",body:JSON.stringify({action:"save_poll_config",channel,enabled,question,options,kicker:$("pollKicker").value.trim(),timeLabel:$("pollTimeLabel").value.trim()})});return await loadPolls({silent:!0}),setPollFormFromItem(activePollForChannel(channel)),setPollStatus("저장됨",!0),showToast("투표 설정을 저장했습니다."),data}async function resetPollConfig(channel=$("pollChannel")?.value||"kr"){if(!confirm(`${pollChannelLabel(channel)} 투표를 기본 자동값으로 되돌릴까요?`))return null;const data=await api("/api/community-admin",{method:"POST",body:JSON.stringify({action:"reset_poll_config",channel})});return await loadPolls({silent:!0}),setPollFormFromItem(activePollForChannel(channel)),showToast("투표 설정을 기본값으로 복원했습니다."),data}async function publishPollToChat(channel=$("pollChannel")?.value||"kr"){if(!confirm(`${pollChannelLabel(channel)} 투표를 지금 채팅방 말풍선으로 띄울까요?`))return null;setPollStatus("채팅방에 게시 중...");const data=await api("/api/community-admin",{method:"POST",body:JSON.stringify({action:"publish_poll_to_chat",channel})});return await loadPolls({silent:!0}),setPollFormFromItem(activePollForChannel(channel)),setPollStatus("채팅방에 게시됨",!0),channel==="kr"?showToast("국내주식 투표를 채팅방에 띄웠습니다. 접속자가 채팅을 열면 바로 노출됩니다."):showToast(`${pollChannelLabel(channel)} 게시 시각을 기록했지만, 채팅 말풍선은 현재 국내주식 투표만 표시합니다.`,"bad"),data}$("pollChannel").addEventListener("change",()=>{const item=activePollForChannel($("pollChannel").value);item&&setPollFormFromItem(item)}),$("pollSaveBtn").addEventListener("click",()=>savePollConfig().catch(handleAdminError)),$("pollPublishChatBtn").addEventListener("click",()=>publishPollToChat().catch(handleAdminError)),$("pollResetConfigBtn").addEventListener("click",()=>resetPollConfig().catch(handleAdminError)),$("pollRefreshBtn").addEventListener("click",()=>loadPolls().catch(handleAdminError)),document.addEventListener("click",ev=>{const btn=ev.target.closest("[data-poll-action]");if(!btn)return;const channel=btn.dataset.pollChannel||"kr";btn.dataset.pollAction==="edit"?(setPollFormFromItem(activePollForChannel(channel)),document.querySelector('[data-tab="polls"]')?.click()):btn.dataset.pollAction==="reset"&&resetPollConfig(channel).catch(handleAdminError)});function donorTimeText(iso){if(!iso)return"-";try{return new Intl.DateTimeFormat("ko-KR",{year:"2-digit",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).format(new Date(iso))}catch{return iso}}function donorUntilText(iso){const t=Date.parse(iso||"");if(!Number.isFinite(t))return"-";const remain=t-Date.now();if(remain<=0)return"만료됨";const hours=Math.floor(remain/36e5);return hours<1?Math.max(1,Math.floor(remain/6e4))+"분":hours<48?hours+"시간":Math.floor(hours/24)+"일"}function renderDonors(donors=[]){const rows=$("donorRows");if($("cntDonors").textContent=String((donors||[]).filter(d=>Date.parse(d.expiresAt||"")>Date.now()).length),!donors.length){rows.innerHTML='<tr class="empty-row"><td colspan="6">등록된 후원자가 없습니다.</td></tr>';return}rows.innerHTML=donors.map(d=>{const expired=Date.parse(d.expiresAt||"")<=Date.now(),amount=new Intl.NumberFormat("ko-KR").format(Number(d.amount)||0)+"원";return`<tr class="${expired?"expired":""}">
+          <td class="ellipsis"><strong style="color:#c08a3e" title="${esc(d.nickname||"익명")}">${esc(d.nickname||"익명")}</strong></td>
+          <td class="ellipsis" style="font-variant-numeric:tabular-nums;color:var(--green);font-weight:700">${amount}</td>
+          <td class="ellipsis" style="color:var(--muted);font-size:12px">${donorTimeText(d.donatedAt)}</td>
+          <td class="ellipsis" style="color:var(--muted);font-size:12px">${donorUntilText(d.expiresAt)}</td>
+          <td class="body-cell" title="${esc(d.note||"")}">${esc(d.note||"")}</td>
+          <td><button class="btn sm danger" data-donor-action="delete" data-donor-id="${esc(d.id)}">삭제</button></td>
+        </tr>`}).join("")}async function loadDonors(){const data=await(await fetch(apiUrl("/api/donors?fresh=1"),{cache:"no-store"})).json().catch(()=>({ok:!1}));if(!data?.ok)throw new Error("후원자 목록 로드 실패");renderDonors(data.donors||[]);const prefixInput=$("donorPrefix");return prefixInput&&document.activeElement!==prefixInput&&(prefixInput.value=typeof data.prefix=="string"?data.prefix:""),data}async function postDonor(body,doneText){setStatus("후원자 처리 중..."),await api("/api/donors",{method:"POST",body:JSON.stringify(body)}),await loadDonors(),setStatus(""),doneText&&showToast(doneText)}function nowLocalIsoInput(){const d=new Date,pad=x=>String(x).padStart(2,"0");return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes())}function resetDonorForm(){$("donorNick").value="",$("donorAmount").value="",$("donorNote").value="",$("donorDays").value="3",$("donorDonatedAt").value=nowLocalIsoInput()}$("donorPrefixSaveBtn").addEventListener("click",async()=>{const prefix=$("donorPrefix").value.trim(),status=$("donorPrefixStatus");status&&(status.textContent="저장 중...",status.className="inline-status");try{await api("/api/donors",{method:"POST",body:JSON.stringify({action:"set_prefix",prefix})}),status&&(status.textContent="저장됨",status.className="inline-status ok"),await loadDonors(),showToast("라벨을 저장했습니다.")}catch(e){status&&(status.textContent="저장 실패",status.className="inline-status bad"),handleAdminError(e)}}),$("donorAddBtn").addEventListener("click",()=>{const nickname=$("donorNick").value.trim()||"익명",amount=Number($("donorAmount").value)||0;if(!amount){showToast("금액을 입력해 주세요.","bad");return}const note=$("donorNote").value.trim(),days=Math.max(1,Math.min(14,Number($("donorDays").value)||3)),donatedRaw=$("donorDonatedAt").value,donatedAt=donatedRaw?new Date(donatedRaw).toISOString():new Date().toISOString(),expiresAt=new Date(Date.parse(donatedAt)+days*24*60*60*1e3).toISOString();postDonor({action:"add",nickname,amount,note,donatedAt,expiresAt},"후원자를 추가했습니다.").then(()=>{resetDonorForm()}).catch(handleAdminError)}),$("donorResetBtn").addEventListener("click",resetDonorForm),$("donorRefreshBtn").addEventListener("click",()=>loadDonors().catch(handleAdminError)),$("donorPruneBtn").addEventListener("click",()=>{confirm("만료된 후원자 항목을 정리할까요?")&&postDonor({action:"prune"},"만료 후원자를 정리했습니다.").catch(handleAdminError)}),document.addEventListener("click",ev=>{const btn=ev.target.closest("[data-donor-action]");if(!btn)return;const action=btn.dataset.donorAction,id=btn.dataset.donorId;action==="delete"&&confirm("이 후원자 항목을 삭제할까요?")&&postDonor({action:"delete",id},"후원자를 삭제했습니다.").catch(handleAdminError)});function adTexts(ad){return(Array.isArray(ad?.texts)?ad.texts:[ad?.text||""]).map(v=>String(v||"").trim()).filter(Boolean)}function adHrefsArray(ad){return Array.isArray(ad?.hrefs)?ad.hrefs.map(v=>String(v||"").trim()).slice(0,8):[]}function parseAdTexts(){return $("adText").value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean).slice(0,8)}function perTextLinkInputs(){return Array.from(document.querySelectorAll("#adPerTextLinkList input[data-ad-text-href]"))}function readPerTextLinks(textCount){if(!$("adPerTextLinkToggle")?.checked)return null;const inputs=perTextLinkInputs(),list=[];for(let i=0;i<textCount;i+=1)list.push(String(inputs[i]?.value||"").trim());return list}function renderPerTextLinkRows(initialValues){const list=$("adPerTextLinkList"),enabled=!!$("adPerTextLinkToggle")?.checked;if(!list)return;if(list.hidden=!enabled,!enabled){list.innerHTML="";return}const texts=parseAdTexts();if(!texts.length){list.innerHTML='<p class="help" style="margin:0">위 문구 목록을 먼저 입력하면 칸이 생깁니다.</p>';return}const preserved=perTextLinkInputs().map(el=>el.value);list.innerHTML=texts.map((text,idx)=>{const value=Array.isArray(initialValues)?initialValues[idx]||"":preserved[idx]||"";return`<label style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-size:11px;color:var(--muted)">문구 ${idx+1}: <span style="color:var(--txt)">${esc(text)}</span></span>
+          <input type="text" maxlength="400" data-ad-text-href="${idx}" placeholder="비우면 위 기본 링크 사용" value="${esc(value)}">
+        </label>`}).join("")}$("adPerTextLinkToggle")?.addEventListener("change",()=>renderPerTextLinkRows()),$("adText")?.addEventListener("input",()=>{$("adPerTextLinkToggle")?.checked&&renderPerTextLinkRows()});function renderAds(ads=[]){const rows=$("adRows");if(latestAds=Array.isArray(ads)?ads:[],$("cntAds").textContent=String(latestAds.filter(a=>adScheduleState(a).key==="running").length),!ads.length){rows.innerHTML='<div class="ad-empty">등록된 광고가 없습니다.</div>';return}const totalWeight=latestAds.filter(a=>adScheduleState(a).key==="running").reduce((sum,a)=>sum+Math.max(0,Number(a.weight)||0),0)||1;rows.innerHTML=ads.map(ad=>{const report=reportForAd(ad.id),placeText=(Array.isArray(ad.placements)?ad.placements:[]).map(p=>p==="chat"?"채팅":p==="community"?"종토방":p==="summary"?"시세창":esc(p)).join(" · ")||"-",weight=Number.isFinite(Number(ad.weight))?Number(ad.weight):1,state=adScheduleState(ad),sharePct=state.key==="running"?Math.round(Math.max(0,weight)/totalWeight*100)+"%":"-",status=`<span class="pill ${state.kind}">${esc(state.label)}</span>`,reportStatus=report?report.stats?.hasStats?'<span class="pill ok">리포트 반영</span>':'<span class="pill warn">리포트 집계 대기</span>':"",textLines=adTexts(ad),adHrefs=adHrefsArray(ad),hasPerTextLinks=adHrefs.some(v=>v),textHtml=textLines.length?textLines.map((t,idx)=>{const perLink=hasPerTextLinks?adHrefs[idx]:"",hint=perLink?`<span class="ad-text-link-hint" title="${esc(perLink)}"> · ${esc(perLink)}</span>`:"";return`<span class="ad-text-line">${esc(t)}${hint}</span>`}).join(""):'<span class="ad-text-line" style="color:var(--muted);font-style:italic">문구 없음</span>',linkLabel=hasPerTextLinks?"기본 링크":"링크",linkHtml=ad.href?`<a class="ad-card-link" href="${esc(ad.href)}" target="_blank" rel="noopener" title="${esc(ad.href)}">${esc(linkLabel)}: ${esc(ad.href)}</a>`:hasPerTextLinks?'<span class="ad-card-link" style="color:var(--muted)">기본 링크 없음 · 문구별 링크만 사용</span>':"",editing=editingAdId===ad.id,classes=["ad-card"];return ad.active===!1&&classes.push("is-inactive"),editing&&classes.push("is-editing"),`<article class="${classes.join(" ")}" data-ad-card-id="${esc(ad.id)}">
+          <header class="ad-card-head">
+            <span class="ad-card-id" title="${esc(ad.id)}">${esc(ad.id||"")}</span>
+            <span class="ad-card-badges"><span class="pill">${esc(ad.label||"광고")}</span>${status}${reportStatus}</span>
+          </header>
+          <div class="ad-card-body">${textHtml}</div>
+          ${linkHtml}
+          <div class="ad-card-meta">
+            <span class="ad-card-meta-item"><span class="meta-label">가중치</span><input class="ad-card-weight-input" type="number" min="0" max="100" step="0.1" value="${esc(weight)}" data-ad-weight-input="${esc(ad.id)}" aria-label="노출 가중치 (수정 후 다른 곳 클릭 시 자동 저장)"></span>
+            <span class="ad-card-meta-item"><span class="meta-label">점유</span><span class="ad-card-share">${sharePct}</span></span>
+            <span class="ad-card-meta-item"><span class="meta-label">위치</span>${placeText}</span>
+            <span class="ad-card-meta-item"><span class="meta-label">기간</span>${esc(adScheduleText(ad))}</span>
+          </div>
+          <div class="ad-card-actions">
+            <button class="btn sm" data-ad-action="edit" data-ad-id="${esc(ad.id)}">수정</button>
+            <button class="btn sm" data-ad-action="report" data-ad-id="${esc(ad.id)}">${report?"리포트 관리":"리포트 발급"}</button>
+            <button class="btn sm" data-ad-action="toggle" data-ad-id="${esc(ad.id)}">${ad.active===!1?"활성화":"비활성화"}</button>
+            <button class="btn sm danger" data-ad-action="delete" data-ad-id="${esc(ad.id)}">삭제</button>
+          </div>
+        </article>`}).join("")}async function loadAds(){const data=await api("/api/ads?include_inactive=1");return renderAds(data.ads||[]),data}async function postAd(body,doneText){setStatus("광고 처리 중...");const data=await api("/api/ads",{method:"POST",body:JSON.stringify(body)});return await loadAds(),setStatus(""),doneText&&showToast(doneText),data}function resetAdForm(){editingAdId="",$("adId").disabled=!1,$("adId").value="",$("adLabel").value="광고",$("adWeight").value="1",$("adStartAt").value="",$("adEndAt").value="",$("adText").value="",$("adHref").value="",$("adPlaceChat").checked=!0,$("adPlaceCommunity").checked=!0,$("adPlaceSummary").checked=!0,$("adPerTextLinkToggle")&&($("adPerTextLinkToggle").checked=!1),renderPerTextLinkRows([]),$("adAddBtn").textContent="광고 저장",$("adCancelEditBtn").hidden=!0}function cleanAdIdInput(value){return String(value||"").trim().replace(/[^a-zA-Z0-9_-]/g,"").slice(0,40)}function readAdWeightInput(input,fallback=1){const n=Number(input?.value);return Number.isFinite(n)?n:fallback}function startEditAd(id){const ad=latestAds.find(item=>item.id===id);if(!ad){showToast("수정할 광고를 찾지 못했습니다.","bad");return}editingAdId=ad.id,$("adId").value=ad.id||"",$("adId").disabled=!0,$("adLabel").value=ad.label||"광고",$("adWeight").value=Number.isFinite(Number(ad.weight))?String(ad.weight):"1",$("adStartAt").value=isoToKstDateTimeInput(ad.startAt),$("adEndAt").value=isoToKstDateTimeInput(ad.endAt),$("adText").value=adTexts(ad).join(`
+`),$("adHref").value=ad.href||"";const adHrefs=adHrefsArray(ad),hasPerText=adHrefs.some(v=>v);$("adPerTextLinkToggle")&&($("adPerTextLinkToggle").checked=hasPerText),renderPerTextLinkRows(hasPerText?adHrefs:[]);const placements=Array.isArray(ad.placements)?ad.placements:[];$("adPlaceChat").checked=placements.includes("chat")||!placements.length,$("adPlaceCommunity").checked=placements.includes("community")||!placements.length,$("adPlaceSummary").checked=placements.includes("summary")||!placements.length,$("adAddBtn").textContent="수정 저장",$("adCancelEditBtn").hidden=!1,document.querySelector('[data-tab="ads"]')?.click(),setStatus(`광고 ${ad.id} 수정 중. 식별자는 GA 집계를 위해 고정됩니다.`)}function readAdFormDraft(){const texts=parseAdTexts();if(!texts.length)return showToast("광고 문구를 입력해 주세요.","bad"),null;const placements=[];$("adPlaceChat").checked&&placements.push("chat"),$("adPlaceCommunity").checked&&placements.push("community"),$("adPlaceSummary").checked&&placements.push("summary");const action=editingAdId?"update":"add",id=editingAdId||cleanAdIdInput($("adId").value),startAt=kstDateTimeInputToIso($("adStartAt").value),endAt=kstDateTimeInputToIso($("adEndAt").value);if(startAt&&endAt&&Date.parse(endAt)<=Date.parse(startAt))return showToast("종료 시각은 시작 시각보다 뒤여야 합니다.","bad"),null;const perTextLinks=readPerTextLinks(texts.length);return{body:{action,...id?{id}:{},label:$("adLabel").value.trim()||"광고",text:texts[0],texts,href:$("adHref").value.trim(),hrefs:perTextLinks||[],weight:readAdWeightInput($("adWeight"),1),placements:placements.length?placements:["chat","community","summary"],startAt,endAt},expectedId:id,action}}async function saveAdFromForm(options={}){const draft=readAdFormDraft();if(!draft)return null;const data=await postAd(draft.body,draft.action==="update"?"광고를 수정했습니다.":"광고를 추가했습니다."),savedId=draft.expectedId||data?.ads?.[0]?.id||"";return resetAdForm(),options.prepareReport&&savedId&&(fillReportFromAd(savedId),showToast("광고를 저장하고 리포트 폼을 준비했습니다.")),savedId}$("adAddBtn").addEventListener("click",()=>{saveAdFromForm().catch(handleAdminError)}),$("adSaveReportBtn").addEventListener("click",()=>{saveAdFromForm({prepareReport:!0}).catch(handleAdminError)}),$("adCancelEditBtn").addEventListener("click",resetAdForm),$("adResetBtn").addEventListener("click",resetAdForm),$("adRefreshBtn").addEventListener("click",()=>loadAds().catch(handleAdminError)),document.addEventListener("click",ev=>{const btn=ev.target.closest("[data-ad-action]");if(!btn)return;const action=btn.dataset.adAction,id=btn.dataset.adId;action==="edit"?startEditAd(id):action==="report"?fillReportFromAd(id):action==="toggle"?postAd({action:"toggle",id},"광고 활성 여부를 바꿨습니다.").catch(handleAdminError):action==="delete"&&confirm("이 광고를 삭제할까요?")&&postAd({action:"delete",id},"광고를 삭제했습니다.").catch(handleAdminError)}),document.addEventListener("change",ev=>{const input=ev.target?.closest?.("[data-ad-weight-input]");if(!input)return;const id=input.dataset.adWeightInput,ad=latestAds.find(a=>a.id===id),newWeight=readAdWeightInput(input,0);ad&&Number(ad.weight)===newWeight||postAd({action:"update",id,weight:newWeight},"가중치를 저장했습니다.").catch(handleAdminError)});const DEFAULT_AD_REPORT_START_DATE="2026-05-20";function kstToday(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date)}function defaultReportStartDate(){return DEFAULT_AD_REPORT_START_DATE}function dateToKstDateTimeInput(date,fallbackTime="00:00"){const text=String(date||"").trim();return/^\d{4}-\d{2}-\d{2}$/.test(text)?`${text}T${fallbackTime}`:""}function kstDateFromDateTimeInput(value){const match=String(value||"").trim().match(/^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}$/);return match?match[1]:""}function reportStartInputValue(period={}){return isoToKstDateTimeInput(period.startAt)||dateToKstDateTimeInput(period.start&&period.start!=="30daysAgo"?period.start:defaultReportStartDate(),"00:00")}function reportEndInputValue(period={}){return isoToKstDateTimeInput(period.endAt)||(period.end&&period.end!=="today"?dateToKstDateTimeInput(period.end,"23:59"):"")}function reportPeriodText(period={}){const start=isoToKstDateTimeInput(period.startAt)?formatKstDateTime(period.startAt):period.start?`${period.start} 00:00`:"-",end=isoToKstDateTimeInput(period.endAt)?formatKstDateTime(period.endAt):period.end&&period.end!=="today"?`${period.end} 23:59`:"현재";return`${start} ~ ${end}`}function cleanReportIdInput(value){return String(value||"").trim().replace(/[^a-zA-Z0-9_-]/g,"").slice(0,64)}function splitListInput(value){return String(value||"").split(/[\n,]+/).map(item=>item.trim()).filter(Boolean).slice(0,20)}function slugText(value){return String(value||"").toLowerCase().replace(/[^a-z0-9_-]+/g,"-").replace(/^-+|-+$/g,"")||`report-${Date.now().toString(36)}`}function randomReportToken(){const bytes=new Uint8Array(24);return crypto.getRandomValues(bytes),Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("")}async function sha256Hex(value){const bytes=new TextEncoder().encode(value),digest=await crypto.subtle.digest("SHA-256",bytes);return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("")}function advertiserReportUrl(id,tokenValue){const qs=new URLSearchParams({id,token:tokenValue});return`${location.origin}/advertiser/?${qs.toString()}`}function generatedReportLinkInput(id){return Array.from(document.querySelectorAll("[data-generated-report-id]")).find(input=>input.dataset.generatedReportId===id)||null}function showGeneratedReportLink(id,tokenValue){generatedReportLinkState={id,url:advertiserReportUrl(id,tokenValue)},renderAdReports(latestAdReports),requestAnimationFrame(()=>{const input=generatedReportLinkInput(id);input?.closest?.(".report-card")?.scrollIntoView({block:"nearest",behavior:"smooth"}),input?.focus(),input?.select()})}function readReportForm(){const id=cleanReportIdInput($("reportId").value),cpc=Number($("reportCpc").value),startInput=$("reportStartDate").value||dateToKstDateTimeInput(defaultReportStartDate(),"00:00"),endInput=$("reportEndDate").value,startAt=kstDateTimeInputToIso(startInput),endAt=kstDateTimeInputToIso(endInput);return startAt?endInput&&!endAt?(showToast("집계 종료 시각을 확인해 주세요.","bad"),null):startAt&&endAt&&Date.parse(endAt)<=Date.parse(startAt)?(showToast("집계 종료 시각은 시작 시각보다 뒤여야 합니다.","bad"),null):{id,advertiser:$("reportAdvertiser").value.trim()||"광고주",campaign:$("reportCampaign").value.trim()||"광고 캠페인",adIds:splitListInput($("reportAdIds").value).map(cleanAdIdInput).filter(Boolean),creativeIncludes:splitListInput($("reportCreativeIncludes").value),creativeExcludes:splitListInput($("reportCreativeExcludes").value),period:{start:kstDateFromDateTimeInput(startInput)||defaultReportStartDate(),end:endInput?kstDateFromDateTimeInput(endInput):"today",startAt,endAt,timezone:"Asia/Seoul"},pricing:{model:Number.isFinite(cpc)&&cpc>0?"cpc":"",cpc:Number.isFinite(cpc)&&cpc>0?Math.round(cpc):0,currency:"KRW"},notes:$("reportNotes").value.trim()}:(showToast("집계 시작 시각을 확인해 주세요.","bad"),null)}function setReportForm(report){editingReportId=report?.id||"",$("reportId").disabled=!!editingReportId,$("reportId").value=report?.id||"",$("reportAdvertiser").value=report?.advertiser||"",$("reportCampaign").value=report?.campaign||"",$("reportAdIds").value=(report?.adIds||[]).join(", "),$("reportStartDate").value=reportStartInputValue(report?.period||{}),$("reportEndDate").value=reportEndInputValue(report?.period||{}),$("reportCpc").value=report?.pricing?.cpc?String(Math.round(Number(report.pricing.cpc))):"",$("reportCreativeIncludes").value=(report?.creativeIncludes||[]).join(", "),$("reportCreativeExcludes").value=(report?.creativeExcludes||[]).join(", "),$("reportNotes").value=report?.notes||"동일 광고 내 문구 로테이션과 30분 기준 노출 cap으로 보정한 기준입니다.",$("reportSaveBtn").textContent=editingReportId?"설정 저장":"토큰 발급",$("reportCancelEditBtn").hidden=!editingReportId}function resetReportForm(){setReportForm(null),$("reportStartDate").value=dateToKstDateTimeInput(defaultReportStartDate(),"00:00"),$("reportEndDate").value=""}function fillReportFromAd(id){const ad=latestAds.find(item=>item.id===id);if(!ad){showToast("광고를 찾지 못했습니다.","bad");return}const existing=reportForAd(id);if(existing){setReportForm(existing),document.querySelector('[data-tab="ads"]')?.click(),$("adReports")?.scrollIntoView({block:"start",behavior:"smooth"}),setStatus(`광고 ${id}에는 이미 리포트 ${existing.id}가 있습니다. 기존 토큰 원문은 저장하지 않으므로 필요할 때 새 링크를 발급하세요.`),showToast("기존 리포트를 불러왔습니다.");return}const firstText=adTexts(ad)[0]||ad.id;setReportForm({id:`${slugText(ad.id)}-${kstToday().slice(0,7)}`,advertiser:"",campaign:firstText.slice(0,80),adIds:[ad.id],creativeIncludes:[],creativeExcludes:[],period:{start:ad.startAt?isoToKstDateTimeInput(ad.startAt).slice(0,10):defaultReportStartDate(),end:ad.endAt?isoToKstDateTimeInput(ad.endAt).slice(0,10):"today",startAt:ad.startAt||"",endAt:ad.endAt||"",timezone:"Asia/Seoul"},pricing:{model:"",cpc:0,currency:"KRW"},notes:"동일 광고 내 문구 로테이션과 30분 기준 노출 cap으로 보정한 기준입니다."}),editingReportId="",$("reportId").disabled=!1,$("reportSaveBtn").textContent="토큰 발급",$("reportCancelEditBtn").hidden=!0,document.querySelector('[data-tab="ads"]')?.click(),$("adReports")?.scrollIntoView({block:"start",behavior:"smooth"}),setStatus(`광고 ${ad.id} 기준으로 리포트 발급 폼을 채웠습니다.`)}function renderAdReports(reports=[]){const rows=$("adReportRows");if(latestAdReports=Array.isArray(reports)?reports:[],latestAds.length&&renderAds(latestAds),!latestAdReports.length){rows.innerHTML='<div class="ad-empty">발급된 리포트가 없습니다. 광고 카드에서 리포트 발급을 누르거나 광고 저장 후 리포트 폼에서 토큰을 발급하세요.</div>';return}rows.innerHTML=latestAdReports.map(report=>{const classes=["report-card"];report.active===!1&&classes.push("is-inactive"),editingReportId===report.id&&classes.push("is-editing");const stats=report.stats||{},status=report.active===!1?'<span class="pill">리포트 비활성</span>':'<span class="pill ok">리포트 활성</span>',tokenStatus=report.tokenHash?'<span class="pill">토큰 발급됨</span>':'<span class="pill bad">토큰 없음</span>',statsStatus=report.active===!1?'<span class="pill">링크 비활성</span>':stats.staleStats?'<span class="pill warn">재집계 필요</span>':stats.hasStats?'<span class="pill ok">링크 활성</span>':'<span class="pill warn">집계 대기</span>',syncStatus=stats.hasStats&&stats.tokenSynced===!1?'<span class="pill warn">토큰 동기화 확인</span>':"",statsText=stats.hasStats?`확인 노출 ${formatNumber(stats.impressions)} · 도달 ${formatNumber(stats.reach)} · 클릭 ${formatNumber(stats.clicks)}`:"아직 집계 payload에 없음",updatedText=stats.updatedAt?time(stats.updatedAt):"-",cpc=Number(report.pricing?.cpc||0),pricingText=cpc>0?`CPC ${formatNumber(cpc)}원`:"단가 미설정",noteClass=report.active===!1?"":stats.hasStats?"ok":"warn",noteText=report.active===!1?"비활성 리포트입니다. 기존 광고주 링크는 열리지 않습니다.":stats.staleStats?"리포트 설정이 바뀌었습니다. 다음 자동 집계 후 광고주 페이지 수치가 새 범위로 반영됩니다.":stats.hasStats?"광고주 페이지에서 통계를 볼 수 있습니다. 기존 링크 원문은 저장하지 않아 카드에서 다시 표시할 수 없습니다.":"토큰은 발급됐지만 아직 집계 결과가 없습니다. 링크는 토큰 검증 후 열리고, 다음 자동 집계가 돌면 수치가 채워집니다.",generatedLink=generatedReportLinkState?.id===report.id?generatedReportLinkState.url:"",generatedLinkHtml=generatedLink?`
+          <div class="token-result report-card-token">
+            <div>
+              <label>새로 발급한 광고주 링크 (지금 한 번만 표시)</label>
+              <input class="generated-report-link" data-generated-report-id="${esc(report.id)}" type="text" value="${esc(generatedLink)}" readonly>
+              <p class="token-note">이 링크를 광고주에게 전달하세요. 닫은 뒤에는 같은 토큰을 다시 볼 수 없으며, 필요하면 이 카드에서 새 링크를 발급해야 합니다.</p>
+            </div>
+            <div class="field-actions" style="margin-top:0">
+              <button class="btn primary" data-report-copy-generated="${esc(report.id)}" type="button">링크 복사</button>
+              <button class="btn" data-report-hide-generated="${esc(report.id)}" type="button">닫기</button>
+            </div>
+          </div>`:"",filters=[...(report.creativeIncludes||[]).map(item=>`포함 ${esc(item)}`),...(report.creativeExcludes||[]).map(item=>`제외 ${esc(item)}`)];return`<article class="${classes.join(" ")}" data-report-card-id="${esc(report.id)}">
+          <header class="report-card-head">
+            <span class="report-card-id" title="${esc(report.id)}">${esc(report.id)}</span>
+            <span class="report-card-status">${status}${tokenStatus}${statsStatus}${syncStatus}</span>
+          </header>
+          <div class="report-card-title">${esc(report.advertiser||"광고주")} · ${esc(report.campaign||"광고 캠페인")}</div>
+          <div class="report-card-meta">
+            <span>집계 ${esc(reportPeriodText(report.period||{}))}</span>
+            <span>${esc(pricingText)}</span>
+            <span>광고 ${(report.adIds||[]).map(id=>`<code>${esc(id)}</code>`).join(" ")}</span>
+            ${filters.length?`<span>${filters.map(item=>`<span class="pill">${item}</span>`).join(" ")}</span>`:""}
+          </div>
+          <div class="report-card-facts">
+            <div class="report-fact"><span class="k">리포트 ID</span><span class="v"><code title="${esc(report.id)}">${esc(report.id)}</code></span></div>
+            <div class="report-fact"><span class="k">토큰</span><span class="v">원문 미저장, 새 링크 발급 시 이전 링크 만료</span></div>
+            <div class="report-fact"><span class="k">집계 상태</span><span class="v">${esc(statsText)}</span></div>
+            <div class="report-fact"><span class="k">과금 기준</span><span class="v">${esc(pricingText)}${cpc>0?" · 클릭 기준 예상 비용 계산":""}</span></div>
+            <div class="report-fact"><span class="k">집계 갱신</span><span class="v">${esc(updatedText)}</span></div>
+          </div>
+          <div class="report-card-note ${noteClass}">${esc(noteText)}</div>
+          ${generatedLinkHtml}
+          <div class="report-card-actions">
+            <button class="btn sm" data-report-action="edit" data-report-id="${esc(report.id)}">수정</button>
+            <button class="btn sm primary" data-report-action="rotate" data-report-id="${esc(report.id)}">새 링크 발급</button>
+            <button class="btn sm" data-report-action="toggle" data-report-id="${esc(report.id)}">${report.active===!1?"활성화":"비활성화"}</button>
+            <button class="btn sm danger" data-report-action="delete" data-report-id="${esc(report.id)}">삭제</button>
+          </div>
+        </article>`}).join("")}async function loadAdReports(){const data=await api("/api/admin/ad-reports");return renderAdReports(data.reports||[]),data}async function postAdReport(body,doneText){setStatus("광고주 리포트 처리 중...");const data=await api("/api/admin/ad-reports",{method:"POST",body:JSON.stringify(body)});return renderAdReports(data.reports||[]),setStatus(""),doneText&&showToast(doneText),data}$("reportSaveBtn").addEventListener("click",async()=>{const report=readReportForm();if(report){if(!report.id){showToast("리포트 ID를 입력해 주세요.","bad");return}if(!report.adIds.length){showToast("광고 식별자를 입력해 주세요.","bad");return}try{if(editingReportId){await postAdReport({action:"update",...report,id:editingReportId},"리포트 설정을 저장했습니다."),resetReportForm();return}const tokenValue=randomReportToken(),tokenHash=await sha256Hex(tokenValue);await postAdReport({action:"add",...report,tokenHash},"광고주 리포트 토큰을 발급했습니다."),resetReportForm(),showGeneratedReportLink(report.id,tokenValue)}catch(e){handleAdminError(e)}}}),$("reportCancelEditBtn").addEventListener("click",resetReportForm),$("reportResetBtn").addEventListener("click",resetReportForm),$("reportRefreshBtn").addEventListener("click",()=>refreshAdStats().catch(handleAdminError)),document.addEventListener("click",async ev=>{const copyBtn=ev.target.closest("[data-report-copy-generated]"),hideBtn=ev.target.closest("[data-report-hide-generated]");if(copyBtn){const id=copyBtn.dataset.reportCopyGenerated,input=generatedReportLinkInput(id),value=input?.value||"";if(!value)return;try{await navigator.clipboard.writeText(value),showToast("광고주 링크를 복사했습니다.")}catch{input.focus(),input.select(),showToast("링크를 선택했습니다. 직접 복사해 주세요.")}return}hideBtn&&(generatedReportLinkState=null,renderAdReports(latestAdReports))}),document.addEventListener("click",async ev=>{const btn=ev.target.closest("[data-report-action]");if(!btn)return;const action=btn.dataset.reportAction,id=btn.dataset.reportId;try{if(action==="edit"){const report=latestAdReports.find(item=>item.id===id);if(!report){showToast("리포트를 찾지 못했습니다.","bad");return}setReportForm(report),$("adReports")?.scrollIntoView({block:"start",behavior:"smooth"})}else if(action==="rotate"){if(!confirm("새 링크를 발급하면 기존 광고주 링크는 더 이상 열리지 않습니다. 계속할까요?"))return;const tokenValue=randomReportToken(),tokenHash=await sha256Hex(tokenValue);await postAdReport({action:"rotate",id,tokenHash},"새 광고주 토큰을 발급했습니다."),showGeneratedReportLink(id,tokenValue)}else action==="toggle"?await postAdReport({action:"toggle",id},"리포트 활성 여부를 바꿨습니다."):action==="delete"&&confirm("이 광고주 리포트를 삭제할까요? 기존 링크는 더 이상 열리지 않습니다.")&&await postAdReport({action:"delete",id},"광고주 리포트를 삭제했습니다.")}catch(e){handleAdminError(e)}});async function postAction(body,doneText){setStatus("처리 중...");const data=await api("/api/chat-admin",{method:"POST",body:JSON.stringify(body)});await broadcastModeration(body);const actionWarning=chatAdminWarningText(data);setStatus(actionWarning||""),doneText&&showToast(doneText);const refreshed=await loadChat(),refreshWarning=chatAdminWarningText(refreshed);return actionWarning&&!refreshWarning&&setStatus(actionWarning,!0),data}async function load(){setStatus("불러오는 중...");const results=await Promise.allSettled([loadChat(),loadCommunityBans({silent:!0}),loadChatLinkPolicy({silent:!0}),loadFirstWriteCooldown({silent:!0}),loadBlockedTerms(),loadPolls({silent:!0}),loadDonors(),loadAds(),loadAdReports(),loadQuoteTiers({silent:!0})]),failed=results.filter(r=>r.status==="rejected");if(failed.length){const first=failed[0].reason;results[0].status==="rejected"?handleAdminError(first):setStatus(`일부 로드 실패: ${friendlyError(first?.message||first)}`,!0)}else{const chatWarning=chatAdminWarningText(results[0].value);setStatus(chatWarning||"",!!chatWarning),showToast("관리자 데이터 로드 완료")}}$("loadBtn").addEventListener("click",()=>load().catch(handleAdminError)),rememberInput.addEventListener("change",()=>{persistToken(tokenInput.value.trim()),showToast(rememberInput.checked?"이 기기에 토큰 저장":"이 기기 저장 해제")}),toggleTokenBtn.addEventListener("click",()=>{const visible=tokenInput.type==="text";tokenInput.type=visible?"password":"text",toggleTokenBtn.textContent=visible?"토큰 보기":"토큰 숨기기"}),$("clearTokenBtn").addEventListener("click",()=>{sessionStorage.removeItem(TOKEN_KEY),localStorage.removeItem(REMEMBER_TOKEN_KEY),rememberInput.checked=!1,tokenInput.value="",setLoginState("bad","로그인 필요"),setAdminUnlocked(!1),setStatus("토큰을 지웠습니다.")}),document.querySelectorAll("[data-manual-ban-hours]").forEach(btn=>{btn.addEventListener("click",()=>{const user_id=$("manualUser").value.trim(),hours=Math.max(1,Math.min(168,Number(btn.dataset.manualBanHours||24)||24));if(!user_id){showToast("사용자 ID 를 입력하세요.","bad");return}postAction({action:"ban_user",user_id,hours},`${banHoursLabel(hours)} 추방했습니다.`).catch(handleAdminError)})}),$("manualUnbanBtn").addEventListener("click",()=>{const user_id=$("manualUser").value.trim();if(!user_id){showToast("사용자 ID 를 입력하세요.","bad");return}postAction({action:"unban_user",user_id},"추방을 해제했습니다.").catch(handleAdminError)}),$("refreshBansBtn").addEventListener("click",()=>loadBansOnly().catch(handleAdminError)),$("clearPoliticalMutesBtn").addEventListener("click",()=>{confirm("정치성 표현 제한만 모두 해제할까요? 신고/차단어 추방은 유지됩니다.")&&postAction({action:"clear_political_mutes"},"정치성 표현 제한을 모두 해제했습니다.").catch(handleAdminError)}),$("clearBansBtn").addEventListener("click",()=>{confirm("현재 채팅 추방 목록을 전부 해제할까요? 신고/차단어 기록까지 함께 초기화됩니다.")&&postAction({action:"clear_bans"},"전체 추방을 해제했습니다.").catch(handleAdminError)}),$("chatLinkSaveBtn").addEventListener("click",()=>saveChatLinkPolicy().catch(handleAdminError)),$("chatLinkRefreshBtn").addEventListener("click",()=>loadChatLinkPolicy().catch(handleAdminError)),$("firstWriteCooldownSaveBtn").addEventListener("click",()=>saveFirstWriteCooldown().catch(handleAdminError)),$("firstWriteCooldownRefreshBtn").addEventListener("click",()=>loadFirstWriteCooldown().catch(handleAdminError)),$("quoteTiersSaveBtn").addEventListener("click",()=>saveQuoteTiers().catch(handleAdminError)),$("quoteTiersRefreshBtn").addEventListener("click",()=>loadQuoteTiers().catch(handleAdminError)),$("quoteTiersResetBtn").addEventListener("click",()=>resetQuoteTiers().catch(handleAdminError)),$("chatLinkResetBtn").addEventListener("click",()=>resetChatLinkPolicy().catch(handleAdminError)),$("refreshCommunityBansBtn").addEventListener("click",()=>loadCommunityBans().catch(handleAdminError)),$("clearCommunityBansBtn").addEventListener("click",async()=>{if(confirm("기존 종토방 차단만 초기화할까요? 채팅 신고/차단어 추방은 유지됩니다."))try{setStatus("종토방 차단 초기화 중...");const data=await api("/api/community-admin",{method:"POST",body:JSON.stringify({action:"clear_community_bans"})});await loadCommunityBans(),setStatus(data.syncError?`일부 동기화 제한: ${friendlyError(data.syncError)}`:""),showToast(`종토방 차단 ${data.cleared||0}건을 초기화했습니다.`)}catch(e){handleAdminError(e)}}),document.addEventListener("click",ev=>{const btn=ev.target.closest("[data-action]");if(!btn)return;const action=btn.dataset.action,user_id=btn.dataset.userId,nickname=btn.dataset.nickname||"",message_id=btn.dataset.messageId;if(action==="delete-message")postAction({action:"delete_message",message_id},"메시지를 삭제했습니다.").catch(handleAdminError);else if(action==="delete-user")confirm("이 사용자의 현재 표시 메시지를 삭제할까요?")&&postAction({action:"delete_user_messages",user_id},"사용자 메시지를 삭제했습니다.").catch(handleAdminError);else if(action==="ban-user"){const hours=Math.max(1,Math.min(168,Number(btn.dataset.banHours||24)||24)),deleteMessages=btn.dataset.deleteMessages==="1",suffix=deleteMessages?"하고 메시지도 삭제":"";confirm(`이 사용자를 ${banHoursLabel(hours)} 추방${suffix}할까요?`)&&(btn.closest("details")?.removeAttribute("open"),postAction({action:"ban_user",user_id,nickname,hours,delete_messages:deleteMessages},`${banHoursLabel(hours)} 추방${deleteMessages?"+삭제":""} 완료`).catch(handleAdminError))}else action==="unban-user"?postAction({action:"unban_user",user_id},"추방을 해제했습니다.").catch(handleAdminError):action==="shadow-user"?confirm("이 사용자를 섀도우 처리할까요? (본인에겐 정상처럼 보이지만 글·추천·신고가 남에겐 무효 처리됩니다)")&&(btn.closest("details")?.removeAttribute("open"),postAction({action:"shadow_user",user_id,nickname},"섀도우 처리했습니다.").catch(handleAdminError)):action==="unshadow-user"&&postAction({action:"unshadow_user",user_id},"섀도우를 해제했습니다.").catch(handleAdminError)}),document.addEventListener("click",ev=>{const btn=ev.target.closest("[data-community-action]");if(!btn)return;const action=btn.dataset.communityAction,user_id=btn.dataset.userId;action==="unban-user"&&api("/api/community-admin",{method:"POST",body:JSON.stringify({action:"unban_user",user_id})}).then(()=>loadCommunityBans()).then(()=>showToast("종토방 차단을 해제했습니다.")).catch(handleAdminError)}),resetDonorForm(),resetAdForm(),tokenInput.value&&load().catch(handleAdminError);
+</script>
+</body>
+</html>

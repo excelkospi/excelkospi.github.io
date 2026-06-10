@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<title>공지사항 · 패치 노트 | 엑셀코스피</title>
+<link rel="canonical" href="https://excelkospi.pages.dev/patch-notes" />
+<link rel="alternate" hreflang="ko-KR" href="https://excelkospi.pages.dev/patch-notes" />
+<meta name="description" content="엑셀코스피 공지사항·패치 노트 — 새 기능, 개선, 버그 수정 등 최신 업데이트 내역. 회사에서 엑셀 보는 척 주식 보기, excelkospi.">
+<meta name="title" content="공지사항 · 패치 노트 | 엑셀코스피">
+<link rel="icon" href="/favicon.ico?v=20260610-2412" sizes="any" />
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg?v=20260610-2412" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=20260610-2412" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260610-2412" />
+<link rel="stylesheet" href="/assets/app.css?v=20260610-2439">
+<link rel="stylesheet" href="/assets/guide.css?v=20260610-2412">
+<style>.patch-page .updates-body{overflow:visible}
+</style>
+</head>
+<body class="patch-notes-page">
+  <header class="excel-topbar">
+    <a class="brand" href="/" aria-label="시트로 돌아가기">
+      <img src="/assets/excelkospi-logo.png" alt="" />
+      <span>excelkospi</span>
+    </a>
+    <nav class="topbar-nav" aria-label="페이지 이동">
+      <a href="/guide">소개</a>
+      <a href="/patch-notes" aria-current="page">공지사항</a>
+      <a href="/policy">이용약관</a>
+    </nav>
+    <a class="open-sheet" href="/">시트 열기</a>
+  </header>
+  <div class="patch-page">
+    <div class="updates-body" id="patchBody">불러오는 중...</div>
+  </div>
+  <script src="/assets/app-utils.js?v=20260610-2412"></script>
+  <script>(async function(){const body=document.getElementById("patchBody");try{const res=await fetch("/patch-notes.md?v=20260610-0212",{cache:"no-store"});if(!res.ok)throw new Error("patch-notes "+res.status);body.innerHTML=renderPatchMarkdown(await res.text())}catch{body.innerHTML='<p class="updates-error">공지사항을 불러오지 못했습니다.</p>'}})();
+</script>
+</body>
+</html>

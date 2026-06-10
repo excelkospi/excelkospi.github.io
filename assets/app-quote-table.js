@@ -1,0 +1,98 @@
+function renderHoldingEditRow(card,rowNo,current={}){const id=holdingId(card),lotId=holdingInputState?.lotId||newHoldingLotId();return`
+    <tr class="holding-row holding-edit-row ${card.userAdded?"user-holding-row":""}" data-holding-id="${esc(id)}" data-lot-id="${esc(lotId)}" title="${esc(card.key)} 보유 정보 입력">
+      <td class="rownum">${rowNo}</td>
+      <td class="left holding-cell" colspan="3">
+        <div class="holding-inline" data-holding-id="${esc(id)}" data-lot-id="${esc(lotId)}" data-after-lot-id="${esc(holdingInputState?.afterLotId||"")}" data-key="${esc(card.key)}">
+          <input data-holding-avg type="text" inputmode="decimal" autocomplete="off" placeholder="평단가" value="${esc(holdingInputValue(current.avg))}" aria-label="평단가" />
+          <input data-holding-qty type="text" inputmode="decimal" autocomplete="off" placeholder="수량" value="${esc(holdingInputValue(current.qty))}" aria-label="수량" />
+          <button type="button" data-action="save-holding-inline" data-holding-id="${esc(id)}" data-lot-id="${esc(lotId)}" data-key="${esc(card.key)}">저장</button>
+          <button type="button" class="inline-cancel" data-action="cancel-holding-inline" title="취소" aria-label="취소">×</button>
+        </div>
+      </td>
+    </tr>`}function renderHoldingLotRow(card,rowNo,lot,index,total){const id=holdingId(card),calc=holdingCalc(card,lot);if(!calc)return"";const metric=holdingModeMetric(calc),returnClass=cls(metric.pct),valueClass=cls(metric.pnl),pnlText=metric.unavailable?"-":signedHoldingPlainAmountText(metric.pnl,calc.currency),pctText=metric.unavailable?"-":signedPctOne(metric.pct),titlePrefix=total>1?`보유 ${index+1} · `:"",dailyTitle=Number.isFinite(Number(calc.dayPnl))?` · 일일 손익 ${signedHoldingAmountText(calc.dayPnl,calc.currency)}`:"";return`
+    <tr class="holding-row holding-lot-row${`${index===0?" holding-lot-first":""}${index===total-1?" holding-lot-last":""}`} ${card.userAdded?"user-holding-row":""}" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" title="${esc(titlePrefix)}평가액 ${holdingSummaryMoneyText(calc.value,calc.currency)} · 원금 ${holdingSummaryMoneyText(calc.invested,calc.currency)} · 누적 손익 ${signedHoldingSummaryMoneyText(calc.pnl,calc.currency)}${dailyTitle} · 구매가격 ${holdingSummaryMoneyText(calc.avg,calc.currency)} · 수량 ${num(calc.qty)}">
+      <td class="rownum">${rowNo}</td>
+      <td class="left holding-cell holding-meta-cell">
+        ${holdingLotMetaHtml(calc,index,total)}
+        <button class="holding-row-add" data-action="add-holding-lot" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" data-key="${esc(card.key)}" title="${esc(card.key)} 보유 행 추가" aria-label="보유 행 추가">추가</button>
+        <button class="row-x holding-row-x" data-action="clear-holding" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" data-key="${esc(card.key)}" title="${esc(card.key)} 보유 정보 삭제" aria-label="보유 정보 삭제">×</button>
+      </td>
+      <td class="right holding-value-cell ${valueClass}">${esc(pnlText)}</td>
+      <td class="right holding-return-cell ${returnClass}">${esc(pctText)}</td>
+    </tr>`}function renderHoldingRows(card,rowNo){if(!canHoldCard(card))return{html:"",count:0};const id=holdingId(card),lots=holdingLotsForId(id),editing=holdingInputState&&holdingInputState.id===id,rows=[];let nextRow=rowNo,insertedEdit=!1;const pushEdit=(current={})=>{rows.push(renderHoldingEditRow(card,nextRow++,current)),insertedEdit=!0};return editing&&!lots.length?pushEdit({}):(lots.forEach((lot,index)=>{editing&&holdingInputState.lotId===lot.lotId&&!holdingInputState.isNew?pushEdit(lot):rows.push(renderHoldingLotRow(card,nextRow++,lot,index,lots.length)),editing&&holdingInputState.isNew&&holdingInputState.afterLotId===lot.lotId&&pushEdit({})}),editing&&holdingInputState.isNew&&!insertedEdit&&pushEdit({})),{html:rows.join(""),count:nextRow-rowNo}}function renderHoldingsEmptyRow(rowNo){return`
+    <tr class="holding-empty-row">
+      <td class="rownum">${rowNo}</td>
+      <td class="left holding-empty-cell" colspan="3">
+        <span class="holding-empty-title">등록된 보유종목이 없습니다.</span>
+        <span class="holding-empty-copy">종목 이름에 마우스를 올려 <b>₩</b> 버튼을 누르면 보유수량과 평단가를 입력할 수 있어요!</span>
+      </td>
+    </tr>`}function renderCashEditRow(card,rowNo){const id=String(card.cashId||""),market=normalizeCashPositionMarket(card.market),currency=normalizeCashPositionCurrency(card.cashCurrency,market),amountValue=Number(card.cashAmount)>0?cashAmountText(card.cashAmount,currency):"",labelValue=normalizeCashLabel(card.key)||cashPositionDefaultLabel({market,currency});return`
+    <tr class="holding-row cash-row cash-edit-row" data-cash-id="${esc(id)}" title="현금 정보 입력">
+      <td class="rownum">${rowNo}</td>
+      <td class="left holding-cell" colspan="3">
+        <div class="holding-inline cash-inline" data-cash-id="${esc(id)}">
+          <input data-cash-label type="text" autocomplete="off" placeholder="현금" value="${esc(labelValue)}" aria-label="현금 이름" />
+          <input data-cash-amount type="text" inputmode="decimal" autocomplete="off" placeholder="금액" value="${esc(amountValue)}" aria-label="현금 금액" />
+          <select data-cash-currency aria-label="통화">
+            <option value="KRW"${currency==="KRW"?" selected":""}>KRW</option>
+            <option value="USD"${currency==="USD"?" selected":""}>USD</option>
+          </select>
+          <button type="button" data-action="save-cash-inline" data-cash-id="${esc(id)}">저장</button>
+          <button type="button" class="inline-cancel" data-action="cancel-cash-inline" title="취소" aria-label="취소">×</button>
+        </div>
+      </td>
+    </tr>`}function renderCashDisplayRow(c,rowNo,index,firstMovableRow,lastMovableRow,manualOrdering){const id=String(c.cashId||"");if(cashInputState&&cashInputState.id===id)return renderCashEditRow(c,rowNo);const orderId=quoteRowOrderId(c),rowDragAttrs=manualOrdering?` data-row-order-id="${esc(orderId)}"`:"",rowNumAttrs=manualOrdering?` class="rownum quote-row-handle" data-row-order-id="${esc(orderId)}" title="행번호를 끌어서 순서 변경" aria-label="${esc(c.key)} 순서 변경"`:' class="rownum"',moveBtns=manualOrdering?`<button class="row-move" data-action="move-default" data-dir="up" data-order-id="${esc(orderId)}" title="${esc(c.key)} 위로 이동" aria-label="위로 이동" ${index===firstMovableRow?"disabled":""}>▲</button><button class="row-move" data-action="move-default" data-dir="down" data-order-id="${esc(orderId)}" title="${esc(c.key)} 아래로 이동" aria-label="아래로 이동" ${index===lastMovableRow?"disabled":""}>▼</button>`:"",editBtn=`<button class="row-holding is-set" data-action="edit-cash-row" data-cash-id="${esc(id)}" title="${esc(c.key)} 현금 수정" aria-label="현금 수정">₩</button>`,removeBtn=`<button class="row-x" data-action="remove-cash-row" data-cash-id="${esc(id)}" title="${esc(c.key)} 삭제" aria-label="삭제">×</button>`,actions=`<span class="row-actions">${editBtn}${moveBtns}${removeBtn}</span>`,currency=normalizeCashPositionCurrency(c.cashCurrency,c.market),title=`${esc(c.market||"")} · ${esc(currency)} 현금 · ${fmtDt(c.asOf)}`;return`
+    <tr class="cash-row"${rowDragAttrs} data-cash-id="${esc(id)}" data-outlook-badge="" data-outlook-tone="" title="${title}">
+      <td${rowNumAttrs}>${rowNo}</td>
+      <td class="left"><div class="metric-cell"><span class="metric-label">${esc(c.key)}</span><span class="metric-trail quote-action-trail">${actions}${sourcePillHtml(c)}</span></div></td>
+      <td class="right quote-price-cell">${cashAmountHtml(c.cashAmount,currency)}</td>
+      <td class="right flat quote-change-cell"><span class="flat">-</span></td>
+    </tr>`}function shouldRenderUsDayQuoteNotice(cards,session){if(!sessionHas(session,"US_DAY"))return!1;const renderedMarket=String(typeof currentRenderedMarket=="string"?currentRenderedMarket:"").toUpperCase(),selectedMarket=String(typeof selected=="string"?selected:"").toUpperCase();return renderedMarket==="US"||selectedMarket==="US"?!0:Array.isArray(cards)&&cards.some(card=>String(card?.market||"").toUpperCase()==="US")}function renderUsDayQuoteNoticeRow(rowNo){return`
+    <tr class="us-day-quote-notice-row">
+      <td class="rownum">${rowNo}</td>
+      <td class="left us-day-quote-notice-cell" colspan="3">미장 데이장은 자동 갱신 시세 미지원. 차트를 열었을 때만 현재가가 보입니다.</td>
+    </tr>`}function hlProxyBadgeHtml(card){if(!card?._hlProxy)return"";const tooltip=card._hlTooltip||"HL/Binance 주식 퍼프 기반 24시간 참고 시세입니다.";return`<span class="hl-proxy-badge" tabindex="0" data-hl-tooltip="${esc(tooltip)}" aria-label="${esc(tooltip)}"><span class="hl-proxy-moon" aria-hidden="true">☾</span><span>HL 24h</span></span>`}function hlProxyHeaderRowHtml(rowNo){return`
+    <tr class="hl-proxy-header-row">
+      <td class="rownum">${rowNo}</td>
+      <td class="left hl-proxy-header-cell" colspan="3"><span class="hl-proxy-header-title">HyperLiquid 24시간 시세</span><span class="hl-proxy-header-sub">— 장 종료 후에만 표시됩니다</span><span class="hl-proxy-info" tabindex="0" role="button" aria-label="이게 뭔가요? — 설명 보기">i</span></td>
+    </tr>`}function hlProxyRowClass(card){if(!card?._hlProxy)return"";const quality=String(card._hlQuality||"normal").toLowerCase().replace(/[^a-z0-9_-]/g,"")||"normal",status=String(card._hlStatus||"idle").toLowerCase().replace(/[^a-z0-9_-]/g,"")||"idle";return` hl-proxy-row hl-proxy-quality-${quality} hl-proxy-status-${status}`}function cardRenderedCells(c){let priceCell,changeCell,changeClass,previewChangeValue=null;if(c._momentum!==void 0&&c._momentum!==null)priceCell='<span class="flat">-</span>',changeCell=pct(c._momentum),changeClass=cls(c._momentum),previewChangeValue=c._momentum;else if(c.sign&&c.priceUnit){const unit=displayPriceUnit(c);priceCell=c.price==null?'<span class="flat">-</span>':`${quotePriceNumberText(c.price,"",unit,c.priceUnit)}${esc(unit)}`,changeCell='<span class="flat">-</span>',changeClass="flat"}else{priceCell=isRateOnlyCard(c.key)?"&nbsp;":cardPriceDisplayHtml(c);const selectedChange=changeValueFor(c);changeCell=`<span class="change-wrap"><span>${shouldRenderChangeSessionTag(c)?`<span class="flat" title="본장 외 세션 표시">${esc(c.sessionTag)}</span>`:pct(selectedChange)}</span></span>`,changeClass=cls(selectedChange),previewChangeValue=selectedChange}return{priceCell,changeCell,changeClass,previewChangeValue,changeTitle:changeCellTitle(c,previewChangeValue)}}function shouldRenderChangeSessionTag(c){return!c?.sessionTag||changeWindow!=="day"?!1:String(c.market||"").toUpperCase()==="KR"?String(c.source||"").toUpperCase().includes("NXT"):!0}function renderCardsTable(cards,session){const manualOrdering=quoteSortMode==="manual",header=`
+    <tr>
+      <th class="rownum"></th>
+      <th class="colhead">A</th><th class="colhead">B</th><th class="colhead">C</th>
+    </tr>
+    <tr>
+      <th class="rownum">1</th>
+      <th class="subhead">지표</th><th class="subhead">현재가</th><th class="subhead">${changeHeaderLabel()}</th>
+    </tr>`,defaultRowIndexes=cards.map((x,idx)=>!x._hlProxy&&!x._hlHeader&&!x._noteRow&&!x._cashRow&&!x.userAdded&&!MOOD_PROTECTED_KEYS.has(x.key)?idx:-1).filter(idx=>idx>=0),movableRowIndexes=cards.map((x,idx)=>!x._hlProxy&&!x._hlHeader&&!x._noteRow&&!MOOD_PROTECTED_KEYS.has(x.key)?idx:-1).filter(idx=>idx>=0),firstMovableRow=movableRowIndexes[0],lastMovableRow=movableRowIndexes[movableRowIndexes.length-1];lastRenderedDefaultOrderIds=defaultRowIndexes.map(idx=>cardOrderId(cards[idx])),lastRenderedQuoteOrderIds=cards.filter(card=>!card?._hlProxy&&!card?._hlHeader).map(quoteRowOrderId);let rowNo=2,rows="";shouldRenderUsDayQuoteNotice(cards,session)&&(rows+=renderUsDayQuoteNoticeRow(rowNo++)),selected==="HOLDINGS"&&!cards.length?rows=renderHoldingsEmptyRow(rowNo++):rows+=cards.map((c,i)=>{const currentRowNo=rowNo++;if(c._hlHeader)return hlProxyHeaderRowHtml(currentRowNo);if(c._noteRow){const noteId=String(c.noteId||""),rowOrderId2=quoteRowOrderId(c),text=String(c.text||""),noteRowDragAttrs=manualOrdering?` data-row-order-id="${esc(rowOrderId2)}"`:"",noteRowNumAttrs=manualOrdering?` class="rownum quote-row-handle" data-row-order-id="${esc(rowOrderId2)}" title="행번호를 끌어서 순서 변경" aria-label="메모 행 순서 변경"`:' class="rownum"';return`
+    <tr class="quote-note-row"${noteRowDragAttrs} data-note-id="${esc(noteId)}">
+      <td${noteRowNumAttrs}>${currentRowNo}</td>
+      <td class="left quote-note-cell" colspan="3">
+        <div class="quote-note-inner">
+          <div class="quote-note-content" contenteditable="true" role="textbox" spellcheck="false" data-note-id="${esc(noteId)}" data-placeholder="예: 장투 / 단타 / 관심만">${esc(text)}</div>
+          <button class="row-x quote-note-remove" data-action="remove-note-row" data-note-id="${esc(noteId)}" title="빈 행 삭제" aria-label="빈 행 삭제">×</button>
+        </div>
+      </td>
+    </tr>`}if(c._cashRow)return renderCashDisplayRow(c,currentRowNo,i,firstMovableRow,lastMovableRow,manualOrdering);const isUser=!!c.userAdded,errCls=isUser&&c.error?" error":"",labelLink=isUser?userCardLink(c):defaultCardLink(c),labelHtml=labelLink?`<a href="${labelLink}" target="_blank" rel="noopener">${esc(c.key)}</a>`:esc(c.key);if(c._flows){const flowHtml=(c._flows||[]).map(f=>{const n=Number(f.amount),hasAmount=f.amount!==null&&f.amount!==void 0&&Number.isFinite(n);return`<span class="flow-pill ${hasAmount?cls(n):"flat"}"><span class="flow-label">${esc(f.label)}</span><span>${esc(hasAmount?`${n>0?"+":""}${num(n)}억`:"-")}</span></span>`}).join('<span class="flat">/</span>');return`
+    <tr class="mood-row flow-row" data-outlook-badge="${esc(outlookBadgeText(c))}" data-outlook-tone="${esc(outlookBadgeTone(c))}" title="${esc(c.market||"")} · ${esc(c.source||"-")} · ${fmtDt(c.asOf)}">
+      <td class="rownum">${currentRowNo}</td>
+      <td class="left flow-cell" colspan="3"><div class="metric-cell"><span class="metric-label">${labelHtml} · <span class="flow-line">${flowHtml}</span></span>${outlookFlowPreviewHtml(c)}<span class="metric-trail">${sourcePillHtml(c)}</span></div></td>
+    </tr>`}let removeBtn="";if(c._hlProxy||MOOD_PROTECTED_KEYS.has(c.key))removeBtn="";else if(isUser){const marketAttr=`data-market="${esc(c.market||"")}"`,holdingBtn=canHoldCard(c)?`<button class="row-holding ${holdingFor(c)?"is-set":""}" data-action="edit-holding" data-holding-id="${esc(holdingId(c))}" data-key="${esc(c.key)}" data-price="${esc(c.price??"")}" title="${esc(c.key)} 구매가격/수량" aria-label="구매가격/수량">₩</button>`:"",moveBtns=manualOrdering?`<button class="row-move" data-action="move-row" data-dir="up" data-code="${esc(c.code)}" ${marketAttr} title="${esc(c.key)} 위로 이동" aria-label="위로 이동" ${i===firstMovableRow?"disabled":""}>▲</button><button class="row-move" data-action="move-row" data-dir="down" data-code="${esc(c.code)}" ${marketAttr} title="${esc(c.key)} 아래로 이동" aria-label="아래로 이동" ${i===lastMovableRow?"disabled":""}>▼</button>`:"";removeBtn=`<span class="row-actions">${holdingBtn}${moveBtns}<button class="row-x" data-action="remove-row" data-code="${esc(c.code)}" ${marketAttr} title="${esc(c.key)} 삭제" aria-label="삭제">×</button></span>`}else{const orderId=cardOrderId(c),holdingBtn=canHoldCard(c)?`<button class="row-holding ${holdingFor(c)?"is-set":""}" data-action="edit-holding" data-holding-id="${esc(holdingId(c))}" data-key="${esc(c.key)}" data-price="${esc(c.price??"")}" title="${esc(c.key)} 구매가격/수량" aria-label="구매가격/수량">₩</button>`:"",moveBtns=manualOrdering?`<button class="row-move" data-action="move-default" data-dir="up" data-order-id="${esc(orderId)}" title="${esc(c.key)} 위로 이동" aria-label="위로 이동" ${i===firstMovableRow?"disabled":""}>▲</button><button class="row-move" data-action="move-default" data-dir="down" data-order-id="${esc(orderId)}" title="${esc(c.key)} 아래로 이동" aria-label="아래로 이동" ${i===lastMovableRow?"disabled":""}>▼</button>`:"";removeBtn=`<span class="row-actions">${holdingBtn}${moveBtns}<button class="row-x" data-action="hide-default" data-key="${esc(c.key)}" title="${esc(c.key)} 숨기기" aria-label="숨기기">×</button></span>`}const live=c._hlProxy?"":liveBadgeHtml(c,session),trExtraCls=c._hlProxy?hlProxyRowClass(c):MOOD_PROTECTED_KEYS.has(c.key)?" mood-row":"",rowOrderId=quoteRowOrderId(c),rowDraggable=manualOrdering&&!c._hlProxy,rowDragAttrs=rowDraggable?` data-row-order-id="${esc(rowOrderId)}"`:"",rowNumAttrs=rowDraggable?` class="rownum quote-row-handle" data-row-order-id="${esc(rowOrderId)}" title="행번호를 끌어서 순서 변경" aria-label="${esc(c.key)} 순서 변경"`:' class="rownum"',{priceCell,changeCell,changeClass,previewChangeValue,changeTitle}=cardRenderedCells(c),quoteId=c._hlProxy?hlProxyQuoteId(c):quoteTokenForCard(c),tvSymbol=c._hlProxy?"":tradingViewSymbolForCard(c),tvTipPreferred=tradingViewTipPreferred(c,tvSymbol)?"1":"",tvButton=tvSymbol?`<button class="tv-chart-button" data-action="open-tv-chart" data-token="${esc(quoteId)}" data-tv-symbol="${esc(tvSymbol)}" data-label="${esc(c.key)}" title="${esc(c.key)} TradingView 차트" aria-label="${esc(c.key)} TradingView 차트">차트</button>`:"",holdingRows=renderHoldingRows(c,rowNo),holdingGroupCls=holdingRows.html?" quote-with-holding":"",rowTitle=c._hlProxy?"":`${c.market||""} · ${c.source||"-"} · ${fmtDt(c.asOf)}`,rowTitleAttr=rowTitle?` title="${esc(rowTitle)}"`:"",hlDataAttrs=c._hlProxy?` data-hl-proxy-id="${esc(c._hlId||"")}"`:"",labelExtra="",rawPriceValue=c.price===null||c.price===void 0||c.price===""?null:Number(c.price),priceValueAttr=Number.isFinite(rawPriceValue)?` data-quote-price-value="${esc(rawPriceValue)}"`:"";let rowHtml=`
+    <tr class="${isUser?"user-row"+errCls:""}${trExtraCls}${holdingGroupCls}" data-quote-id="${esc(quoteId)}"${rowDragAttrs}${hlDataAttrs}${priceValueAttr} data-chart-label="${esc(c.key)}" data-tv-symbol="${esc(tvSymbol)}" data-tv-tip-preferred="${tvTipPreferred}" data-outlook-badge="${esc(outlookBadgeText(c))}" data-outlook-tone="${esc(outlookBadgeTone(c))}"${rowTitleAttr}>
+      <td${rowNumAttrs}>${currentRowNo}</td>
+      <td class="left"><div class="metric-cell"><span class="metric-label">${labelHtml}${labelExtra}${live}</span>${tvButton}${outlookPreviewHtml(c,previewChangeValue)}<span class="metric-trail ${removeBtn?"quote-action-trail":""}">${removeBtn}${c._hlProxy?hlProxyBadgeHtml(c):sourcePillHtml(c)}</span></div></td>
+      <td class="right quote-price-cell">${priceCell}</td>
+      <td class="right ${changeClass} quote-change-cell"${changeTitle?` title="${esc(changeTitle)}"`:""}>${changeCell}</td>
+    </tr>`;return holdingRows.html&&(rowHtml+=holdingRows.html,rowNo+=holdingRows.count),rowHtml}).join("");const summaryRow=renderHoldingSummaryRow(cards,rowNo);summaryRow&&rowNo++;const adBlankRowNo=rowNo++,adContentRowNo=rowNo++,summaryAdRows=`
+    <tr class="summary-sheet-note-blank-row" aria-hidden="true">
+      <td class="rownum">${adBlankRowNo}</td>
+      <td class="left"></td>
+      <td class="right"></td>
+      <td class="right"></td>
+    </tr>
+    <tr class="summary-sheet-note-row" data-xk-area="summary" data-xk-position="summary-bottom" data-xk-id="sponsor-open" data-xk-label="알림" data-xk-variant-index="0" data-xk-variant-text="이곳에 한줄 광고를 넣어주실 광고주를 모십니다.">
+      <td class="rownum">${adContentRowNo}</td>
+      <td class="left summary-sheet-note-cell" colspan="3">
+        <span class="notice-badge" data-xk-label>알림</span>
+        <span class="community-text-note"><a class="notice-copy" href="mailto:excelkospi@outlook.com" data-xk-click="1">이곳에 한줄 광고를 넣어주실 광고주를 모십니다.</a></span>
+      </td>
+    </tr>`,MIN_VISIBLE_ROWS=80,renderedCount=rowNo-2,usedRowIdx=rowNo,padCount=Math.max(0,MIN_VISIBLE_ROWS-renderedCount),empties=makeEmptyRows(usedRowIdx,padCount,3);return header+rows+summaryRow+summaryAdRows+empties}
