@@ -144,14 +144,14 @@ const PAPER_REFRESH_MS=6e4,PAPER_LB_CLIENT_TTL_MS=6e4,PAPER_SHARE_PATH="/paper",
     <div class="pp-card-head"><span class="pp-cap">참가자 전체 목록</span><em>${rows.length}명 표시 · <button class="pp-link-btn" type="button" data-pp-act="toggle-participants">접기</button></em></div>
     ${paperParticipantFiltersHtml()}
     <div class="pp-participant-list">${body}</div>
-  </div>`}function paperLeaderboardHtml(compact=!1){const lb=paperLeaderboard;if(!lb?.top?.length)return`<div class="pp-card"><div class="pp-card-head"><span class="pp-cap">수익률 랭킹</span></div>
+  </div>`}function paperLeaderboardHtml(compact=!1){const lb=paperLeaderboard;if(!lb?.top?.length)return`<div class="pp-card"><div class="pp-card-head"><span class="pp-cap pp-ranking-title">수익률 랭킹</span></div>
       <div class="pp-empty">아직 랭커가 없어요. 지금 시작하면 1위!</div>
       ${compact?"":paperParticipantListHtml(lb)}</div>`;const medals=["🥇","🥈","🥉"],meNick=lb.me?.rank?lb.me.nickname:"",week=paperRankScope==="week",baseRows=week&&Array.isArray(lb.participants)&&lb.participants.length?[...lb.participants]:[...lb.top];week&&baseRows.sort((a,b)=>(Number(b.weeklyReturnPct)||0)-(Number(a.weeklyReturnPct)||0));const rows=baseRows.slice(0,compact?5:10).map((row,index)=>{const pct=week?row.weeklyReturnPct:row.returnPct,dir=paperDirClass(pct),isMe=lb.me?.rank===row.rank&&row.nickname===meNick,rankNum=week?index+1:Number(row.rank);return`<div class="pp-lb-row ${isMe?"is-me":""} ${paperRankMotionClass(row)}" data-pp-act="rank-expand" data-rankkey="${esc(paperRankRowKey(row))}" role="button" tabindex="0" title="클릭하면 포트폴리오 비중을 볼 수 있어요">
       <span class="pp-lb-rank">${rankNum<=3?medals[rankNum-1]:`${rankNum}위`}</span>
       ${paperRankMainHtml(row,isMe)}
       ${paperRankMoneyHtml(row,pct,dir)}
     </div>${paperRankDetailHtml(row)}`}).join(""),meRow=!week&&lb.me?.rank&&lb.me.rank>(compact?5:10)?`<div class="pp-lb-row is-me ${paperRankMotionClass(lb.me)}" data-pp-act="rank-expand" data-rankkey="${esc(paperRankRowKey(lb.me))}" role="button" tabindex="0"><span class="pp-lb-rank">${lb.me.rank}위</span>${paperRankMainHtml(lb.me,!0)}${paperRankMoneyHtml(lb.me,lb.me.returnPct,paperDirClass(lb.me.returnPct))}</div>${paperRankDetailHtml(lb.me)}`:"",updated=typeof relativeTimeKR=="function"&&lb.updatedAt?relativeTimeKR(lb.updatedAt):"";return`<div class="pp-card">
-    <div class="pp-card-head"><span class="pp-cap">수익률 랭킹${week?" · 주간(월요일 리셋)":""}</span><em>${compact?"":`<span class="pp-scope-toggle" role="group" aria-label="랭킹 기간">
+    <div class="pp-card-head"><span class="pp-cap pp-ranking-title">수익률 랭킹${week?" · 주간(월요일 리셋)":""}</span><em>${compact?"":`<span class="pp-scope-toggle" role="group" aria-label="랭킹 기간">
       <button class="pp-btn ${week?"":"on"}" type="button" data-pp-act="rank-scope" data-scope="all">누적</button>
       <button class="pp-btn ${week?"on":""}" type="button" data-pp-act="rank-scope" data-scope="week">주간</button>
     </span>`}참가 ${lb.total}명${updated?` · ${esc(updated)} 집계`:""}</em></div>
