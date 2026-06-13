@@ -31,8 +31,8 @@ const MARKET_FORECAST_REFRESH_MS=12e4;let marketForecastData=null,marketForecast
         <em>${esc(confidenceText)} · ${availabilityText}</em>
         <em>${esc(updatedText)}${accText?` · ${esc(accText)}`:""}</em>
       </div>
-    </div>`,liveWithoutSnapshot=String(phase?.key||"")==="krlive"&&!usingDisplaySnapshot,topBlock=liveWithoutSnapshot?`<div class="fc-prep" role="status"><strong>오늘 장 진행 중</strong><span>${esc(phase?.note||"내일장 예측은 오후 3시 30분 마감 직후부터 제공됩니다.")}</span></div>`:`${hero}${basisHtml}`,phaseNotice=marketForecastPhaseNoticeHtml(phase,displayMeta),shareHint=usingDisplaySnapshot?"오늘 아침 예측치로 링크 생성":"현재 보이는 예측치로 링크 생성",shareStrip=`<div class="fc-share-bar${phaseNotice?" has-phase":""}">
-    <span class="fc-share-copy"><b>엑셀코스피 내일장 예측</b><em>${esc(shareHint)}</em></span>
+    </div>`,liveWithoutSnapshot=String(phase?.key||"")==="krlive"&&!usingDisplaySnapshot,topBlock=liveWithoutSnapshot?`<div class="fc-prep" role="status"><strong>오늘 장 진행 중</strong><span>${esc(phase?.note||"내일장 예측은 오후 3시 30분 마감 직후부터 제공됩니다.")}</span></div>`:`${hero}${basisHtml}`,phaseNotice=marketForecastPhaseNoticeHtml(phase,displayMeta),shareStrip=`<div class="fc-share-bar${phaseNotice?" has-phase":""}">
+    <span class="fc-share-copy"><b>엑셀코스피 내일장 예측</b></span>
     ${phaseNotice}
     <button class="fc-share-btn" type="button" data-forecast-share aria-label="내일장 예측 공유">
       <svg aria-hidden="true"><use href="#i-ios-share"></use></svg><strong>지금 이 내용 공유</strong>
