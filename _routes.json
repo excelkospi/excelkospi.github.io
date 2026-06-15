@@ -27,6 +27,8 @@
     "/coinboard",
     "/freeboard",
     "/opsboard",
+    "/login",
+    "/login.html",
     "/status",
     "/status/*",
     "/paper",
