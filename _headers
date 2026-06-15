@@ -32,6 +32,12 @@
 /assets/community-ui.js
   Cache-Control: public, max-age=31536000, immutable
 
+/assets/status.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/status.js
+  Cache-Control: public, max-age=31536000, immutable
+
 /assets/keep-awake.mp4
   Cache-Control: public, max-age=86400
 

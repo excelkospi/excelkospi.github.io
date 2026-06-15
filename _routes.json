@@ -27,6 +27,8 @@
     "/coinboard",
     "/freeboard",
     "/opsboard",
+    "/status",
+    "/status/*",
     "/paper",
     "/paper/*",
     "/sports",
