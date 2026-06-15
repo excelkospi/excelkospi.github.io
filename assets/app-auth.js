@@ -8,7 +8,7 @@ const AUTH_SESSION_KEY="kg_auth_session_v1",AUTH_SYNC_V2_META_KEY="kg_auth_accou
     </a>`}return`<a class="auth-panel auth-settings-profile auth-settings-profile-empty" href="${authAccountHref()}">
     <span class="auth-settings-profile-text">
       <strong>로그인하세요</strong>
-      <em>종목·보유정보·설정을 계정에 동기화합니다</em>
+      <em>6/16 오후 오픈 예정</em>
     </span>
     <span class="auth-settings-profile-pill">로그인</span>
     <span class="auth-settings-chevron" aria-hidden="true">›</span>
