@@ -28,7 +28,7 @@
     "/freeboard",
     "/opsboard",
     "/login",
-    "/login.html",
+    "/login/index.html",
     "/status",
     "/status/*",
     "/paper",

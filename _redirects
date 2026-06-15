@@ -8,8 +8,6 @@
 /opsboard / 200
 /paper / 200
 /paper/* / 200
-/login /login.html 200
-/login/ /login.html 200
 /sports / 200
 /forecast / 200
 /forecast/* / 200
