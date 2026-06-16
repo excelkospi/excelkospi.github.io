@@ -289,11 +289,11 @@ ${def.desc} — 이 뱃지를 받았어요`:""}window.paperBadgeTipByEmoji=paper
     ${rows}${meRow}
     <p class="pp-lb-note">순위는 약 1분마다 자동으로 다시 계산돼요. 참가자를 클릭하면 보유 종목 비중을 볼 수 있어요.</p>
     ${compact?"":paperParticipantListHtml(lb)}
-  </div>`}function paperOrdersHtml(){const orders=paperData?.orders||[];return orders.length?`<div class="pp-card"><div class="pp-card-head"><span class="pp-card-title">최근 체결</span></div>${orders.slice(0,8).map(order=>{const sideText=order.side==="sell"?"매도":"매수",realized=Number(order.realized),time=typeof relativeTimeKR=="function"?relativeTimeKR(order.created_at):"";return`<div class="pp-order-row ${order.side}">
+  </div>`}function paperOrdersHtml(){const orders=paperData?.orders||[];return orders.length?`<div class="pp-card"><div class="pp-card-head"><span class="pp-card-title">최근 체결</span></div>${orders.slice(0,8).map(order=>{const isBonus=order.side==="bonus",sideText=isBonus?"보너스":order.side==="sell"?"매도":"매수",realized=Number(order.realized),time=typeof relativeTimeKR=="function"?relativeTimeKR(order.created_at):"",detail=isBonus?"공유 링크 방문":`${paperQtyText(order.market,order.qty)} × ${Math.round(order.price).toLocaleString("ko-KR")}`,amount=isBonus?paperWon(order.amount,!0):paperWon(order.amount);return`<div class="pp-order-row ${esc(isBonus?"bonus":order.side)}">
       <span class="pp-order-side">${sideText}</span>
       <b>${esc(order.name||order.code)}</b>
-      <em>${paperQtyText(order.market,order.qty)} × ${Math.round(order.price).toLocaleString("ko-KR")}</em>
-      <span class="pp-order-amt">${paperWon(order.amount)}${Number.isFinite(realized)&&order.side==="sell"?` <i class="${paperDirClass(realized)}">${paperWon(realized,!0)}</i>`:""}</span>
+      <em>${esc(detail)}</em>
+      <span class="pp-order-amt">${amount}${Number.isFinite(realized)&&order.side==="sell"?` <i class="${paperDirClass(realized)}">${paperWon(realized,!0)}</i>`:""}</span>
       <small>${esc(time)}</small>
     </div>`}).join("")}</div>`:""}function paperTradeMarketLabel(market){return market==="COIN"?"코인":market==="US"?"해외":market==="KR"?"국내":""}function paperPublicRecentTradesHtml(compact=!1){const trades=(paperLeaderboard?.stats?.recentTrades||[]).slice(0,compact?8:14);return trades.length?`<div class="pp-card pp-public-trades">
     <div class="pp-card-head"><span class="pp-card-title">전체 참가자 최근 체결</span><em>리더보드 캐시</em></div>
