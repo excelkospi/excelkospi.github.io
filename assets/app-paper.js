@@ -13,7 +13,7 @@ ${def.desc} — 이 뱃지를 받았어요`:""}window.paperBadgeTipByEmoji=paper
     <summary class="pp-help-summary" aria-expanded="false">이용 안내 · 거래 시간 · 휴면/초기화 정책</summary>
     <p class="pp-disc pp-beta-disc"><b>베타 기능</b><br>거래내역과 계좌가 예고 없이 초기화될 수 있어요.</p>
     <p class="pp-disc">가상 자금으로 하는 연습 투자예요. 체결가·잔고·순위는 모두 서버가 계산해요.
-    ${rankDays}일 동안 접속하지 않으면 랭킹에서 빠지고, ${deleteDays}일이 지나면 계좌가 삭제돼요.</p>
+    ${paperIsLoggedIn()?"회원 계정은 1년 동안 접속하지 않으면 계정이 삭제될 수 있어요.":`${rankDays}일 동안 접속하지 않으면 랭킹에서 빠지고, ${deleteDays}일이 지나면 계좌가 삭제돼요.`}</p>
     <p class="pp-disc"><b>운영정책</b><br>부적절한 닉네임·활동(욕설·사칭·도배·어뷰징 등)이 확인되면 사전 통지 없이
     닉네임이 임의로 변경되거나, 계정이 제한·삭제될 수 있어요. 가상 자산이라 보상 대상이 아니에요.</p>
     <p class="pp-disc"><b>거래 시간</b><br>
@@ -289,8 +289,9 @@ ${def.desc} — 이 뱃지를 받았어요`:""}window.paperBadgeTipByEmoji=paper
       <small>${esc(time)}</small>
     </div>`}).join("")}</div>
   </div>`:""}function paperFootHtml(){return`<div class="pp-foot">
+    ${paperIsLoggedIn()?"":`
     <button class="pp-btn" type="button" data-pp-act="qr" ${paperBusy?"disabled":""}>QR/공유로 기기 연결</button>
-    <button class="pp-btn" type="button" data-pp-act="reissue" ${paperBusy?"disabled":""}>복구코드 재발급</button>
+    <button class="pp-btn" type="button" data-pp-act="reissue" ${paperBusy?"disabled":""}>복구코드 재발급</button>`}
     <button class="pp-btn" type="button" data-pp-act="refresh" ${paperLoadInFlight||paperBusy?"disabled":""}>${paperLoadingText?"새로고침 중...":"새로고침"}</button>
   </div>${paperNoticeHtml()}`}function paperTableHtml(){return paperError&&!paperData?paperDashWrap('<div class="pp pp-state">모의투자 정보를 불러오지 못했어요. 잠시 후 자동으로 다시 시도해요.<button class="pp-btn" type="button" data-pp-act="refresh">다시 불러오기</button></div>'):paperData?paperData.account?paperDashWrap(`<div class="pp">
     ${paperPageHeaderHtml()}
