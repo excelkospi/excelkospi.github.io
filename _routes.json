@@ -42,6 +42,8 @@
     "/blank",
     "/advertiser",
     "/advertiser/*",
+    "/admin",
+    "/admin/",
     "/admin.html",
     "/robots.txt",
     "/sitemap.xml",
