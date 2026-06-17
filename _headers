@@ -23,6 +23,21 @@
 /profile/index.html
   Cache-Control: no-cache, max-age=0
 
+/admin
+  Cache-Control: no-store, no-cache, max-age=0, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/admin/
+  Cache-Control: no-store, no-cache, max-age=0, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/admin.html
+  Cache-Control: no-store, no-cache, max-age=0, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
 /og.png
   Cache-Control: public, max-age=3600
 
@@ -51,6 +66,9 @@
   Cache-Control: no-cache, max-age=0
 
 /assets/app-auth-wizard.js
+  Cache-Control: no-cache, max-age=0
+
+/assets/app-paper.js
   Cache-Control: no-cache, max-age=0
 
 /assets/community-ui.js
