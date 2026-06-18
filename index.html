@@ -787,18 +787,18 @@
   </span>
 </div>
 <span id="chatFloatMount" hidden></span>
-<section class="chat-panel" id="chatPanel" aria-label="실시간 채팅" aria-live="polite">
+<section class="chat-panel" id="chatPanel" aria-label="채팅" aria-live="polite">
   <header class="chat-head">
     <div class="chat-title">
-      <span id="chatHeaderTitle">실시간 채팅</span>
+      <span id="chatHeaderTitle">채팅</span>
+      <small id="chatStatus"><span class="chat-live-indicator chat-live-dot" data-chat-transport="polling" aria-hidden="true"></span><span>자동 갱신 준비 중</span></small>
+    </div>
+    <div class="chat-head-actions">
       <span class="chat-channel-switch" id="chatChannelSwitch" role="group" aria-label="채팅 채널">
         <button type="button" data-chat-channel="1" aria-pressed="true" title="채널1">채널1</button>
         <button type="button" data-chat-channel="2" aria-pressed="false" title="채널2">채널2</button>
       </span>
-      <small id="chatStatus"><span class="chat-live-indicator chat-live-dot" data-chat-transport="polling" aria-hidden="true"></span><span>자동 갱신 준비 중</span></small>
       <span class="chat-rank-wrap" id="chatRankWrap" hidden><button id="chatRankPill" class="chat-rank-pill" type="button" aria-haspopup="true" aria-expanded="false" aria-label="현재 순위 보기" title="현재 순위"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 19h14"/><path d="M8 16V9"/><path d="M12 16V6"/><path d="M16 16v-5"/><path d="M7 9h2M11 6h2M15 11h2"/></svg></button><span id="chatRankTip" class="chat-rank-tip" role="tooltip"></span></span>
-    </div>
-    <div class="chat-head-actions">
       <button class="chat-head-btn chat-excel-toggle" id="chatExcelToggle" type="button" aria-label="엑셀식 표 보기" aria-pressed="false" title="엑셀식 표 보기"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="4.5" width="15" height="15" rx="1.2"/><path d="M8.25 4.5v15M12 4.5v15M15.75 4.5v15M4.5 8.25h15M4.5 12h15M4.5 15.75h15"/></svg></button>
       <button class="chat-head-btn chat-dock-toggle" id="chatDockToggle" type="button" aria-label="오른쪽에 붙이기" aria-pressed="false" title="오른쪽에 붙이기" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M14 5v14M16.8 9.2l2.2 2.8-2.2 2.8"/></svg></button>
       <button class="chat-head-btn chat-popout-toggle" id="chatPopoutToggle" type="button" aria-label="별도 창으로 분리" title="별도 창으로 분리"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4M14 4h6v6M20 4l-9 9"/></svg></button>
