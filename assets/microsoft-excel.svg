@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="excelkospi">
-  <rect width="64" height="64" rx="14" fill="#fff"/>
-  <rect x="11" y="13" width="35" height="39" rx="7" fill="#107c41"/>
-  <path d="M17 20h23M17 27h23M17 34h23M17 41h23M24 20v27M31 20v27" stroke="#34c982" stroke-width="1.55" opacity=".7"/>
-  <rect x="23" y="19" width="31" height="31" rx="6.5" fill="#185c37"/>
-  <path d="M30.1 42 36.4 34l-5.9-8h5.6l3.1 4.9 3.3-4.9h5.2l-5.9 7.8 6.2 8.2h-5.6L39 36.8 35.3 42z" fill="#fff"/>
-  <path d="M47 19h.9A6.1 6.1 0 0 1 54 25.1v18.8a6.1 6.1 0 0 1-6.1 6.1H47z" fill="#21a366"/>
-</svg>
