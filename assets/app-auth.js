@@ -194,7 +194,7 @@ const AUTH_SESSION_KEY="kg_auth_session_v1",AUTH_PENDING_WIZARD_KEY="kg_auth_pen
       <button class="auth-button auth-lupang-share" type="button" data-auth-act="lupang-share" aria-label="내 루팡 시간 공유하기">공유</button>
     </div>
     <div class="auth-lupang-stats">
-      <span${payAttr}><em>루팡시간 환산급여</em><b>${esc(earned)}</b></span>
+      <span${payAttr}><em>환산액</em><b>${esc(earned)}</b></span>
       <span${payAttr}><em>기준</em><small>시급 ${esc(hourly)}원 기준 및 주휴·초과·야근수당 포함</small></span>
     </div>
   </div>`}function authProfilePanelHtml(){if(authAvailable===null)return'<div class="auth-panel auth-sheet auth-soon"><em>계정 서버 확인 중...</em></div>';if(authAvailable===!1)return'<div class="auth-panel auth-sheet auth-soon"><em>로그인 기능은 준비 중이에요. 곧 열려요.</em></div>';if(authRecoveryInlineState)return authRecoveryPanelHtml(authRecoveryInlineState);if(authRecoveryPasswordResetState=authRecoveryPasswordResetState||authReadRecoveryPasswordReset(),authRecoveryPasswordResetState)return authRecoveryPasswordResetPanelHtml();const u=currentAuthUser();if(!u)return`<div class="auth-panel auth-sheet auth-profile-empty">
