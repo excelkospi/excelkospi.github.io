@@ -29,7 +29,12 @@ jobs:
         run: |
           rm -rf .pages-artifact
           mkdir .pages-artifact
-          rsync -a             --exclude ".git"             --exclude ".github"             --exclude ".pages-artifact"             --exclude ".DS_Store"             ./ .pages-artifact/
+          rsync -a \
+            --exclude ".git" \
+            --exclude ".github" \
+            --exclude ".pages-artifact" \
+            --exclude ".DS_Store" \
+            ./ .pages-artifact/
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
