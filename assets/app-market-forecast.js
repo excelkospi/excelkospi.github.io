@@ -126,8 +126,8 @@ ${url}`}function marketForecastRememberSharePreview(snapshot){!snapshot?.url||!s
       ${intradayMode?'<div class="fc-list-head"><span>종가 근거</span><span>종가 영향</span><span>추이</span><span>현재값</span><span>종가 기여</span></div>':'<div class="fc-list-head"><span>지표</span><span>지금 상황</span><span>추이</span><span>현재값</span><span>기여도</span></div>'}
       ${rows||'<div class="fc-row-empty forecast-muted">지표 수신 대기</div>'}
     </div>`,refDeck=showPrep?"":`
-    <details class="fc-ref" data-fc-details="ref">
-      <summary class="fc-ref-head"><span class="fc-ref-title"><i class="fc-ref-caret" aria-hidden="true"></i><span class="fc-cap">코스피 등락에 영향을 주는 지표 펼쳐보기</span></span></summary>
+    <details class="fc-ref" data-fc-details="ref" open>
+      <summary class="fc-ref-head"><span class="fc-ref-title"><i class="fc-ref-caret" aria-hidden="true"></i><span class="fc-cap">코스피 등락에 영향을 주는 지표들</span></span></summary>
       <p class="fc-ref-acc">${esc(marketForecastRefAccuracyLine(displayData))}</p>
       ${pollHtml}${list}
     </details>`,news=(Array.isArray(displayData.news)?displayData.news:[]).slice(0,3).map(item=>{const href=safeNewsUrl(item.link);return`<a class="fc-news-link" href="${esc(href||"https://finance.yahoo.com")}" target="_blank" rel="noopener">${esc(item.title||"제목 없음")}</a>`}).join(""),paperStrip=typeof paperRankStripHtml=="function"?paperRankStripHtml():"",modelVer=String(displayData?.model?.displayVersion||"").trim(),verLine=modelVer?`<p class="fc-modelver">현재 예측 모델 버전 : ${esc(modelVer)}</p>`:"",foot=`
