@@ -14,7 +14,7 @@ function renderHoldingEditRow(card,rowNo,current={}){const id=holdingId(card),lo
     <tr class="holding-row holding-lot-row${`${index===0?" holding-lot-first":""}${index===total-1?" holding-lot-last":""}`} ${card.userAdded?"user-holding-row":""}" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" title="${esc(titlePrefix)}평가액 ${holdingSummaryMoneyText(calc.value,calc.currency)} · 원금 ${holdingSummaryMoneyText(calc.invested,calc.currency)} · 누적 손익 ${signedHoldingSummaryMoneyText(calc.pnl,calc.currency)}${dailyTitle} · 구매가격 ${holdingSummaryMoneyText(calc.avg,calc.currency)} · 수량 ${num(calc.qty)}">
       <td class="rownum">${rowNo}</td>
       <td class="left holding-cell holding-meta-cell">
-        ${holdingLotMetaHtml(calc,index,total)}
+        ${holdingLotMetaHtml(calc,index,total,card)}
         <button class="holding-row-add holding-row-edit" data-action="edit-holding-lot" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" data-key="${esc(card.key)}" title="${esc(card.key)} 보유 정보 수정" aria-label="보유 정보 수정">수정</button>
         <button class="holding-row-add" data-action="add-holding-lot" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" data-key="${esc(card.key)}" title="${esc(card.key)} 보유 행 추가" aria-label="보유 행 추가">추가</button>
         <button class="row-x holding-row-x" data-action="clear-holding" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" data-key="${esc(card.key)}" title="${esc(card.key)} 보유 정보 삭제" aria-label="보유 정보 삭제">×</button>
