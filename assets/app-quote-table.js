@@ -1,7 +1,7 @@
 function renderHoldingEditRow(card,rowNo,current={}){const id=holdingId(card),lotId=holdingInputState?.lotId||newHoldingLotId();return`
     <tr class="holding-row holding-edit-row ${card.userAdded?"user-holding-row":""}" data-holding-id="${esc(id)}" data-lot-id="${esc(lotId)}" title="${esc(card.key)} 보유 정보 입력">
       <td class="rownum">${rowNo}</td>
-      <td class="left holding-cell" colspan="${holdingsQuoteViewActive()?4:3}">
+      <td class="left holding-cell" colspan="3">
         <div class="holding-inline" data-holding-id="${esc(id)}" data-lot-id="${esc(lotId)}" data-after-lot-id="${esc(holdingInputState?.afterLotId||"")}" data-key="${esc(card.key)}">
           <input data-holding-avg type="text" inputmode="decimal" autocomplete="off" placeholder="평단가" value="${esc(holdingInputValue(current.avg))}" aria-label="평단가" />
           <input data-holding-qty type="text" inputmode="decimal" autocomplete="off" placeholder="수량" value="${esc(holdingInputValue(current.qty))}" aria-label="수량" />
@@ -19,20 +19,19 @@ function renderHoldingEditRow(card,rowNo,current={}){const id=holdingId(card),lo
         <button class="holding-row-add" data-action="add-holding-lot" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" data-key="${esc(card.key)}" title="${esc(card.key)} 보유 행 추가" aria-label="보유 행 추가">추가</button>
         <button class="row-x holding-row-x" data-action="clear-holding" data-holding-id="${esc(id)}" data-lot-id="${esc(lot.lotId)}" data-key="${esc(card.key)}" title="${esc(card.key)} 보유 정보 삭제" aria-label="보유 정보 삭제">×</button>
       </td>
-      <td class="right holding-value-cell ${valueClass}">${esc(pnlText)}</td>${holdingsQuoteViewActive()?`
-      <td class="right holding-eval-cell">${esc(holdingEvalAmountText(calc.value,calc.currency))}</td>`:""}
+      <td class="right holding-value-cell ${valueClass}">${esc(pnlText)}</td>
       <td class="right holding-return-cell ${returnClass}">${esc(pctText)}</td>
     </tr>`}function renderHoldingRows(card,rowNo){if(!canHoldCard(card))return{html:"",count:0};const id=holdingId(card),lots=holdingLotsForId(id),editing=holdingInputState&&holdingInputState.id===id,rows=[];let nextRow=rowNo,insertedEdit=!1;const pushEdit=(current={})=>{rows.push(renderHoldingEditRow(card,nextRow++,current)),insertedEdit=!0};return editing&&!lots.length?pushEdit({}):(lots.forEach((lot,index)=>{editing&&holdingInputState.lotId===lot.lotId&&!holdingInputState.isNew?pushEdit(lot):rows.push(renderHoldingLotRow(card,nextRow++,lot,index,lots.length)),editing&&holdingInputState.isNew&&holdingInputState.afterLotId===lot.lotId&&pushEdit({})}),editing&&holdingInputState.isNew&&!insertedEdit&&pushEdit({})),{html:rows.join(""),count:nextRow-rowNo}}function renderHoldingsEmptyRow(rowNo){return`
     <tr class="holding-empty-row">
       <td class="rownum">${rowNo}</td>
-      <td class="left holding-empty-cell" colspan="${holdingsQuoteViewActive()?4:3}">
+      <td class="left holding-empty-cell" colspan="3">
         <span class="holding-empty-title">등록된 보유종목이 없습니다.</span>
         <span class="holding-empty-copy">종목 이름에 마우스를 올려 <b>₩</b> 버튼을 누르면 보유수량과 평단가를 입력할 수 있어요!</span>
       </td>
     </tr>`}function renderCashEditRow(card,rowNo){const id=String(card.cashId||""),market=normalizeCashPositionMarket(card.market),currency=normalizeCashPositionCurrency(card.cashCurrency,market),amountValue=Number(card.cashAmount)>0?cashAmountText(card.cashAmount,currency):"",labelValue=normalizeCashLabel(card.key)||cashPositionDefaultLabel({market,currency});return`
     <tr class="holding-row cash-row cash-edit-row" data-cash-id="${esc(id)}" title="현금 정보 입력">
       <td class="rownum">${rowNo}</td>
-      <td class="left holding-cell" colspan="${holdingsQuoteViewActive()?4:3}">
+      <td class="left holding-cell" colspan="3">
         <div class="holding-inline cash-inline" data-cash-id="${esc(id)}">
           <input data-cash-label type="text" autocomplete="off" placeholder="현금" value="${esc(labelValue)}" aria-label="현금 이름" />
           <input data-cash-amount type="text" inputmode="decimal" autocomplete="off" placeholder="금액" value="${esc(amountValue)}" aria-label="현금 금액" />
@@ -48,26 +47,17 @@ function renderHoldingEditRow(card,rowNo,current={}){const id=holdingId(card),lo
     <tr class="cash-row"${rowDragAttrs} data-cash-id="${esc(id)}" data-outlook-badge="" data-outlook-tone="" title="${title}">
       <td${rowNumAttrs}>${rowNo}</td>
       <td class="left"><div class="metric-cell"><span class="metric-label">${esc(c.key)}</span><span class="metric-trail quote-action-trail">${actions}${sourcePillHtml(c)}</span></div></td>
-      <td class="right quote-price-cell">${cashAmountHtml(c.cashAmount,currency)}</td>${holdingsQuoteViewActive()?`
-      <td class="right holding-eval-cell">${esc(quoteRowHoldingEvalText(c))}</td>`:""}
+      <td class="right quote-price-cell">${cashAmountHtml(c.cashAmount,currency)}</td>
       <td class="right flat quote-change-cell"><span class="flat">-</span></td>
     </tr>`}function shouldRenderUsDayQuoteNotice(cards,session){if(!sessionHas(session,"US_DAY"))return!1;const renderedMarket=String(typeof currentRenderedMarket=="string"?currentRenderedMarket:"").toUpperCase(),selectedMarket=String(typeof selected=="string"?selected:"").toUpperCase();return renderedMarket==="US"||selectedMarket==="US"?!0:Array.isArray(cards)&&cards.some(card=>String(card?.market||"").toUpperCase()==="US")}function renderUsDayQuoteNoticeRow(rowNo){return`
     <tr class="us-day-quote-notice-row">
       <td class="rownum">${rowNo}</td>
-      <td class="left us-day-quote-notice-cell" colspan="${holdingsQuoteViewActive()?4:3}">미장 데이장은 자동 갱신 시세 미지원. 차트를 열었을 때만 현재가가 보입니다.</td>
+      <td class="left us-day-quote-notice-cell" colspan="3">미장 데이장은 자동 갱신 시세 미지원. 차트를 열었을 때만 현재가가 보입니다.</td>
     </tr>`}function hlProxyBadgeHtml(card){if(!card?._hlProxy)return"";const tooltip=card._hlTooltip||"HL/Binance 주식 퍼프 기반 24시간 참고 시세입니다.";return`<span class="hl-proxy-badge" tabindex="0" data-hl-tooltip="${esc(tooltip)}" aria-label="${esc(tooltip)}"><span class="hl-proxy-moon" aria-hidden="true">☾</span><span>HL 24h</span></span>`}function hlProxyHeaderRowHtml(rowNo){return`
     <tr class="hl-proxy-header-row">
       <td class="rownum">${rowNo}</td>
       <td class="left hl-proxy-header-cell" colspan="3"><span class="hl-proxy-header-title">HyperLiquid 24시간 시세</span><span class="hl-proxy-header-sub">— 장 종료 후에만 표시됩니다</span><span class="hl-proxy-info" tabindex="0" role="button" aria-label="이게 뭔가요? — 설명 보기">i</span></td>
-    </tr>`}function hlProxyRowClass(card){if(!card?._hlProxy)return"";const quality=String(card._hlQuality||"normal").toLowerCase().replace(/[^a-z0-9_-]/g,"")||"normal",status=String(card._hlStatus||"idle").toLowerCase().replace(/[^a-z0-9_-]/g,"")||"idle";return` hl-proxy-row hl-proxy-quality-${quality} hl-proxy-status-${status}`}function cardRenderedCells(c){let priceCell,changeCell,changeClass,previewChangeValue=null;if(c._momentum!==void 0&&c._momentum!==null)priceCell='<span class="flat">-</span>',changeCell=pct(c._momentum),changeClass=cls(c._momentum),previewChangeValue=c._momentum;else if(c.sign&&c.priceUnit){const unit=displayPriceUnit(c);priceCell=c.price==null?'<span class="flat">-</span>':`${quotePriceNumberText(c.price,"",unit,c.priceUnit)}${esc(unit)}`,changeCell='<span class="flat">-</span>',changeClass="flat"}else{priceCell=isRateOnlyCard(c.key)?"&nbsp;":cardPriceDisplayHtml(c);const selectedChange=changeValueFor(c);changeCell=`<span class="change-wrap"><span>${shouldRenderChangeSessionTag(c)?`<span class="flat" title="본장 외 세션 표시">${esc(c.sessionTag)}</span>`:pct(selectedChange)}</span></span>`,changeClass=cls(selectedChange),previewChangeValue=selectedChange}return{priceCell,changeCell,changeClass,previewChangeValue,changeTitle:changeCellTitle(c,previewChangeValue)}}function shouldRenderChangeSessionTag(c){return!c?.sessionTag||changeWindow!=="day"?!1:String(c.market||"").toUpperCase()==="KR"?String(c.source||"").toUpperCase().includes("NXT"):!0}function renderCardsTable(cards,session){const holdingsView=holdingsQuoteViewActive(),dataCols=holdingsView?4:3;try{document.getElementById("cardsTable")?.classList.toggle("holdings-view",holdingsView)}catch{}const header=holdingsView?`
-    <tr>
-      <th class="rownum"></th>
-      <th class="colhead">A</th><th class="colhead">B</th><th class="colhead">C</th><th class="colhead">D</th>
-    </tr>
-    <tr>
-      <th class="rownum">1</th>
-      <th class="subhead">지표</th><th class="subhead">현재가</th><th class="subhead">평가액</th><th class="subhead">${changeHeaderLabel()}</th>
-    </tr>`:`
+    </tr>`}function hlProxyRowClass(card){if(!card?._hlProxy)return"";const quality=String(card._hlQuality||"normal").toLowerCase().replace(/[^a-z0-9_-]/g,"")||"normal",status=String(card._hlStatus||"idle").toLowerCase().replace(/[^a-z0-9_-]/g,"")||"idle";return` hl-proxy-row hl-proxy-quality-${quality} hl-proxy-status-${status}`}function cardRenderedCells(c){let priceCell,changeCell,changeClass,previewChangeValue=null;if(c._momentum!==void 0&&c._momentum!==null)priceCell='<span class="flat">-</span>',changeCell=pct(c._momentum),changeClass=cls(c._momentum),previewChangeValue=c._momentum;else if(c.sign&&c.priceUnit){const unit=displayPriceUnit(c);priceCell=c.price==null?'<span class="flat">-</span>':`${quotePriceNumberText(c.price,"",unit,c.priceUnit)}${esc(unit)}`,changeCell='<span class="flat">-</span>',changeClass="flat"}else{priceCell=isRateOnlyCard(c.key)?"&nbsp;":cardPriceDisplayHtml(c);const selectedChange=changeValueFor(c);changeCell=`<span class="change-wrap"><span>${shouldRenderChangeSessionTag(c)?`<span class="flat" title="본장 외 세션 표시">${esc(c.sessionTag)}</span>`:pct(selectedChange)}</span></span>`,changeClass=cls(selectedChange),previewChangeValue=selectedChange}return{priceCell,changeCell,changeClass,previewChangeValue,changeTitle:changeCellTitle(c,previewChangeValue)}}function shouldRenderChangeSessionTag(c){return!c?.sessionTag||changeWindow!=="day"?!1:String(c.market||"").toUpperCase()==="KR"?String(c.source||"").toUpperCase().includes("NXT"):!0}function renderCardsTable(cards,session){const holdingsView=holdingsQuoteViewActive();try{document.getElementById("cardsTable")?.classList.toggle("holdings-view",holdingsView)}catch{}const header=`
     <tr>
       <th class="rownum"></th>
       <th class="colhead">A</th><th class="colhead">B</th><th class="colhead">C</th>
@@ -92,21 +82,19 @@ function renderHoldingEditRow(card,rowNo,current={}){const id=holdingId(card),lo
     <tr class="${isUser?"user-row"+errCls:""}${trExtraCls}${holdingGroupCls}" data-quote-id="${esc(quoteId)}"${rowDragAttrs}${hlDataAttrs}${priceValueAttr} data-chart-label="${esc(c.key)}" data-tv-symbol="${esc(tvSymbol)}" data-tv-tip-preferred="${tvTipPreferred}" data-outlook-badge="${esc(outlookBadgeText(c))}" data-outlook-tone="${esc(outlookBadgeTone(c))}"${rowTitleAttr}>
       <td${rowNumAttrs}>${currentRowNo}</td>
       <td class="left"><div class="metric-cell"><span class="metric-label">${labelHtml}${labelExtra}${live}</span>${tvButton}${outlookPreviewHtml(c,previewChangeValue)}<span class="metric-trail ${removeBtn?"quote-action-trail":""}">${removeBtn}${c._hlProxy?hlProxyBadgeHtml(c):sourcePillHtml(c)}</span></div></td>
-      <td class="right quote-price-cell">${priceCell}</td>${holdingsView?`
-      <td class="right holding-eval-cell">${esc(quoteRowHoldingEvalText(c))}</td>`:""}
+      <td class="right quote-price-cell">${priceCell}</td>
       <td class="right ${changeClass} quote-change-cell"${changeTitle?` title="${esc(changeTitle)}"`:""}>${changeCell}</td>
     </tr>`;return holdingRows.html&&(rowHtml+=holdingRows.html,rowNo+=holdingRows.count),rowHtml}).join("");const summaryRows=renderHoldingSummaryRows(cards,rowNo);rowNo+=summaryRows.count;const adBlankRowNo=rowNo++,adContentRowNo=rowNo++,summaryAdRows=`
     <tr class="summary-sheet-note-blank-row" aria-hidden="true">
       <td class="rownum">${adBlankRowNo}</td>
       <td class="left"></td>
-      <td class="right"></td>${holdingsView?`
-      <td class="right"></td>`:""}
+      <td class="right"></td>
       <td class="right"></td>
     </tr>
     <tr class="summary-sheet-note-row" data-xk-area="summary" data-xk-position="summary-bottom" data-xk-id="sponsor-open" data-xk-label="알림" data-xk-variant-index="0" data-xk-variant-text="이곳에 한줄 광고를 넣어주실 광고주를 모십니다.">
       <td class="rownum">${adContentRowNo}</td>
-      <td class="left summary-sheet-note-cell" colspan="${dataCols}">
+      <td class="left summary-sheet-note-cell" colspan="3">
         <span class="notice-badge" data-xk-label>알림</span>
         <span class="community-text-note"><a class="notice-copy" href="mailto:excelkospi@outlook.com" data-xk-click="1">이곳에 한줄 광고를 넣어주실 광고주를 모십니다.</a></span>
       </td>
-    </tr>`,MIN_VISIBLE_ROWS=80,renderedCount=rowNo-2,usedRowIdx=rowNo,padCount=Math.max(0,MIN_VISIBLE_ROWS-renderedCount),empties=makeEmptyRows(usedRowIdx,padCount,dataCols);return header+rows+summaryRows.html+summaryAdRows+empties}
+    </tr>`,MIN_VISIBLE_ROWS=80,renderedCount=rowNo-2,usedRowIdx=rowNo,padCount=Math.max(0,MIN_VISIBLE_ROWS-renderedCount),empties=makeEmptyRows(usedRowIdx,padCount,3);return header+rows+summaryRows.html+summaryAdRows+empties}
